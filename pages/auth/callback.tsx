@@ -8,9 +8,9 @@ export default function AuthCallback() {
   useEffect(() => {
     if (!router.isReady) return
 
-    const code = router.query.code
-    const state = router.query.state
-    const error = router.query.error
+    const code = router.query.code as string | undefined
+    const state = router.query.state as string | undefined
+    const error = router.query.error as string | undefined
 
     if (error) {
       setStatus('Authorization denied: ' + error)
@@ -24,7 +24,6 @@ export default function AuthCallback() {
       return
     }
 
-    // Retrieve stored PKCE values
     const storedState = sessionStorage.getItem('wcl_pkce_state')
     const verifier = sessionStorage.getItem('wcl_pkce_verifier')
     const clientId = sessionStorage.getItem('wcl_client_id')
@@ -54,7 +53,7 @@ export default function AuthCallback() {
           setTimeout(() => router.push('/'), 3000)
         }
       })
-      .catch(e => {
+      .catch((e: Error) => {
         setStatus('Error: ' + e.message)
         setTimeout(() => router.push('/'), 3000)
       })

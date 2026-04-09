@@ -1,0 +1,1 @@
+export { TalentCompare } from './TalentCompare'
