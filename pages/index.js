@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import Head from 'next/head'
 import { buildStateTracker, buildTargetTracker, buildDamageLookup, annotateCasts, detectSequences, computeUptimes, computeCastSpacing } from '../lib/gameState'
 import { buildRichContext } from '../lib/buildContext'
-import { fetchTalents, diffTalents, TalentCompare } from '../components/TalentCompare'
+import { fetchTalents, TalentCompare, fetchTalentTreeLayout } from '../components/TalentCompare'
 import { SpellUsageChart, CastTimelineChart, ProcEfficiencyChart, CooldownTimelineChart, ChartCard } from '../components/Charts'
 
 // ── PKCE ──────────────────────────────────────────────────────────────────────
@@ -464,26 +464,23 @@ export default function Home() {
       Promise.all([
         fetchTalents({ reportCode: r1, fightId: f1id, fightStart: fight1.startTime, fightEnd: fight1.endTime, playerName: name1, playerId: actor1?.id, gql }),
         fetchTalents({ reportCode: r2, fightId: f2id, fightStart: fight2.startTime, fightEnd: fight2.endTime, playerName: name2, playerId: actor2?.id, gql }),
-      ]).then(([t1, t2]) => {
-        // Resolve talent names from our already-fetched nameMap
+        fetchTalentTreeLayout(8, 64, gql),
+      ]).then(([t1, t2, treeLayout]) => {
         function resolveTalentNames(talentData) {
           if (!talentData) return talentData
           return {
             ...talentData,
-            talents: (talentData.talents || []).map(t => ({
+            talentTree: (talentData.talentTree || []).map(t => ({
               ...t,
               id: t.spellId || t.id,
               name: resolvedNames[t.spellId || t.id] || t.name || `Talent ${t.spellId || t.id}`,
             }))
           }
         }
-        const resolved1 = resolveTalentNames(t1)
-        const resolved2 = resolveTalentNames(t2)
-        // Always set even if one is null so panel shows partial data
-        setTalentDiff({ t1: resolved1, t2: resolved2, name1, name2 })
+        setTalentDiff({ t1: resolveTalentNames(t1), t2: resolveTalentNames(t2), name1, name2, treeLayout })
       }).catch(e => {
         console.warn('Talent fetch failed:', e)
-        setTalentDiff({ t1: null, t2: null, name1, name2, error: e.message })
+        setTalentDiff({ t1: null, t2: null, name1, name2, treeLayout: null, error: e.message })
       })
 
       // Auto-analyze
@@ -692,7 +689,7 @@ Use the spell IDs from the data. Both players are ${spec1} spec.`,
             <div style={s.ptitle}><div style={s.ptitleBar}/>Talent Comparison</div>
             {talentDiff.error && !talentDiff.t1 && !talentDiff.t2
               ? <div style={{fontFamily:'IBM Plex Mono,monospace',fontSize:12,color:'var(--dim)'}}>Could not load talent data: {talentDiff.error}</div>
-              : <TalentCompare p1Talents={talentDiff.t1} p2Talents={talentDiff.t2} name1={talentDiff.name1} name2={talentDiff.name2}/>
+              : <TalentCompare p1Talents={talentDiff.t1} p2Talents={talentDiff.t2} name1={talentDiff.name1} name2={talentDiff.name2} treeLayout={talentDiff.treeLayout}/>
             }
           </div>
         )}
