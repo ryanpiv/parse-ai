@@ -125,18 +125,33 @@ function categorizeTalents(talentTree, treeLayout) {
 }
 
 // ── Talent node map cache ─────────────────────────────────────────────────────
-let _nodeMap = null
+let _nodeMap = {}
+let _pendingNodeIDs = new Set()
+let _fetchTimer = null
 
-async function getNodeMap() {
-  if (_nodeMap) return _nodeMap
-  try {
-    const r = await fetch('/api/talents?class=mage&spec=frost')
-    const d = await r.json()
-    _nodeMap = d.nodeMap || {}
-    console.log(`[TalentCompare] loaded ${Object.keys(_nodeMap).length} node mappings`)
-  } catch {
-    _nodeMap = {}
-  }
+function scheduleNodeFetch(nodeIds) {
+  nodeIds.forEach(id => { if (!_nodeMap[id]) _pendingNodeIDs.add(id) })
+  clearTimeout(_fetchTimer)
+  _fetchTimer = setTimeout(async () => {
+    const ids = [..._pendingNodeIDs]
+    _pendingNodeIDs.clear()
+    if (!ids.length) return
+    try {
+      const r = await fetch('/api/talents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodeIDs: ids })
+      })
+      const d = await r.json()
+      Object.assign(_nodeMap, d.nodeMap || {})
+    } catch {}
+  }, 100)
+}
+
+async function getNodeMap(nodeIds) {
+  if (nodeIds?.length) scheduleNodeFetch(nodeIds)
+  // Wait briefly for pending fetches
+  await new Promise(r => setTimeout(r, 200))
   return _nodeMap
 }
 
@@ -206,30 +221,17 @@ async function fetchIcon(spellId) {
 
 // ── Talent Icon component ─────────────────────────────────────────────────────
 function TalentIcon({ spellId, nodeId, name, state, size = 40 }) {
-  const [iconUrl, setIconUrl] = useState(null)
-  const [resolvedName, setResolvedName] = useState(name)
+  const mapped = nodeId ? (_nodeMap[nodeId] || _nodeMap[String(nodeId)]) : null
+  const iconUrl = mapped?.icon || null
+  const displayName = mapped?.name || name
   const ref = useRef(null)
 
   useEffect(() => {
-    if (nodeId) {
-      fetchTalentInfo(nodeId, spellId).then(info => {
-        if (info) {
-          setIconUrl(info.icon)
-          if (info.name) setResolvedName(info.name)
-        }
-      })
-    } else {
-      fetchIcon(spellId).then(url => setIconUrl(url))
-    }
-  }, [spellId, nodeId])
-
-  // Trigger global tooltip system via data attribute
-  useEffect(() => {
     if (ref.current) {
-      ref.current.setAttribute('data-wh-spell', spellId)
-      ref.current.setAttribute('data-wh-name', resolvedName || name)
+      ref.current.setAttribute('data-wh-spell', mapped?.spellId || spellId)
+      ref.current.setAttribute('data-wh-name', displayName)
     }
-  }, [spellId, resolvedName, name])
+  }, [displayName, spellId, mapped])
 
   const borderColor = state === 'p1' ? 'rgba(201,162,39,0.9)'
     : state === 'p2' ? 'rgba(90,173,240,0.9)'
@@ -245,8 +247,8 @@ function TalentIcon({ spellId, nodeId, name, state, size = 40 }) {
       target="_blank"
       rel="noreferrer"
       data-wh-spell={spellId}
-      data-wh-name={resolvedName || name}
-      title={resolvedName || name}
+      data-wh-name={displayName}
+      title={displayName}
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         width: size, height: size, borderRadius: 7, flexShrink: 0,
@@ -263,9 +265,9 @@ function TalentIcon({ spellId, nodeId, name, state, size = 40 }) {
       onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.zIndex = 1 }}
     >
       {iconUrl
-        ? <img src={iconUrl} alt={resolvedName || name} style={{ width: '100%', height: '100%', display: 'block', borderRadius: 5 }} onError={e => { e.target.style.display='none' }} />
+        ? <img src={iconUrl} alt={displayName} style={{ width: '100%', height: '100%', display: 'block', borderRadius: 5 }} onError={e => { e.target.style.display='none' }} />
         : <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 8, color: '#4a5a6a', textAlign: 'center', padding: 2 }}>
-            {(resolvedName || name).slice(0, 3).toUpperCase()}
+            {(displayName).slice(0, 3).toUpperCase()}
           </span>
       }
       {/* State indicator dot */}
@@ -297,6 +299,27 @@ function IconGrid({ talents, emptyLabel }) {
 
 // ── Main TalentCompare component ──────────────────────────────────────────────
 export function TalentCompare({ p1Talents, p2Talents, name1, name2, treeLayout }) {
+  const [, forceUpdate] = useState(0)
+
+  // Pre-fetch all nodeIDs upfront in one batch
+  useEffect(() => {
+    const allNodeIDs = [
+      ...(p1Talents?.talentTree || []).map(t => t.nodeID),
+      ...(p2Talents?.talentTree || []).map(t => t.nodeID),
+    ].filter(Boolean)
+
+    if (!allNodeIDs.length) return
+
+    fetch('/api/talents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nodeIDs: [...new Set(allNodeIDs)] })
+    }).then(r => r.json()).then(d => {
+      Object.assign(_nodeMap, d.nodeMap || {})
+      console.log(`[TalentCompare] loaded ${Object.keys(d.nodeMap || {}).length} node mappings`)
+      forceUpdate(n => n + 1) // re-render with resolved icons
+    }).catch(() => {})
+  }, [p1Talents, p2Talents])
   if (!p1Talents && !p2Talents) {
     return (
       <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 12, color: 'var(--dim)', padding: '8px 0' }}>
