@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0a0c0f;
+  --bg2:     #111418;
+  --bg3:     #181d23;
+  --bg4:     #1e252e;
+  --border:  #2a3340;
+  --text:    #e8edf2;
+  --muted:   #8a9bb0;
+  --dim:     #4a5a6a;
+  --gold:    #c9a227;
+  --gold2:   #e8be40;
+  --golddim: #6a5010;
+  --blue:    #5aadf0;
+  --bluedim: #1a3f60;
+  --red:     #d44040;
+  --green:   #40a060;
+  --purple:  #a855f7;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
