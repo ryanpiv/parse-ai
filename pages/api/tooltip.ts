@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!id) return res.status(400).json({ error: 'id required' })
 
-  const url = `https://nether.wowhead.com/tooltip/${type}/${id}?dataEnv=11&locale=0`
+  const url = `https://nether.wowhead.com/tooltip/${type}/${id}`
 
   try {
     const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' } })

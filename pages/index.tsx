@@ -23,7 +23,7 @@ interface SpellRow {
 }
 
 interface TalentDiffState {
-  t1: any; t2: any; name1: string; name2: string; treeLayout: any; error?: string
+  t1: any; t2: any; name1: string; name2: string; treeLayout: any; specId?: number; error?: string
 }
 
 interface FightMeta {
@@ -212,7 +212,8 @@ export default function Home() {
             })),
           }
         }
-        setTalentDiff({ t1: resolveTalentNames(tt1), t2: resolveTalentNames(tt2), name1, name2, treeLayout })
+        const specId = tt1?.specID || tt2?.specID || undefined
+        setTalentDiff({ t1: resolveTalentNames(tt1), t2: resolveTalentNames(tt2), name1, name2, treeLayout, specId })
       }).catch(e => {
         console.warn('Talent fetch failed:', e)
         setTalentDiff({ t1: null, t2: null, name1, name2, treeLayout: null, error: e.message })
@@ -426,7 +427,7 @@ export default function Home() {
             <div style={s.ptitle}><div style={s.ptitleBar} />Talent Comparison</div>
             {talentDiff.error && !talentDiff.t1 && !talentDiff.t2
               ? <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, color: 'var(--dim)' }}>Could not load talent data: {talentDiff.error}</div>
-              : <TalentCompare p1Talents={talentDiff.t1} p2Talents={talentDiff.t2} name1={talentDiff.name1} name2={talentDiff.name2} treeLayout={talentDiff.treeLayout} />
+              : <TalentCompare p1Talents={talentDiff.t1} p2Talents={talentDiff.t2} name1={talentDiff.name1} name2={talentDiff.name2} treeLayout={talentDiff.treeLayout} specId={talentDiff.specId} />
             }
           </div>
         )}

@@ -42,12 +42,6 @@ export async function fetchTalents({
 
     let playerEvent = playerId ? events.find((e: any) => e.sourceID === playerId) : null
 
-    console.log('talentTree[0]:', JSON.stringify(playerEvent.talentTree?.[0], null, 2))
-console.log('talentTree[1]:', JSON.stringify(playerEvent.talentTree?.[1], null, 2))
-console.log('talentTree[2]:', JSON.stringify(playerEvent.talentTree?.[2], null, 2))
-console.log('talentSpec:', playerEvent.talentSpec)
-console.log('playerEvent keys:', Object.keys(playerEvent))
-
     if (!playerEvent) {
       const detailsData = await gql(
         `
@@ -79,6 +73,7 @@ console.log('playerEvent keys:', Object.keys(playerEvent))
     return {
       name: playerName,
       sourceID: playerEvent.sourceID,
+      specID: playerEvent.specID || null,
       talentTree: talentTree.length > 0 ? talentTree : talents,
       talentString: playerEvent.talentSpec || null,
     }

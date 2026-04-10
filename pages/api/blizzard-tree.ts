@@ -114,6 +114,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const result = {
       specId, treeId, total: nodes.length, nodes, edges, heroTypes,
+      specName: specData.name || null,
+      className: specData.playable_class?.name || null,
       bounds: { class: bounds(classNodes), spec: bounds(specNodes), hero: bounds(heroNodes) },
     }
 
