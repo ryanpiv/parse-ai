@@ -22,6 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   }
 
+  if (req.query.nocache) delete cache[specId]
   if (cache[specId] && Date.now() - cache[specId].ts < CACHE_TTL) {
     return res.json(cache[specId].data)
   }
@@ -42,24 +43,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const edges: { from: number; to: number }[] = []
 
     function parseNode(n: any, type: string) {
-      // ranks[] — each rank has tooltip.talent.name and tooltip.spell_tooltip.spell
       const ranks = n.ranks || []
+      const nodeTypeName: string = n.node_type?.type ?? 'ACTIVE'
+      const isChoice = nodeTypeName === 'CHOICE'
 
-      // Name: use first rank's talent name, fall back to spell name
-      const firstName = ranks[0]?.tooltip?.talent?.name
-        || ranks[0]?.tooltip?.spell_tooltip?.spell?.name
-        || null
+      let entries: Array<{ rank: number; spellId: number; name: string; description: string; maxRanks: number }>
 
-      const entries = ranks.map((r: any, idx: number) => ({
-        rank: r.rank ?? idx + 1,
-        spellId: r.tooltip?.spell_tooltip?.spell?.id ?? 0,
-        name: r.tooltip?.talent?.name
-          || r.tooltip?.spell_tooltip?.spell?.name
-          || firstName
-          || `Node ${n.id}`,
-        description: r.tooltip?.spell_tooltip?.description ?? '',
-        maxRanks: ranks.length,
-      }))
+      if (isChoice) {
+        // CHOICE nodes store options in choice_of_tooltips[], not tooltip
+        const choices = ranks[0]?.choice_of_tooltips || []
+        entries = choices.map((c: any, idx: number) => ({
+          rank: idx + 1,
+          spellId: c.spell_tooltip?.spell?.id ?? 0,
+          name: c.talent?.name || c.spell_tooltip?.spell?.name || `Choice ${idx + 1}`,
+          description: c.spell_tooltip?.description ?? '',
+          maxRanks: choices.length,
+        }))
+      } else {
+        // Regular/multi-rank nodes
+        const firstName = ranks[0]?.tooltip?.talent?.name || ranks[0]?.tooltip?.spell_tooltip?.spell?.name || null
+        entries = ranks.map((r: any, idx: number) => ({
+          rank: r.rank ?? idx + 1,
+          spellId: r.tooltip?.spell_tooltip?.spell?.id ?? 0,
+          name: r.tooltip?.talent?.name || r.tooltip?.spell_tooltip?.spell?.name || firstName || `Node ${n.id}`,
+          description: r.tooltip?.spell_tooltip?.description ?? '',
+          maxRanks: ranks.length,
+        }))
+      }
 
       for (const toId of (n.unlocks || [])) edges.push({ from: n.id, to: toId })
 
@@ -68,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         row: n.display_row ?? 0,
         col: n.display_col ?? 0,
         type,
-        nodeType: n.node_type?.type ?? 'ACTIVE',
+        nodeType: nodeTypeName,
         entries,
         unlocks: n.unlocks || [],
       })
@@ -77,29 +87,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const n of treeData.class_talent_nodes || []) parseNode(n, 'class')
     for (const n of treeData.spec_talent_nodes  || []) parseNode(n, 'spec')
 
-    // Hero talent trees — array of { key: { href }, name }
-    // href looks like: https://us.api.blizzard.com/data/wow/talent-tree/1234?namespace=...
+    // Hero talent trees — nodes are embedded directly in hero_talent_nodes[]
     const heroTrees: any[] = treeData.hero_talent_trees || []
     console.log(`[blizzard-tree] hero_talent_trees count: ${heroTrees.length}`)
 
     for (const ht of heroTrees) {
-      const heroHref: string = ht?.key?.href || ''
-      // Extract ID — href ends with /talent-tree/{id}?namespace=...
-      const hm = heroHref.match(/talent-tree\/(\d+)(\?|$)/)
-      if (!hm) { console.warn('[blizzard-tree] no heroTreeId in href:', heroHref); continue }
-      const heroTreeId = parseInt(hm[1])
-      const heroName: string = ht.name || `Hero ${heroTreeId}`
+      const heroName: string = ht.name || `Hero ${ht.id}`
       const heroType = `hero_${heroName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`
-
-      try {
-        const heroData = await blizzardGet(`/data/wow/talent-tree/${heroTreeId}`, 'static')
-        // Hero trees use talent_nodes or class_talent_nodes
-        const heroNodes = heroData.talent_nodes || heroData.class_talent_nodes || []
-        console.log(`[blizzard-tree] hero "${heroName}" (${heroTreeId}): ${heroNodes.length} nodes`)
-        for (const n of heroNodes) parseNode(n, heroType)
-      } catch (e: any) {
-        console.warn(`[blizzard-tree] hero tree ${heroTreeId} "${heroName}" failed:`, e.message)
-      }
+      const heroNodes: any[] = ht.hero_talent_nodes || []
+      console.log(`[blizzard-tree] hero "${heroName}" (${ht.id}): ${heroNodes.length} nodes`)
+      for (const n of heroNodes) parseNode(n, heroType)
     }
 
     const classNodes = nodes.filter(n => n.type === 'class')

@@ -68,14 +68,15 @@ function NodeIcon({ node, size }: { node: BlizzardNode; size: number }) {
   const state = node.state ?? 'neither'
   const isChoice = node.nodeType === 'CHOICE' || node.entries.length > 1
 
-  // both = selected by both players — normal/neutral look, no call-out
-  // p1/p2 = only one player — colored border
-  // neither = unselected — dim
-  const style: Record<DiffState, { bg: string; border: string; glow: string; opacity: number; borderW: number }> = {
-    both:    { bg: 'rgba(255,255,255,0.04)', border: 'rgba(160,170,185,0.55)', glow: 'none',                    opacity: 1,    borderW: 1.5 },
-    p1:      { bg: 'rgba(201,162,39,0.18)',  border: 'rgba(201,162,39,1)',      glow: 'rgba(201,162,39,0.5)',    opacity: 1,    borderW: 2.5 },
-    p2:      { bg: 'rgba(90,173,240,0.13)',  border: 'rgba(90,173,240,1)',      glow: 'rgba(90,173,240,0.45)',   opacity: 1,    borderW: 2.5 },
-    neither: { bg: 'rgba(8,10,14,0.7)',      border: 'rgba(40,50,62,0.3)',      glow: 'none',                    opacity: 0.22, borderW: 1   },
+  // All nodes use the same border width (2px) so grid positions stay consistent.
+  // both = selected by both — neutral look, no call-out
+  // p1/p2 = only one player — colored border + glow
+  // neither = unselected — dimmed but still visible for tree structure
+  const style: Record<DiffState, { bg: string; border: string; glow: string; opacity: number }> = {
+    both:    { bg: 'rgba(255,255,255,0.04)', border: 'rgba(160,170,185,0.55)', glow: 'none',                 opacity: 1    },
+    p1:      { bg: 'rgba(201,162,39,0.18)',  border: 'rgba(201,162,39,1)',      glow: 'rgba(201,162,39,0.5)', opacity: 1    },
+    p2:      { bg: 'rgba(90,173,240,0.13)',  border: 'rgba(90,173,240,1)',      glow: 'rgba(90,173,240,0.45)',opacity: 1    },
+    neither: { bg: 'rgba(8,10,14,0.7)',      border: 'rgba(40,50,62,0.4)',      glow: 'none',                 opacity: 0.4  },
   }
   const s = style[state]
   const radius = isChoice ? size / 2 : 5
@@ -88,7 +89,7 @@ function NodeIcon({ node, size }: { node: BlizzardNode; size: number }) {
       data-wh-name={name}
       style={{
         width: size, height: size, borderRadius: radius,
-        border: `${s.borderW}px solid ${s.border}`,
+        border: `2px solid ${s.border}`,
         background: s.bg,
         opacity: s.opacity,
         display: 'flex', alignItems: 'center', justifyContent: 'center',

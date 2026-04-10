@@ -73,9 +73,11 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
   const edges = treeData?.edges || []
   const classNodes = annotate(allNodes.filter((n: BlizzardNode) => n.type === 'class'))
   const specNodes  = annotate(allNodes.filter((n: BlizzardNode) => n.type === 'spec'))
-  const heroTypes: string[] = treeData?.heroTypes || []
+  const allHeroTypes: string[] = treeData?.heroTypes || []
   const heroNodesByType: Record<string, BlizzardNode[]> = {}
-  heroTypes.forEach(t => { heroNodesByType[t] = annotate(allNodes.filter((n: BlizzardNode) => n.type === t)) })
+  allHeroTypes.forEach(t => { heroNodesByType[t] = annotate(allNodes.filter((n: BlizzardNode) => n.type === t)) })
+  // Only show hero trees where at least one player has a node selected
+  const heroTypes = allHeroTypes.filter(t => heroNodesByType[t].some(n => n.state !== 'neither'))
 
   // Diff stats
   const allAnnotated = annotate(allNodes)
