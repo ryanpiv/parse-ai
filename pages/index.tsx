@@ -9,6 +9,7 @@ import { buildRichContext } from '../lib/buildContext'
 import { fetchTalents, fetchTalentTreeLayout } from '../lib/talents'
 import { TalentCompare } from '../components/TalentCompare'
 import { SpellUsageChart, CastTimelineChart, ProcEfficiencyChart, CooldownTimelineChart, ChartCard } from '../components/Charts'
+import { SpellTimeline } from '../components/Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../components/AIChat'
 import { s, PRESET_QUESTIONS } from '../lib/styles'
 
@@ -25,6 +26,14 @@ interface TalentDiffState {
   t1: any; t2: any; name1: string; name2: string; treeLayout: any; error?: string
 }
 
+interface FightMeta {
+  id: number
+  name: string
+  startTime: number
+  endTime: number
+  kill: boolean
+}
+
 export default function Home() {
   const [compareUrl, setCompareUrl] = useState('')
   const [status, setStatus]         = useState<{ type: string; msg: string } | null>(null)
@@ -38,6 +47,8 @@ export default function Home() {
   const [input, setInput]           = useState('')
   const [aiLoading, setAiLoading]   = useState(false)
   const [bossName, setBossName]     = useState('')
+  const [fightKill1, setFightKill1] = useState<boolean>(true)
+  const [fightKill2, setFightKill2] = useState<boolean>(true)
   const chatRef = useRef<HTMLDivElement>(null)
   const scrollAnchorRef = useRef<HTMLDivElement>(null)
   const lastUserMsgRef = useRef<HTMLDivElement>(null)
@@ -56,9 +67,6 @@ export default function Home() {
       if (scrollAnchorRef.current) {
         scrollAnchorRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
       }
-    }
-    if (typeof window !== 'undefined' && (window as any).WH?.Tooltips) {
-      setTimeout(() => (window as any).WH.Tooltips.refreshLinks(), 100)
     }
   }, [messages, aiLoading])
 
@@ -96,15 +104,31 @@ export default function Home() {
     try {
       setLoadStep('Fetching report metadata...')
       setStatus({ type: 'info', msg: 'Fetching report metadata...' })
+
+      // Fetch ALL fights (not just kills) so wipes are included
       const [m1, m2] = await Promise.all([
-        gql(`query($c:String!){reportData{report(code:$c){title fights(killType:Kills){id name startTime endTime} masterData{actors{id name type subType}}}}}`, { c: r1 }),
-        gql(`query($c:String!){reportData{report(code:$c){title fights(killType:Kills){id name startTime endTime} masterData{actors{id name type subType}}}}}`, { c: r2 }),
+        gql(`query($c:String!){reportData{report(code:$c){title fights{id name startTime endTime kill} masterData{actors{id name type subType}}}}}`, { c: r1 }),
+        gql(`query($c:String!){reportData{report(code:$c){title fights{id name startTime endTime kill} masterData{actors{id name type subType}}}}}`, { c: r2 }),
       ])
-      const fight1 = (m1 as any).reportData.report.fights.find((f: any) => f.id === f1id)
-      const fight2 = (m2 as any).reportData.report.fights.find((f: any) => f.id === f2id)
-      if (!fight1) throw new Error(`Fight ${f1id} not found in ${r1}`)
-      if (!fight2) throw new Error(`Fight ${f2id} not found in ${r2}`)
+
+      const fight1 = (m1 as any).reportData.report.fights.find((f: FightMeta) => f.id === f1id)
+      const fight2 = (m2 as any).reportData.report.fights.find((f: FightMeta) => f.id === f2id)
+      if (!fight1) throw new Error(`Fight ${f1id} not found in report ${r1}. Available fight IDs: ${(m1 as any).reportData.report.fights.map((f: FightMeta) => f.id).join(', ')}`)
+      if (!fight2) throw new Error(`Fight ${f2id} not found in report ${r2}. Available fight IDs: ${(m2 as any).reportData.report.fights.map((f: FightMeta) => f.id).join(', ')}`)
+
+      const isKill1 = fight1.kill === true
+      const isKill2 = fight2.kill === true
+      setFightKill1(isKill1)
+      setFightKill2(isKill2)
       setBossName(fight1.name)
+
+      if (!isKill1 || !isKill2) {
+        const wipeNote = [
+          !isKill1 && `${fight1.name} fight 1 is a wipe`,
+          !isKill2 && `${fight2.name} fight 2 is a wipe`,
+        ].filter(Boolean).join(', ')
+        setStatus({ type: 'info', msg: `⚠ ${wipeNote} — loading anyway` })
+      }
 
       const a1 = (m1 as any).reportData.report.masterData?.actors || []
       const a2 = (m2 as any).reportData.report.masterData?.actors || []
@@ -121,11 +145,12 @@ export default function Home() {
       setStatus({ type: 'info', msg: `Fetching events for ${name2}...` })
       const raw2 = await fetchFullFightData({ reportCode: r2, fightStart: fight2.startTime, fightEnd: fight2.endTime, playerId: actor2?.id, setStep: setLoadStep })
 
+      // Use All killType for damage tables since fight may be a wipe
       const [d1, d2, t1, t2] = await Promise.all([
-        gql(`query($c:String!,$s:Float!,$e:Float!){reportData{report(code:$c){table(dataType:DamageDone,startTime:$s,endTime:$e,killType:Kills)}}}`, { c: r1, s: fight1.startTime, e: fight1.endTime }),
-        gql(`query($c:String!,$s:Float!,$e:Float!){reportData{report(code:$c){table(dataType:DamageDone,startTime:$s,endTime:$e,killType:Kills)}}}`, { c: r2, s: fight2.startTime, e: fight2.endTime }),
-        gql(`query($c:String!,$s:Float!,$e:Float!){reportData{report(code:$c){table(dataType:DamageTaken,startTime:$s,endTime:$e,killType:Kills)}}}`, { c: r1, s: fight1.startTime, e: fight1.endTime }),
-        gql(`query($c:String!,$s:Float!,$e:Float!){reportData{report(code:$c){table(dataType:DamageTaken,startTime:$s,endTime:$e,killType:Kills)}}}`, { c: r2, s: fight2.startTime, e: fight2.endTime }),
+        gql(`query($c:String!,$s:Float!,$e:Float!){reportData{report(code:$c){table(dataType:DamageDone,startTime:$s,endTime:$e)}}}`, { c: r1, s: fight1.startTime, e: fight1.endTime }),
+        gql(`query($c:String!,$s:Float!,$e:Float!){reportData{report(code:$c){table(dataType:DamageDone,startTime:$s,endTime:$e)}}}`, { c: r2, s: fight2.startTime, e: fight2.endTime }),
+        gql(`query($c:String!,$s:Float!,$e:Float!){reportData{report(code:$c){table(dataType:DamageTaken,startTime:$s,endTime:$e)}}}`, { c: r1, s: fight1.startTime, e: fight1.endTime }),
+        gql(`query($c:String!,$s:Float!,$e:Float!){reportData{report(code:$c){table(dataType:DamageTaken,startTime:$s,endTime:$e)}}}`, { c: r2, s: fight2.startTime, e: fight2.endTime }),
       ])
       const dmgE1 = (d1 as any)?.reportData?.report?.table?.data?.entries || []
       const dmgE2 = (d2 as any)?.reportData?.report?.table?.data?.entries || []
@@ -148,6 +173,10 @@ export default function Home() {
       const p1 = await processFightData({ raw: raw1, fightStart: fight1.startTime, fightEnd: fight1.endTime, playerId: actor1?.id, playerName: name1, spec: spec1, dps: myDmg ? Math.round(myDmg.total / dur1) : null, takenTotal: tkE1.find((e: any) => e.name?.toLowerCase() === name1.toLowerCase())?.total, nameMap: resolvedNames })
       const p2 = await processFightData({ raw: raw2, fightStart: fight2.startTime, fightEnd: fight2.endTime, playerId: actor2?.id, playerName: name2, spec: spec2, dps: thDmg ? Math.round(thDmg.total / dur2) : null, takenTotal: tkE2.find((e: any) => e.name?.toLowerCase() === name2.toLowerCase())?.total, nameMap: resolvedNames })
 
+      // Attach kill status so buildRichContext can use it
+      ;(p1 as any).isKill = isKill1
+      ;(p2 as any).isKill = isKill2
+
       p1.boss = fight1.name; p2.boss = fight2.name
       const allSpellIds = new Set([...Object.keys(p1.spellMap), ...Object.keys(p2.spellMap)])
       const rows: SpellRow[] = [...allSpellIds].map(id => ({
@@ -160,14 +189,18 @@ export default function Home() {
 
       p1.spellRows = rows; p2.spellRows = rows
       setP1data(p1); setP2data(p2); setSpellRows(rows)
-      setStatus({ type: 'ok', msg: `✓ Full analysis loaded — ${name1} (${spec1}) vs ${name2} (${spec2}) on ${fight1.name}` })
+
+      const wipeWarning = (!isKill1 || !isKill2)
+        ? ` ⚠ ${[!isKill1 && `${name1}: wipe`, !isKill2 && `${name2}: wipe`].filter(Boolean).join(' · ')}`
+        : ''
+      setStatus({ type: 'ok', msg: `✓ Loaded — ${name1} (${spec1}) vs ${name2} (${spec2}) on ${fight1.name}${wipeWarning}` })
 
       setLoadStep('Fetching talent data...')
       Promise.all([
         fetchTalents({ reportCode: r1, fightId: f1id, fightStart: fight1.startTime, fightEnd: fight1.endTime, playerName: name1, playerId: actor1?.id, gql }),
         fetchTalents({ reportCode: r2, fightId: f2id, fightStart: fight2.startTime, fightEnd: fight2.endTime, playerName: name2, playerId: actor2?.id, gql }),
         fetchTalentTreeLayout(8, 64, gql),
-      ]).then(([t1, t2, treeLayout]) => {
+      ]).then(([tt1, tt2, treeLayout]) => {
         function resolveTalentNames(talentData: any) {
           if (!talentData) return talentData
           return {
@@ -179,15 +212,15 @@ export default function Home() {
             })),
           }
         }
-        setTalentDiff({ t1: resolveTalentNames(t1), t2: resolveTalentNames(t2), name1, name2, treeLayout })
+        setTalentDiff({ t1: resolveTalentNames(tt1), t2: resolveTalentNames(tt2), name1, name2, treeLayout })
       }).catch(e => {
         console.warn('Talent fetch failed:', e)
         setTalentDiff({ t1: null, t2: null, name1, name2, treeLayout: null, error: e.message })
       })
 
-      const ctx = buildRichContext(p1, p2, talentDiff)
+      const ctx = buildRichContext(p1, p2, talentDiff, { isKill1, isKill2 })
       await runAI(
-        `Analyze the fight data and respond in two parts:\n\n**Part 1 — Priority Summary**\nGive me a numbered list of the top 5 most impactful changes ${name1} should make, ordered by DPS impact. For each one, give a one-line description of what to change and why it matters. Keep this section tight — no more than 2 sentences per item.\n\n**Part 2 — Full Analysis**\nGo deep on each of the 5 items above. For each one:\n- What exactly is happening in the data (with specific numbers and timestamps)\n- The mechanical reason WHY it costs DPS\n- Exactly WHEN and HOW to make the decision differently\n\nLink every spell name to Wowhead using this format: [Spell Name](https://www.wowhead.com/spell=SPELL_ID)\nUse the spell IDs from the data. Both players are ${spec1} spec.`,
+        `Analyze the fight data and respond in two parts:\n\n**Part 1 — Priority Summary**\nGive me a numbered list of the top 5 most impactful changes ${name1} should make, ordered by DPS impact. For each one, give a one-line description of what to change and why it matters. Keep this section tight — no more than 2 sentences per item.\n\n**Part 2 — Full Analysis**\nGo deep on each of the 5 items above. For each one:\n- What exactly is happening in the data (with specific numbers and timestamps)\n- The mechanical reason WHY it costs DPS\n- Exactly WHEN and HOW to make the decision differently\n\n${(!isKill1 || !isKill2) ? `NOTE: ${[!isKill1 && `${name1}'s fight is a wipe`, !isKill2 && `${name2}'s fight is a wipe`].filter(Boolean).join(', ')}. Account for this — the fight ended early so late-phase cooldown usage and fight-end DPS patterns are not available. Focus on opener, early rotation, and mid-fight decisions.\n\n` : ''}Link every spell name to Wowhead using this format: [Spell Name](https://www.wowhead.com/spell=SPELL_ID)\nUse the spell IDs from the data. Both players are ${spec1} spec.`,
         [], ctx
       )
 
@@ -199,10 +232,15 @@ export default function Home() {
     }
   }
 
-  async function runAI(userMsg: string, existingMessages: Array<{ role: string; content: string }>, ctxOverride?: string) {
+  function buildContext() {
+    if (!p1data || !p2data) return ''
+    return buildRichContext(p1data, p2data, talentDiff, { isKill1: fightKill1, isKill2: fightKill2 })
+  }
+
+  async function runAI(userMsg: string, existingMessages: typeof messages, ctxOverride?: string) {
     if (!p1data && !ctxOverride) return
     setAiLoading(true)
-    const ctx = ctxOverride || buildRichContext(p1data, p2data, talentDiff)
+    const ctx = ctxOverride || buildContext()
     const newMessages = [...existingMessages, { role: 'user', content: userMsg }]
     try {
       const reply = await callAI(newMessages, ctx)
@@ -223,7 +261,7 @@ export default function Home() {
 
   function downloadData() {
     if (!p1data || !p2data) return
-    const ctx = buildRichContext(p1data, p2data, talentDiff)
+    const ctx = buildContext()
     const blob = new Blob([ctx], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a'); a.href = url; a.download = `parse-${p1data.name}-vs-${p2data.name}.txt`; a.click()
@@ -252,7 +290,7 @@ export default function Home() {
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}><button style={s.btnGold} onClick={startAuth}>Authenticate</button></div>
             </div>
             {authMsg && <div style={authMsg.type === 'err' ? s.alertErr : s.alertInfo}>{authMsg.msg}</div>}
-            <div style={s.note}>Create a public client at <a href="https://www.warcraftlogs.com/api/clients" target="_blank" rel="noreferrer">warcraftlogs.com/api/clients</a> with redirect URL <code style={{ background: 'var(--bg4)', padding: '1px 5px', borderRadius: 3, color: 'var(--blue)' }}>http://localhost:3000/auth/callback</code> and Public Client checked.</div>
+            <div style={s.note}>Create a public client at <a href="https://www.warcraftlogs.com/api/clients" target="_blank" rel="noreferrer">warcraftlogs.com/api/clients</a> with redirect URL <code style={{ background: 'var(--bg4)', padding: '1px 5px', borderRadius: 3, color: 'var(--blue)' }}>http://localhost:3000/auth/callback</code></div>
           </div>
         )}
         {authStatus === 'ok' && (
@@ -288,11 +326,14 @@ export default function Home() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
               {[
-                { data: p1data, dur: dur1Fmt, color: 'var(--gold2)', label: 'you' },
-                { data: p2data, dur: dur2Fmt, color: 'var(--blue)', label: 'comparison' },
+                { data: p1data, dur: dur1Fmt, color: 'var(--gold2)', label: 'you', isKill: fightKill1 },
+                { data: p2data, dur: dur2Fmt, color: 'var(--blue)', label: 'comparison', isKill: fightKill2 },
               ].map((p, i) => (
-                <div key={i} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 4, padding: '10px 13px' }}>
-                  <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: '.8px', textTransform: 'uppercase', color: p.color, marginBottom: 4 }}>{p.data.name} — {p.label}</div>
+                <div key={i} style={{ background: 'var(--bg3)', border: `1px solid ${p.isKill ? 'var(--border)' : 'rgba(212,64,64,0.3)'}`, borderRadius: 4, padding: '10px 13px' }}>
+                  <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: '.8px', textTransform: 'uppercase', color: p.color, marginBottom: 4 }}>
+                    {p.data.name} — {p.label}
+                    {!p.isKill && <span style={{ marginLeft: 8, color: 'var(--red)', fontSize: 9 }}>WIPE</span>}
+                  </div>
                   <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 22, fontWeight: 700, color: p.color, lineHeight: 1.2 }}>{p.data.dps?.toLocaleString() || '?'} <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--dim)' }}>dps</span></div>
                   <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'var(--dim)', marginTop: 3 }}>{p.dur} · {p.data.downtime.cpm}/min · {p.data.downtime.pct}% downtime · {p.data.spec}</div>
                   <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
@@ -348,12 +389,33 @@ export default function Home() {
           <div style={s.panel}>
             <div style={s.ptitle}><div style={s.ptitleBar} />Charts</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-              <ChartCard title="Spell usage — casts/min" height={240}><SpellUsageChart spellRows={spellRows} name1={p1data.name} name2={p2data.name} /></ChartCard>
-              <ChartCard title="Cast rate over time (30s windows)" height={240}><CastTimelineChart p1data={p1data} p2data={p2data} /></ChartCard>
+              <ChartCard title="Spell usage — casts/min" height={240}>
+                <SpellUsageChart spellRows={spellRows} name1={p1data.name} name2={p2data.name} />
+              </ChartCard>
+              <ChartCard title="Cast rate over time (30s windows)" height={240}>
+                <CastTimelineChart p1data={p1data} p2data={p2data} />
+              </ChartCard>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <ChartCard title="Proc efficiency %" height={200}><ProcEfficiencyChart p1data={p1data} p2data={p2data} /></ChartCard>
-              <ChartCard title="Cooldown timeline" height={200}><CooldownTimelineChart p1data={p1data} p2data={p2data} spellRows={spellRows} /></ChartCard>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+              <ChartCard title="Proc efficiency %" height={200}>
+                <ProcEfficiencyChart p1data={p1data} p2data={p2data} />
+              </ChartCard>
+              <ChartCard title="Cooldown timeline" height={200}>
+                <CooldownTimelineChart p1data={p1data} p2data={p2data} spellRows={spellRows} />
+              </ChartCard>
+            </div>
+            {/* Spell Timeline — zoomable, pannable */}
+            <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 4, padding: '12px 14px' }}>
+              <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '.8px', textTransform: 'uppercase' as const, color: 'var(--dim)', marginBottom: 10 }}>
+                Spell cast timeline
+              </div>
+              <SpellTimeline
+                spellRows={spellRows}
+                name1={p1data.name}
+                name2={p2data.name}
+                dur1={p1data.dur}
+                dur2={p2data.dur}
+              />
             </div>
           </div>
         )}
@@ -374,11 +436,8 @@ export default function Home() {
           <div style={s.panel}>
             <div style={{ ...s.ptitle, justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><div style={s.ptitleBar} />Ask Claude</div>
-              {messages.length > 0 && (
-                <CopyBtn text={messages.map(m => `${m.role === 'user' ? 'You' : 'Claude'}:\n${m.content}`).join('\n\n---\n\n')} label="Copy All" />
-              )}
+              {messages.length > 0 && <CopyBtn text={messages.map(m => `${m.role === 'user' ? 'You' : 'Claude'}:\n${m.content}`).join('\n\n---\n\n')} label="Copy All" />}
             </div>
-
             <div ref={chatRef} style={{ display: 'flex', flexDirection: 'column', maxHeight: 560, overflowY: 'auto', marginBottom: 12, paddingRight: 4 }}>
               {messages.map((m, i) => {
                 const isLastUser = m.role === 'user' && messages.slice(i + 1).every(x => x.role !== 'user')
@@ -387,13 +446,11 @@ export default function Home() {
                     {m.role === 'user'
                       ? <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: '6px 6px 2px 6px', padding: '8px 12px', fontSize: 12, color: 'var(--muted)', alignSelf: 'flex-end', maxWidth: '74%', marginLeft: 'auto' }}>{m.content}</div>
                       : <div style={{ position: 'relative' }}>
-                        <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: '2px 6px 6px 6px', padding: '13px 15px 32px 15px', fontSize: 13, lineHeight: 1.85 }}>
-                          <FormatAI text={m.content} />
+                          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: '2px 6px 6px 6px', padding: '13px 15px 36px 15px', fontSize: 13, lineHeight: 1.85 }}>
+                            <FormatAI text={m.content} />
+                          </div>
+                          <div style={{ position: 'absolute', bottom: 8, right: 10 }}><CopyBtn text={m.content} label="Copy" /></div>
                         </div>
-                        <div style={{ position: 'absolute', bottom: 8, right: 10 }}>
-                          <CopyBtn text={m.content} label="Copy" />
-                        </div>
-                      </div>
                     }
                   </div>
                 )
@@ -406,14 +463,13 @@ export default function Home() {
               )}
               <div ref={scrollAnchorRef} />
             </div>
-
             <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'IBM Plex Mono,monospace', marginBottom: 6 }}>Quick questions:</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginBottom: 10 }}>
               {PRESET_QUESTIONS.map((q, i) => (
                 <button key={i} onClick={() => sendQuestion(q)} disabled={aiLoading}
                   style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, padding: '7px 10px', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 3, color: 'var(--muted)', cursor: aiLoading ? 'not-allowed' : 'pointer', textAlign: 'left', lineHeight: 1.4 }}
-                  onMouseEnter={e => { if (!aiLoading) { (e.target as HTMLElement).style.borderColor = 'var(--golddim)'; (e.target as HTMLElement).style.color = 'var(--gold)' } }}
-                  onMouseLeave={e => { (e.target as HTMLElement).style.borderColor = 'var(--border)'; (e.target as HTMLElement).style.color = 'var(--muted)' }}>
+                  onMouseEnter={e => { if (!aiLoading) { (e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'; (e.target as HTMLButtonElement).style.color = 'var(--gold)' } }}
+                  onMouseLeave={e => { (e.target as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.target as HTMLButtonElement).style.color = 'var(--muted)' }}>
                   {q}
                 </button>
               ))}
@@ -424,6 +480,7 @@ export default function Home() {
             </div>
           </div>
         )}
+
       </div>
       <style>{`@keyframes td{0%,60%,100%{opacity:.3;transform:scale(.8)}30%{opacity:1;transform:scale(1)}} input:focus{border-color:var(--golddim)!important;outline:none;}`}</style>
     </>

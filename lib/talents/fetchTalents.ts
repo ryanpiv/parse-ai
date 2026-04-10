@@ -42,6 +42,12 @@ export async function fetchTalents({
 
     let playerEvent = playerId ? events.find((e: any) => e.sourceID === playerId) : null
 
+    console.log('talentTree[0]:', JSON.stringify(playerEvent.talentTree?.[0], null, 2))
+console.log('talentTree[1]:', JSON.stringify(playerEvent.talentTree?.[1], null, 2))
+console.log('talentTree[2]:', JSON.stringify(playerEvent.talentTree?.[2], null, 2))
+console.log('talentSpec:', playerEvent.talentSpec)
+console.log('playerEvent keys:', Object.keys(playerEvent))
+
     if (!playerEvent) {
       const detailsData = await gql(
         `
@@ -108,9 +114,9 @@ export async function fetchTalentTreeLayout(
     if (!tree) return null
 
     const layout = new Map<number, any>()
-    ;(tree.classNodes || []).forEach((n: any) => layout.set(n.definitionId || n.id, { ...n, category: 'class' }))
-    ;(tree.specNodes || []).forEach((n: any) => layout.set(n.definitionId || n.id, { ...n, category: 'spec' }))
-    ;(tree.heroNodes || []).forEach((n: any) => layout.set(n.definitionId || n.id, { ...n, category: 'hero' }))
+      ; (tree.classNodes || []).forEach((n: any) => layout.set(n.definitionId || n.id, { ...n, category: 'class' }))
+      ; (tree.specNodes || []).forEach((n: any) => layout.set(n.definitionId || n.id, { ...n, category: 'spec' }))
+      ; (tree.heroNodes || []).forEach((n: any) => layout.set(n.definitionId || n.id, { ...n, category: 'hero' }))
 
     _treeCache = layout
     console.log(`[treeLayout] loaded ${layout.size} nodes`)
