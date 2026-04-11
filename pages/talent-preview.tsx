@@ -118,7 +118,7 @@ const COL_SPEC_CENTER  = COL_CLASS_W + COL_HERO_W + COL_SPEC_W / 2
 
 export default function TalentPreviewPage() {
   const router = useRouter()
-  const specId = parseInt(String(router.query.specId || '64'), 10) || 64
+  const specId = parseInt(String(router.query.specId || '64'), 10) || 64 // dev default: Frost Mage
   const preset = String(router.query.preset || 'budget')
   const classCap = parseInt(String(router.query.classCap || '34'), 10) || 34
   const specCap = parseInt(String(router.query.specCap || '34'), 10) || 34

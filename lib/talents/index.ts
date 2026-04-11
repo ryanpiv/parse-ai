@@ -1,4 +1,4 @@
-export { fetchTalents, fetchTalentTreeLayout, type WclGqlFn } from './fetchTalents'
+export { fetchTalents, type WclGqlFn } from './fetchTalents'
 export {
   categorizeTalents,
   type TalentCategory,

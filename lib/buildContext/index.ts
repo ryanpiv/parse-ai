@@ -19,7 +19,7 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, killStatus?:
   const isKill1 = killStatus?.isKill1 ?? true
   const isKill2 = killStatus?.isKill2 ?? true
 
-  let ctx = `You are an expert World of Warcraft raiding coach with deep knowledge of Frost Mage mechanics in The War Within / Midnight Season 1.\n\n`
+  let ctx = `You are an expert World of Warcraft raiding coach with deep knowledge of ${s1} mechanics in The War Within / Midnight Season 1.\n\n`
   ctx += `CRITICAL RULES:\n`
   ctx += `- Both players are ${s1} spec\n`
   ctx += `- Only reference spells that appear in the data below — never invent spell names\n`

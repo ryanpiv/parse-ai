@@ -3,8 +3,6 @@ export type WclGqlFn = (
   variables: Record<string, unknown>
 ) => Promise<any>
 
-let _treeCache: Map<number, any> | null = null
-
 export async function fetchTalents({
   reportCode,
   fightId,
@@ -83,41 +81,3 @@ export async function fetchTalents({
   }
 }
 
-export async function fetchTalentTreeLayout(
-  classId = 8,
-  specId = 64,
-  gql: WclGqlFn
-): Promise<Map<number, any> | null> {
-  if (_treeCache) return _treeCache
-  try {
-    const data = await gql(
-      `
-      query($classId: Int!, $specId: Int!) {
-        gameData {
-          talentTree(classId: $classId, specId: $specId) {
-            classNodes { id definitionId spellId name row col type }
-            specNodes  { id definitionId spellId name row col type }
-            heroNodes  { id definitionId spellId name row col type }
-          }
-        }
-      }
-    `,
-      { classId, specId }
-    )
-
-    const tree = data?.gameData?.talentTree
-    if (!tree) return null
-
-    const layout = new Map<number, any>()
-      ; (tree.classNodes || []).forEach((n: any) => layout.set(n.definitionId || n.id, { ...n, category: 'class' }))
-      ; (tree.specNodes || []).forEach((n: any) => layout.set(n.definitionId || n.id, { ...n, category: 'spec' }))
-      ; (tree.heroNodes || []).forEach((n: any) => layout.set(n.definitionId || n.id, { ...n, category: 'hero' }))
-
-    _treeCache = layout
-    console.log(`[treeLayout] loaded ${layout.size} nodes`)
-    return layout
-  } catch (e: any) {
-    console.warn('[treeLayout] gameData query failed, will use heuristic categorization:', e?.message)
-    return null
-  }
-}

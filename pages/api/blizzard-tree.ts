@@ -5,7 +5,10 @@ const cache: Record<number, { data: any; ts: number }> = {}
 const CACHE_TTL = 1000 * 60 * 60 * 24
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const specId = parseInt(String(req.query.specId || '64'))
+  if (!req.query.specId) {
+    return res.status(400).json({ error: 'specId query parameter is required' })
+  }
+  const specId = parseInt(String(req.query.specId))
 
   // Debug: show raw hero_talent_trees and first node ranks
   if (req.query.debug === 'hero') {
