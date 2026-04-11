@@ -77,6 +77,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         nodeId: n.id,
         row: n.display_row ?? 0,
         col: n.display_col ?? 0,
+        rawX: n.raw_position_x ?? null,
+        rawY: n.raw_position_y ?? null,
         type,
         nodeType: nodeTypeName,
         entries,
