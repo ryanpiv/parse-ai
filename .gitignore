@@ -20,4 +20,5 @@ npm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
-.claude/worktrees/
+# Claude
+.claude/

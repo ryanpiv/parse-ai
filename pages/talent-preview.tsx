@@ -282,7 +282,6 @@ export default function TalentPreviewPage() {
                       renderMode="raidbots"
                       nodePx={nodePx}
                       maxWidth={COL_HERO_W - 10}
-                      forceGrid
                     />
                   ) : (
                     <span style={{ fontSize: 12, color: '#888' }}>No hero tree</span>
