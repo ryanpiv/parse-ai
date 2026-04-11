@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { TalentTreeSection, computeLayout, type BlizzardNode, type DiffState } from './TalentTree'
+import { SpellTooltipProvider } from './SpellTooltip'
 
 interface WCLTalent { id: number; nodeID: number; rank: number }
 interface TalentData { name: string; talentTree?: WCLTalent[]; talents?: any[] }
@@ -119,6 +120,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
   const specName  = treeData?.specName  || ''
 
   return (
+    <SpellTooltipProvider>
     <div>
       {/* Diff summary */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -209,5 +211,6 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
         </div>
       )}
     </div>
+    </SpellTooltipProvider>
   )
 }
