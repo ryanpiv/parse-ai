@@ -85,11 +85,36 @@ function NodeIcon({ node, size, renderMode }: { node: BlizzardNode; size: number
   const rank = node.rank ?? 0
   const active = rank > 0
 
-  const diffStyle: Record<DiffState, { bg: string; border: string; glow: string; opacity: number }> = {
-    both:    { bg: 'rgba(255,255,255,0.04)', border: 'rgba(160,170,185,0.55)', glow: 'none',                  opacity: 1   },
-    p1:      { bg: 'rgba(201,162,39,0.18)',  border: 'rgba(201,162,39,1)',      glow: 'rgba(201,162,39,0.5)',  opacity: 1   },
-    p2:      { bg: 'rgba(90,173,240,0.13)',  border: 'rgba(90,173,240,1)',      glow: 'rgba(90,173,240,0.45)', opacity: 1   },
-    neither: { bg: 'rgba(8,10,14,0.7)',      border: 'rgba(40,50,62,0.4)',      glow: 'none',                  opacity: 0.4 },
+  /** Diff mode: thick borders + outer glow so p1/p2 pop against busy spell icons */
+  const diffStyle: Record<DiffState, { bg: string; border: string; opacity: number; borderWidth: number; boxShadow: string }> = {
+    both: {
+      bg: 'rgba(255,255,255,0.1)',
+      border: 'rgba(200,210,225,0.95)',
+      opacity: 1,
+      borderWidth: 2,
+      boxShadow: '0 0 0 1px rgba(60,70,88,0.75), 0 0 10px rgba(160,175,195,0.35), inset 0 0 0 1px rgba(255,255,255,0.12)',
+    },
+    p1: {
+      bg: 'rgba(201,162,39,0.42)',
+      border: '#f0d060',
+      opacity: 1,
+      borderWidth: 3,
+      boxShadow: '0 0 0 2px rgba(25,20,6,0.95), 0 0 0 4px rgba(201,162,39,0.55), 0 0 20px 4px rgba(201,162,39,0.85), inset 0 0 14px rgba(255,220,100,0.2)',
+    },
+    p2: {
+      bg: 'rgba(90,173,240,0.38)',
+      border: '#9fd6ff',
+      opacity: 1,
+      borderWidth: 3,
+      boxShadow: '0 0 0 2px rgba(6,20,40,0.92), 0 0 0 4px rgba(90,173,240,0.5), 0 0 20px 4px rgba(90,173,240,0.8), inset 0 0 14px rgba(150,210,255,0.22)',
+    },
+    neither: {
+      bg: 'rgba(8,10,14,0.82)',
+      border: 'rgba(38,44,54,0.65)',
+      opacity: 0.36,
+      borderWidth: 1,
+      boxShadow: 'inset 0 0 8px rgba(0,0,0,0.5)',
+    },
   }
 
   const raidbotsActive = {
@@ -115,18 +140,31 @@ function NodeIcon({ node, size, renderMode }: { node: BlizzardNode; size: number
     : undefined
   const borderRadius = isChoice ? 0 : 4
 
-  const containerStyle: React.CSSProperties = {
-    width: size, height: size,
-    borderRadius,
-    clipPath,
-    border: `2px solid ${s.border}`,
-    background: s.bg,
-    opacity: s.opacity,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'help', position: 'relative', overflow: 'hidden', flexShrink: 0,
-    boxShadow: s.glow !== 'none' ? `0 0 7px ${s.glow}, inset 0 0 0 1px ${s.glow}` : 'none',
-    transition: 'transform .1s',
-  }
+  const containerStyle: React.CSSProperties = renderMode === 'raidbots'
+    ? {
+        width: size, height: size,
+        borderRadius,
+        clipPath,
+        border: `2px solid ${(s as typeof raidbotsActive).border}`,
+        background: (s as typeof raidbotsActive).bg,
+        opacity: (s as typeof raidbotsActive).opacity,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'help', position: 'relative', overflow: 'hidden', flexShrink: 0,
+        boxShadow: (s as typeof raidbotsActive).glow !== 'none' ? `0 0 7px ${(s as typeof raidbotsActive).glow}, inset 0 0 0 1px ${(s as typeof raidbotsActive).glow}` : 'none',
+        transition: 'transform .1s',
+      }
+    : {
+        width: size, height: size,
+        borderRadius,
+        clipPath,
+        border: `${(s as (typeof diffStyle)['p1']).borderWidth}px solid ${(s as (typeof diffStyle)['p1']).border}`,
+        background: (s as (typeof diffStyle)['p1']).bg,
+        opacity: (s as (typeof diffStyle)['p1']).opacity,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'help', position: 'relative', overflow: 'visible', flexShrink: 0,
+        boxShadow: (s as (typeof diffStyle)['p1']).boxShadow,
+        transition: 'transform .1s',
+      }
 
   if (isChoice) {
     return <ChoiceNodeIcon node={node} size={size} containerStyle={containerStyle} s={s} renderMode={renderMode} active={active} />
@@ -383,18 +421,21 @@ export function TalentTreeSection({ nodes, edges, name1, name2, renderMode = 'di
             : (fromState === 'p2' || toState === 'p2') ? 'p2'
             : fromState === 'both' || toState === 'both' ? 'both'
             : 'neither'
-          const color = lineState === 'p1'  ? 'rgba(201,162,39,0.45)'
-            : lineState === 'p2'            ? 'rgba(90,173,240,0.4)'
-            : lineState === 'both'          ? 'rgba(120,130,145,0.35)'
-            :                                 'rgba(40,50,62,0.2)'
-          return <line key={i} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={color} strokeWidth={1.5} />
+          const color = lineState === 'p1'  ? 'rgba(240,200,80,0.95)'
+            : lineState === 'p2'            ? 'rgba(120,200,255,0.95)'
+            : lineState === 'both'          ? 'rgba(150,165,185,0.55)'
+            :                                 'rgba(40,50,62,0.22)'
+          const sw = lineState === 'p1' || lineState === 'p2' ? 3 : lineState === 'both' ? 2 : 1.25
+          return <line key={i} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={color} strokeWidth={sw} strokeLinecap="round" />
         })}
       </svg>
 
       {nodes.map(n => {
         const p = px.get(n.nodeId)!
+        const st = n.state ?? 'neither'
+        const zDiff = renderMode === 'diff' && (st === 'p1' || st === 'p2') ? 8 : undefined
         return (
-          <div key={n.nodeId} style={{ position: 'absolute', left: p.x, top: p.y, zIndex: renderMode === 'raidbots' ? 6 : undefined }}>
+          <div key={n.nodeId} style={{ position: 'absolute', left: p.x, top: p.y, zIndex: zDiff ?? (renderMode === 'raidbots' ? 6 : undefined) }}>
             <NodeIcon node={n} size={NODE} renderMode={renderMode} />
           </div>
         )

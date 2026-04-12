@@ -423,7 +423,19 @@ export default function Home() {
         {/* TALENT COMPARE */}
         {talentDiff && (
           <div style={s.panel}>
-            <div style={s.ptitle}><div style={s.ptitleBar} />Talent Comparison</div>
+            <div style={{ ...s.ptitle, justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><div style={s.ptitleBar} />Talent Comparison</div>
+              {talentDiff.t1?.talentString && talentDiff.t2?.talentString && (
+                <a
+                  href={`/compare?b1=${encodeURIComponent(talentDiff.t1.talentString)}&b2=${encodeURIComponent(talentDiff.t2.talentString)}&n1=${encodeURIComponent(talentDiff.name1)}&n2=${encodeURIComponent(talentDiff.name2)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ ...s.btnGhost, textDecoration: 'none', fontSize: 10, padding: '4px 10px' }}
+                >
+                  Open shareable diff
+                </a>
+              )}
+            </div>
             {talentDiff.error && !talentDiff.t1 && !talentDiff.t2
               ? <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, color: 'var(--dim)' }}>Could not load talent data: {talentDiff.error}</div>
               : <TalentCompare p1Talents={talentDiff.t1} p2Talents={talentDiff.t2} name1={talentDiff.name1} name2={talentDiff.name2} specId={talentDiff.specId} />

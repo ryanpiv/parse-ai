@@ -198,13 +198,13 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
       {!loading && treeData && (
         <div style={{ display: 'flex', gap: 14, marginTop: 10, fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim,#4a5a6a)', flexWrap: 'wrap' }}>
           {[
-            { bg: 'rgba(255,255,255,0.04)', border: 'rgba(160,170,185,0.55)', label: 'both' },
-            { bg: 'rgba(201,162,39,0.18)',  border: 'rgba(201,162,39,1)',      label: `${name1} only` },
-            { bg: 'rgba(90,173,240,0.13)',  border: 'rgba(90,173,240,1)',      label: `${name2} only` },
-            { bg: 'rgba(8,10,14,0.7)',      border: 'rgba(40,50,62,0.3)',      label: 'neither', dim: true },
+            { bg: 'rgba(255,255,255,0.1)', border: 'rgba(200,210,225,0.95)', w: 2, label: 'both' },
+            { bg: 'rgba(201,162,39,0.42)', border: '#f0d060', w: 3, label: `${name1} only` },
+            { bg: 'rgba(90,173,240,0.38)', border: '#9fd6ff', w: 3, label: `${name2} only` },
+            { bg: 'rgba(8,10,14,0.82)', border: 'rgba(38,44,54,0.65)', w: 1, label: 'neither', dim: true },
           ].map(l => (
             <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5, opacity: l.dim ? 0.5 : 1 }}>
-              <span style={{ width: 12, height: 12, borderRadius: 3, background: l.bg, border: `1.5px solid ${l.border}`, display: 'inline-block' }} />
+              <span style={{ width: 12, height: 12, borderRadius: 3, background: l.bg, border: `${l.w}px solid ${l.border}`, display: 'inline-block', boxShadow: l.dim ? 'none' : '0 0 6px rgba(255,255,255,0.12)' }} />
               {l.label}
             </span>
           ))}
