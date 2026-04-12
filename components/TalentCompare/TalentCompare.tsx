@@ -183,27 +183,48 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
       )}
 
       {!loading && !error && treeData && (
-        <div style={{ display: 'flex', gap: 20, overflowX: 'auto', paddingBottom: 12, alignItems: 'flex-start' }}>
-          {classNodes.length > 0 && (
-            <div style={{ flexShrink: 0 }}>
-              <div style={LABEL}>{className ? `Class — ${className}` : 'Class'}</div>
-              <TalentTreeSection nodes={classNodes} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} forceWidth={uniformWidth} forceGrid />
-            </div>
-          )}
+        <div
+          style={{
+            width: '100%',
+            overflowX: 'auto',
+            overflowY: 'visible',
+            padding: '8px 20px 24px',
+            boxSizing: 'border-box',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              display: 'inline-flex',
+              flexDirection: 'row',
+              flexWrap: 'nowrap',
+              alignItems: 'flex-start',
+              gap: 24,
+              textAlign: 'left',
+              verticalAlign: 'top',
+            }}
+          >
+            {classNodes.length > 0 && (
+              <div style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}>
+                <div style={LABEL}>{className ? `Class — ${className}` : 'Class'}</div>
+                <TalentTreeSection nodes={classNodes} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} forceWidth={uniformWidth} forceGrid />
+              </div>
+            )}
 
-          {heroTypes.map(ht => (
-            <div key={ht} style={{ flexShrink: 0 }}>
-              <div style={LABEL}>{ht.replace(/^hero_/, '').replace(/_/g, ' ')}</div>
-              <TalentTreeSection nodes={heroNodesByType[ht] || []} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} maxWidth={200} />
-            </div>
-          ))}
+            {heroTypes.map(ht => (
+              <div key={ht} style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}>
+                <div style={LABEL}>{ht.replace(/^hero_/, '').replace(/_/g, ' ')}</div>
+                <TalentTreeSection nodes={heroNodesByType[ht] || []} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} maxWidth={200} />
+              </div>
+            ))}
 
-          {specNodes.length > 0 && (
-            <div style={{ flexShrink: 0 }}>
-              <div style={LABEL}>{specName ? `Spec — ${specName}` : 'Spec'}</div>
-              <TalentTreeSection nodes={specNodes} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} forceWidth={uniformWidth} forceGrid />
-            </div>
-          )}
+            {specNodes.length > 0 && (
+              <div style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}>
+                <div style={LABEL}>{specName ? `Spec — ${specName}` : 'Spec'}</div>
+                <TalentTreeSection nodes={specNodes} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} forceWidth={uniformWidth} forceGrid />
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -211,13 +232,23 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
       {!loading && treeData && (
         <div style={{ display: 'flex', gap: 14, marginTop: 10, fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim,#4a5a6a)', flexWrap: 'wrap' }}>
           {[
-            { bg: 'rgba(255,255,255,0.1)', border: 'rgba(200,210,225,0.95)', w: 2, label: 'both' },
+            { bg: 'rgba(255,255,255,0.07)', border: 'rgba(175,186,202,0.85)', w: 1, label: 'both' },
             { bg: 'rgba(201,162,39,0.42)', border: '#f0d060', w: 3, label: `${name1} only` },
             { bg: 'rgba(90,173,240,0.38)', border: '#9fd6ff', w: 3, label: `${name2} only` },
             { bg: 'rgba(8,10,14,0.82)', border: 'rgba(38,44,54,0.65)', w: 1, label: 'neither', dim: true },
           ].map(l => (
             <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5, opacity: l.dim ? 0.5 : 1 }}>
-              <span style={{ width: 12, height: 12, borderRadius: 3, background: l.bg, border: `${l.w}px solid ${l.border}`, display: 'inline-block', boxShadow: l.dim ? 'none' : '0 0 6px rgba(255,255,255,0.12)' }} />
+              <span
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 3,
+                  background: l.bg,
+                  border: `${l.w}px solid ${l.border}`,
+                  display: 'inline-block',
+                  boxSizing: 'border-box',
+                }}
+              />
               {l.label}
             </span>
           ))}

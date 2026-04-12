@@ -18,6 +18,8 @@ export type AppSessionSnapshot = {
   compareName2: string
   compareWclUrl: string
   specId: number | null
+  /** JSON array of { nodeID, rank } from WCL CombatantInfo — used on /talent-preview for accurate hero/class/spec. */
+  p1TalentTreeJson: string
 }
 
 const defaultSnapshot: AppSessionSnapshot = {
@@ -28,6 +30,7 @@ const defaultSnapshot: AppSessionSnapshot = {
   compareName2: 'Build 2',
   compareWclUrl: '',
   specId: null,
+  p1TalentTreeJson: '',
 }
 
 type Ctx = {

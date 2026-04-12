@@ -1,7 +1,7 @@
 /**
  * TalentTree — renders a talent grid section with SVG connection lines.
  * Icons fetched server-side via /api/tooltip (avoids CORS, proper headers).
- * Diff states: p1=gold border, p2=blue border, both=no highlight, neither=dimmed.
+ * Diff states: p1/p2 = thick multi-ring outlines; both = thin neutral border; neither = dimmed.
  */
 import { useEffect, useState, useCallback } from 'react'
 import { useSpellTooltip } from './SpellTooltip'
@@ -47,6 +47,8 @@ interface Props {
 const DEFAULT_NODE = 36
 const DEFAULT_STEP = 42   // 36 + 6
 const RAIDBOTS_STEP = 55  // 33 + 22  (matches Raidbots spacing)
+/** Space around the node grid so diff outlines / hover scale are not clipped. */
+const LAYOUT_PAD = 12
 
 // Module-level icon cache: spellId → slug or '' (failed)
 const iconCache: Record<number, string> = {}
@@ -85,35 +87,35 @@ function NodeIcon({ node, size, renderMode }: { node: BlizzardNode; size: number
   const rank = node.rank ?? 0
   const active = rank > 0
 
-  /** Diff mode: thick borders + outer glow so p1/p2 pop against busy spell icons */
+  /** Diff mode: stacked 0-blur rings (no glow) so edges stay sharp and are not clipped */
   const diffStyle: Record<DiffState, { bg: string; border: string; opacity: number; borderWidth: number; boxShadow: string }> = {
     both: {
-      bg: 'rgba(255,255,255,0.1)',
-      border: 'rgba(200,210,225,0.95)',
+      bg: 'rgba(255,255,255,0.07)',
+      border: 'rgba(175,186,202,0.85)',
       opacity: 1,
-      borderWidth: 2,
-      boxShadow: '0 0 0 1px rgba(60,70,88,0.75), 0 0 10px rgba(160,175,195,0.35), inset 0 0 0 1px rgba(255,255,255,0.12)',
+      borderWidth: 1,
+      boxShadow: '0 0 0 1px rgba(100,110,128,0.35)',
     },
     p1: {
-      bg: 'rgba(201,162,39,0.42)',
-      border: '#f0d060',
+      bg: 'rgba(201,162,39,0.36)',
+      border: '#fff0a0',
       opacity: 1,
-      borderWidth: 3,
-      boxShadow: '0 0 0 2px rgba(25,20,6,0.95), 0 0 0 4px rgba(201,162,39,0.55), 0 0 20px 4px rgba(201,162,39,0.85), inset 0 0 14px rgba(255,220,100,0.2)',
+      borderWidth: 2,
+      boxShadow: '0 0 0 1px #120a00, 0 0 0 3px #c89400, 0 0 0 5px #fff6c8',
     },
     p2: {
-      bg: 'rgba(90,173,240,0.38)',
-      border: '#9fd6ff',
+      bg: 'rgba(65,145,225,0.38)',
+      border: '#d0efff',
       opacity: 1,
-      borderWidth: 3,
-      boxShadow: '0 0 0 2px rgba(6,20,40,0.92), 0 0 0 4px rgba(90,173,240,0.5), 0 0 20px 4px rgba(90,173,240,0.8), inset 0 0 14px rgba(150,210,255,0.22)',
+      borderWidth: 2,
+      boxShadow: '0 0 0 1px #040c18, 0 0 0 3px #2088d8, 0 0 0 5px #b8e4ff',
     },
     neither: {
       bg: 'rgba(8,10,14,0.82)',
-      border: 'rgba(38,44,54,0.65)',
+      border: 'rgba(42,48,58,0.9)',
       opacity: 0.36,
       borderWidth: 1,
-      boxShadow: 'inset 0 0 8px rgba(0,0,0,0.5)',
+      boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.55)',
     },
   }
 
@@ -176,7 +178,7 @@ function NodeIcon({ node, size, renderMode }: { node: BlizzardNode; size: number
 function SingleNodeIcon({ node, size, containerStyle, s, borderRadius, renderMode, active }: {
   node: BlizzardNode; size: number
   containerStyle: React.CSSProperties
-  s: { bg: string; border: string; glow: string; opacity: number }
+  s: { bg: string; border: string; opacity: number }
   borderRadius: number
   renderMode: TalentTreeRenderMode
   active: boolean
@@ -231,7 +233,7 @@ function SingleNodeIcon({ node, size, containerStyle, s, borderRadius, renderMod
 function ChoiceNodeIcon({ node, size, containerStyle, s, renderMode, active }: {
   node: BlizzardNode; size: number
   containerStyle: React.CSSProperties
-  s: { bg: string; border: string; glow: string; opacity: number }
+  s: { bg: string; border: string; opacity: number }
   renderMode: TalentTreeRenderMode
   active: boolean
 }) {
@@ -371,6 +373,22 @@ export function computeLayout(
   return { px, W, H }
 }
 
+/** True if this node is part of player 1’s taken build (ranked + p1 or shared). */
+function nodeTakenByP1(n: BlizzardNode): boolean {
+  const r = n.rank ?? 0
+  if (r <= 0) return false
+  const s = n.state ?? 'neither'
+  return s === 'p1' || s === 'both'
+}
+
+/** True if this node is part of player 2’s taken build (ranked + p2 or shared). */
+function nodeTakenByP2(n: BlizzardNode): boolean {
+  const r = n.rank ?? 0
+  if (r <= 0) return false
+  const s = n.state ?? 'neither'
+  return s === 'p2' || s === 'both'
+}
+
 export function TalentTreeSection({ nodes, edges, name1, name2, renderMode = 'diff', nodePx, stepPx, maxWidth, forceWidth, forceGrid }: Props) {
   if (!nodes.length) return null
 
@@ -379,8 +397,10 @@ export function TalentTreeSection({ nodes, edges, name1, name2, renderMode = 'di
   const { px, W, H } = computeLayout(nodes, NODE, step, forceGrid)
 
   const scale = forceWidth ? forceWidth / W : maxWidth && W > maxWidth ? maxWidth / W : 1
-  const displayW = Math.round(W * scale)
-  const displayH = Math.round(H * scale)
+  const paddedW = W + 2 * LAYOUT_PAD
+  const paddedH = H + 2 * LAYOUT_PAD
+  const displayW = Math.round(paddedW * scale)
+  const displayH = Math.round(paddedH * scale)
 
   const byId = new Map(nodes.map(n => [n.nodeId, n]))
 
@@ -392,7 +412,7 @@ export function TalentTreeSection({ nodes, edges, name1, name2, renderMode = 'di
   const nodeIds = new Set(nodes.map(n => n.nodeId))
   const sectionEdges = edges.filter(e => nodeIds.has(e.from) && nodeIds.has(e.to))
 
-  const inner = (
+  const innerCore = (
     <div style={{ position: 'relative', width: W, height: H, flexShrink: 0 }}>
       <svg width={W} height={H} style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', zIndex: renderMode === 'raidbots' ? 5 : undefined }}>
         {sectionEdges.map((e, i) => {
@@ -415,17 +435,20 @@ export function TalentTreeSection({ nodes, edges, name1, name2, renderMode = 'di
               />
             )
           }
-          const fromState = from.state ?? 'neither'
-          const toState   = to.state   ?? 'neither'
-          const lineState = (fromState === 'p1' || toState === 'p1') ? 'p1'
-            : (fromState === 'p2' || toState === 'p2') ? 'p2'
-            : fromState === 'both' || toState === 'both' ? 'both'
+          // Only tint an edge when *both* ends are taken by that player — avoids blue/yellow
+          // “paths” through dead nodes (e.g. Spellsteal → 0-rank filler → Time Manipulation).
+          const p1Edge = nodeTakenByP1(from) && nodeTakenByP1(to)
+          const p2Edge = nodeTakenByP2(from) && nodeTakenByP2(to)
+          const lineState: DiffState =
+            p1Edge && p2Edge ? 'both'
+            : p1Edge ? 'p1'
+            : p2Edge ? 'p2'
             : 'neither'
-          const color = lineState === 'p1'  ? 'rgba(240,200,80,0.95)'
-            : lineState === 'p2'            ? 'rgba(120,200,255,0.95)'
-            : lineState === 'both'          ? 'rgba(150,165,185,0.55)'
-            :                                 'rgba(40,50,62,0.22)'
-          const sw = lineState === 'p1' || lineState === 'p2' ? 3 : lineState === 'both' ? 2 : 1.25
+          const color = lineState === 'p1'  ? '#e8b020'
+            : lineState === 'p2'            ? '#4cb0f0'
+            : lineState === 'both'          ? 'rgba(140,152,168,0.45)'
+            :                                 'rgba(40,50,62,0.25)'
+          const sw = lineState === 'p1' || lineState === 'p2' ? 3.5 : lineState === 'both' ? 1.35 : 1.25
           return <line key={i} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={color} strokeWidth={sw} strokeLinecap="round" />
         })}
       </svg>
@@ -440,6 +463,22 @@ export function TalentTreeSection({ nodes, edges, name1, name2, renderMode = 'di
           </div>
         )
       })}
+    </div>
+  )
+
+  const inner = (
+    <div
+      style={{
+        position: 'relative',
+        width: paddedW,
+        height: paddedH,
+        flexShrink: 0,
+        overflow: 'visible',
+      }}
+    >
+      <div style={{ position: 'absolute', left: LAYOUT_PAD, top: LAYOUT_PAD, width: W, height: H, overflow: 'visible' }}>
+        {innerCore}
+      </div>
     </div>
   )
 

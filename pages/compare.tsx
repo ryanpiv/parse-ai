@@ -12,6 +12,7 @@ import {
 import { apiNodesToTreeNodes } from '../lib/talents/apiNodesToTreeNodes'
 import { s } from '../lib/styles'
 import { useAppSession } from '../contexts/AppSessionContext'
+import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
 
 interface BlizzardTreeResponse {
   specId: number
@@ -266,6 +267,11 @@ export default function ComparePage() {
     patchSession({ specId: compareData.specId })
   }, [hydrated, compareData, patchSession])
 
+  useEffect(() => {
+    if (!hydrated || !compareData?.p1?.talentTree?.length) return
+    patchSession({ p1TalentTreeJson: talentDataToP1RowsJson(compareData.p1.talentTree) })
+  }, [hydrated, compareData?.p1?.talentTree, patchSession])
+
   const handleWclFetch = useCallback(async () => {
     const url = wclUrl.trim()
     if (!url) return
@@ -291,7 +297,10 @@ export default function ComparePage() {
       setStr1(s1)
       setStr2(s2)
 
-      patchSession({ compareWclUrl: url })
+      patchSession({
+        compareWclUrl: url,
+        p1TalentTreeJson: talentDataToP1RowsJson(data.tree1),
+      })
 
       if (s1 && s2) {
         runCompare(s1, s2, data.n1 || 'Build 1', data.n2 || 'Build 2')

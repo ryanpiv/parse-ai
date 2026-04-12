@@ -1,7 +1,7 @@
 /**
  * Full talent layout for compare **player 1** only (Raidbots-style: gold = taken, gray = not).
- * Ranks come from the last saved export string in app session (Analyze or Talent compare),
- * when it matches the spec. Optional ?preset=budget|max|none for synthetic fills (QA).
+ * Ranks prefer saved WCL talent rows (same source as /compare), then the export string.
+ * Optional ?preset=budget|max|none for synthetic fills (QA).
  *
  * Open: /talent-preview — uses remembered specId + player 1 string after you load a compare.
  * Or: /talent-preview?specId=64&preset=budget
@@ -14,6 +14,7 @@ import { SpellTooltipProvider } from '../components/TalentCompare/SpellTooltip'
 import { useAppSession } from '../contexts/AppSessionContext'
 import { decodeTalentString } from '../lib/talents/decodeTalentString'
 import { apiNodesToTreeNodes } from '../lib/talents/apiNodesToTreeNodes'
+import { parseP1TalentRowsJson } from '../lib/talents/p1TalentTreeSession'
 
 type TreePayload = {
   nodes: BlizzardNode[]
@@ -104,6 +105,28 @@ function stripColOutliers(nodes: BlizzardNode[]): BlizzardNode[] {
   }
 
   return nodes
+}
+
+/** Map WCL-style rows onto class/spec/hero rank maps using Blizzard node types. */
+function applyP1RowsToMaps(
+  rows: Array<{ nodeID: number; rank: number }>,
+  all: BlizzardNode[],
+  heroNodeIds: Set<number>,
+  classR: Map<number, number>,
+  specR: Map<number, number>,
+  heroRs: Record<string, Map<number, number>>
+) {
+  for (const r of rows) {
+    if (r.rank <= 0) continue
+    const blizz = all.find(n => n.nodeId === r.nodeID)
+    if (!blizz) continue
+    if (blizz.type === 'class' && !heroNodeIds.has(r.nodeID)) classR.set(r.nodeID, r.rank)
+    else if (blizz.type === 'spec' && !heroNodeIds.has(r.nodeID)) specR.set(r.nodeID, r.rank)
+    else if (blizz.type.startsWith('hero_')) {
+      if (!heroRs[blizz.type]) heroRs[blizz.type] = new Map()
+      heroRs[blizz.type]!.set(r.nodeID, r.rank)
+    }
+  }
 }
 
 const FONT = '"Avenir Next", Lato, "Helvetica Neue", Helvetica, sans-serif'
@@ -204,31 +227,13 @@ export default function TalentPreviewPage() {
 
     if (presetMode === 'none') {
       // leave empty
-    } else if (useSavedExport) {
-      try {
-        const treeNodes = apiNodesToTreeNodes(
-          tree.nodes as Array<{ nodeId: number; nodeType: string; entries: Array<{ maxRanks: number }> }>
-        )
-        const decoded = decodeTalentString(session.compareStr1!, treeNodes)
-        for (const [nodeId, node] of decoded.nodes) {
-          const blizz = all.find(n => n.nodeId === nodeId)
-          if (!blizz || node.rank <= 0) continue
-          if (blizz.type === 'class' && !heroNodeIds.has(nodeId)) classR.set(nodeId, node.rank)
-          else if (blizz.type === 'spec' && !heroNodeIds.has(nodeId)) specR.set(nodeId, node.rank)
-          else if (blizz.type.startsWith('hero_')) {
-            if (!heroRs[blizz.type]) heroRs[blizz.type] = new Map()
-            heroRs[blizz.type]!.set(nodeId, node.rank)
-          }
-        }
-        usingSavedP1 = true
-      } catch {
-        classR = allocateTalentRanks(classRaw, edges, classCap)
-        specR = allocateTalentRanks(specRaw, edges, specCap)
-        const primaryHero = heroTypes[0]
-        if (primaryHero) {
-          const heroNodes = all.filter((n: BlizzardNode) => n.type === primaryHero)
-          heroRs[primaryHero] = allocateTalentRanks(heroNodes, edges, heroCap)
-        }
+    } else if (presetMode === 'budget') {
+      classR = allocateTalentRanks(classRaw, edges, classCap)
+      specR = allocateTalentRanks(specRaw, edges, specCap)
+      const primaryHero = heroTypes[0]
+      if (primaryHero) {
+        const heroNodes = all.filter((n: BlizzardNode) => n.type === primaryHero)
+        heroRs[primaryHero] = allocateTalentRanks(heroNodes, edges, heroCap)
       }
     } else if (presetMode === 'max') {
       for (const n of all) {
@@ -241,12 +246,51 @@ export default function TalentPreviewPage() {
         }
       }
     } else {
-      classR = allocateTalentRanks(classRaw, edges, classCap)
-      specR = allocateTalentRanks(specRaw, edges, specCap)
-      const primaryHero = heroTypes[0]
-      if (primaryHero) {
-        const heroNodes = all.filter((n: BlizzardNode) => n.type === primaryHero)
-        heroRs[primaryHero] = allocateTalentRanks(heroNodes, edges, heroCap)
+      // default | session — decode export first, then overlay WCL rows (rows win on overlap).
+      // Rows alone often omit or under-spec hero nodes; decode fills hero when the string has them.
+      let filledFromSaved = false
+      if (useSavedExport && session.compareStr1) {
+        try {
+          const treeNodes = apiNodesToTreeNodes(
+            tree.nodes as Array<{ nodeId: number; nodeType: string; entries: Array<{ maxRanks: number }> }>
+          )
+          const decoded = decodeTalentString(session.compareStr1, treeNodes)
+          for (const [nodeId, node] of decoded.nodes) {
+            const blizz = all.find(n => n.nodeId === nodeId)
+            if (!blizz || node.rank <= 0) continue
+            if (blizz.type === 'class' && !heroNodeIds.has(nodeId)) classR.set(nodeId, node.rank)
+            else if (blizz.type === 'spec' && !heroNodeIds.has(nodeId)) specR.set(nodeId, node.rank)
+            else if (blizz.type.startsWith('hero_')) {
+              if (!heroRs[blizz.type]) heroRs[blizz.type] = new Map()
+              heroRs[blizz.type]!.set(nodeId, node.rank)
+            }
+          }
+          const anyDecoded =
+            classR.size > 0 ||
+            specR.size > 0 ||
+            Object.values(heroRs).some(m => m && m.size > 0)
+          if (anyDecoded) {
+            filledFromSaved = true
+            usingSavedP1 = true
+          }
+        } catch {
+          /* fall through to rows / budget */
+        }
+      }
+      const p1Rows = parseP1TalentRowsJson(session.p1TalentTreeJson)
+      if (p1Rows.length > 0) {
+        applyP1RowsToMaps(p1Rows, all, heroNodeIds, classR, specR, heroRs)
+        filledFromSaved = true
+        usingSavedP1 = true
+      }
+      if (!filledFromSaved) {
+        classR = allocateTalentRanks(classRaw, edges, classCap)
+        specR = allocateTalentRanks(specRaw, edges, specCap)
+        const primaryHero = heroTypes[0]
+        if (primaryHero) {
+          const heroNodes = all.filter((n: BlizzardNode) => n.type === primaryHero)
+          heroRs[primaryHero] = allocateTalentRanks(heroNodes, edges, heroCap)
+        }
       }
     }
 
@@ -266,13 +310,31 @@ export default function TalentPreviewPage() {
       edges,
       usingSavedP1,
     }
-  }, [tree, presetMode, classCap, specCap, heroCap, session.compareStr1, session.specId, effectiveSpecId])
+  }, [
+    tree,
+    presetMode,
+    classCap,
+    specCap,
+    heroCap,
+    session.compareStr1,
+    session.p1TalentTreeJson,
+    session.specId,
+    effectiveSpecId,
+  ])
 
-  /** Center column: hero tree that actually has points (player 1’s chosen hero), not always index 0. */
+  /** Hero column with the most points; if tied at zero, first API tree (stable fallback). */
   const heroBlockForP1 = useMemo(() => {
     if (!heroBlocks.length) return null
-    const withPoints = heroBlocks.filter(b => sumRanks(b.nodes) > 0)
-    return withPoints[0] ?? heroBlocks[0]
+    let best = heroBlocks[0]
+    let bestSum = sumRanks(best.nodes)
+    for (let i = 1; i < heroBlocks.length; i++) {
+      const s = sumRanks(heroBlocks[i].nodes)
+      if (s > bestSum) {
+        best = heroBlocks[i]
+        bestSum = s
+      }
+    }
+    return bestSum > 0 ? best : heroBlocks[0]
   }, [heroBlocks])
 
   const pageUrl = typeof window !== 'undefined' ? window.location.href : ''
@@ -341,11 +403,12 @@ export default function TalentPreviewPage() {
           </h1>
           <p style={{ fontSize: 13, color: '#8899aa', margin: '0 0 16px', lineHeight: 1.5 }}>
             {usingSavedP1
-              ? 'Compare player 1 only — same build as on Analyze / Talent compare (from your saved export).'
-              : 'Synthetic or demo fill. Load a fight on Analyze or run Compare to save player 1’s string, then open this page again — or set ?preset=budget.'}
+              ? 'Compare player 1 only — uses WCL node rows when available (same as /compare), otherwise the saved export string.'
+              : 'Synthetic or demo fill. Load a fight on Analyze or run Compare to save player 1 data, then open this page again — or set ?preset=budget.'}
           </p>
           <p style={{ fontSize: 11, color: '#556', marginBottom: 14, fontFamily: 'IBM Plex Mono, monospace' }}>
             specId={effectiveSpecId || '—'} · preset={presetMode}
+            {hydrated && session.p1TalentTreeJson ? ' · session has WCL rows' : ''}
             {hydrated && session.compareStr1 ? ' · session has export string' : ''}
           </p>
 

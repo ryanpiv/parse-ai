@@ -8,6 +8,7 @@ import { genVerifier, genChallenge } from '../lib/pkce'
 import '../lib/spellTooltips'
 import { buildRichContext } from '../lib/buildContext'
 import { fetchTalents } from '../lib/talents'
+import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
 import { TalentCompare } from '../components/TalentCompare'
 import { SpellUsageChart, CastTimelineChart, ProcEfficiencyChart, CooldownTimelineChart, ChartCard } from '../components/Charts'
 import { SpellTimeline } from '../components/Charts/SpellTimeline'
@@ -230,6 +231,7 @@ export default function Home() {
           compareName1: name1,
           compareName2: name2,
           specId: specId ?? null,
+          p1TalentTreeJson: talentDataToP1RowsJson(tt1?.talentTree?.length ? tt1.talentTree : tt1?.talents),
         })
       }).catch(e => {
         console.warn('Talent fetch failed:', e)
