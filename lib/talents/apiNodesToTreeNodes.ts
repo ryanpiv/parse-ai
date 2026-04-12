@@ -1,6 +1,9 @@
 import type { TreeNodeInfo } from './decodeTalentString'
 
-/** Blizzard `/api/blizzard-tree` node list → decoder node order (sorted by nodeId). */
+/**
+ * Blizzard `/api/blizzard-tree` node list → `TreeNodeInfo[]` for decode/encode.
+ * Sorted by **nodeId** (canonical import/export order); decode/encode also sort internally.
+ */
 export function apiNodesToTreeNodes(
   nodes: Array<{ nodeId: number; nodeType: string; entries: Array<{ maxRanks: number }> }>
 ): TreeNodeInfo[] {

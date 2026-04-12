@@ -6,6 +6,7 @@ import {
   decodedNodesEqual,
   wclRowsToDecodedNodes,
   type TreeNodeInfo,
+  type DecodedTalentNode,
 } from '../../../lib/talents/decodeTalentString'
 
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -173,6 +174,22 @@ describe('decodeTalentString', () => {
     const enc = encodeTalentString({ specId: dec.specId, version: dec.version, treeNodes: nodes, nodes: dec.nodes })
     const dec2 = decodeTalentString(enc, nodes)
     expect(decodedNodesEqual(dec.nodes, dec2.nodes)).toBe(true)
+  })
+
+  it('round-trips when treeNodes array order is arbitrary (canonical sort is by nodeId)', () => {
+    const treeNodes: TreeNodeInfo[] = [
+      { nodeId: 200, nodeType: 'ACTIVE', maxRanks: 1 },
+      { nodeId: 10, nodeType: 'ACTIVE', maxRanks: 1 },
+      { nodeId: 99, nodeType: 'ACTIVE', maxRanks: 1 },
+    ]
+    const nodes = new Map<number, DecodedTalentNode>([
+      [200, { rank: 1 }],
+      [10, { rank: 1 }],
+      [99, { rank: 1 }],
+    ])
+    const enc = encodeTalentString({ specId: 64, version: 16, treeNodes, nodes })
+    const dec = decodeTalentString(enc, treeNodes)
+    expect(decodedNodesEqual(dec.nodes, nodes)).toBe(true)
   })
 
   it('throws when string is too short for the node data', () => {

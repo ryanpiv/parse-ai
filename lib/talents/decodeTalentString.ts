@@ -140,8 +140,9 @@ export function parseTalentStringHeader(exportStr: string): TalentStringHeader {
 }
 
 /**
- * Fully decode a talent export string against an ordered list of tree nodes.
- * treeNodes must be sorted by nodeId ascending (matching Blizzard's iteration order).
+ * Fully decode a talent export string against a list of tree nodes.
+ * Iteration order is **canonical: ascending nodeId** (matches Blizzard import/export and
+ * community tools). Callers may pass `/api/blizzard-tree` nodes in any order.
  */
 export function decodeTalentString(
   exportStr: string,
@@ -158,8 +159,9 @@ export function decodeTalentString(
   reader.read(64)
 
   const nodes = new Map<number, DecodedTalentNode>()
+  const ordered = [...treeNodes].sort((a, b) => a.nodeId - b.nodeId)
 
-  for (const node of treeNodes) {
+  for (const node of ordered) {
     const isSelected = reader.read(1)
     if (!isSelected) continue
 
@@ -213,14 +215,14 @@ export function encodeTalentString(options: {
     }
   }
   const { specId, treeNodes, nodes } = options
-  const sorted = [...treeNodes].sort((a, b) => a.nodeId - b.nodeId)
+  const ordered = [...treeNodes].sort((a, b) => a.nodeId - b.nodeId)
   const w = new BitWriter()
   w.writeBits(version, 8)
   w.writeBits(specId, 16)
   w.writeBits(0, 64)
   w.writeBits(0, 64)
 
-  for (const node of sorted) {
+  for (const node of ordered) {
     const sel = nodes.get(node.nodeId)
     if (!sel || sel.rank <= 0) {
       w.writeBit(0)

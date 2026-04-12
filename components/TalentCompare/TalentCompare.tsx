@@ -1,6 +1,10 @@
-import { useState, useEffect, useMemo } from 'react'
-import { TalentTreeSection, computeLayout, type BlizzardNode, type DiffState } from './TalentTree'
+import { useMemo } from 'react'
+import { heroTreeShortLabel } from '../../lib/talents/heroLabels'
+import { partitionBlizzardTalentNodes } from '../../lib/talents/partitionBlizzardTree'
+import { TalentTreeSection, type BlizzardNode, type DiffState } from './TalentTree'
 import { SpellTooltipProvider } from './SpellTooltip'
+import { uniformClassSpecTreeWidth } from './uniformClassSpecTreeWidth'
+import { useBlizzardTalentTree } from './useBlizzardTalentTree'
 
 interface WCLTalent { id: number; nodeID: number; rank: number }
 interface TalentData { name: string; talentTree?: WCLTalent[]; talents?: any[] }
@@ -22,25 +26,6 @@ const LABEL: React.CSSProperties = {
 const NODE_PX = 28
 const STEP = 42
 const MAX_TREE_W = 340
-
-function stripColOutliers(nodes: BlizzardNode[]): BlizzardNode[] {
-  if (nodes.length < 5) return nodes
-  const uniq = [...new Set(nodes.map(n => n.col))].sort((a, b) => a - b)
-  if (uniq.length < 3) return nodes
-  const secondLast = uniq[uniq.length - 2]
-  const last = uniq[uniq.length - 1]
-  const typicalStep = (secondLast - uniq[0]) / (uniq.length - 2)
-  if (last - secondLast > typicalStep * 3) {
-    return nodes.filter(n => n.col <= secondLast)
-  }
-  const first = uniq[0]
-  const second = uniq[1]
-  const typicalStepHi = (uniq[uniq.length - 1] - second) / (uniq.length - 2)
-  if (second - first > typicalStepHi * 3) {
-    return nodes.filter(n => n.col >= second)
-  }
-  return nodes
-}
 
 function TalentLink({ spellId, name, color }: { spellId: number; name: string; color: 'gold' | 'blue' }) {
   const c = color === 'gold'
@@ -67,21 +52,9 @@ function annotateDiff(nodes: BlizzardNode[], sel1: Map<number, number>, sel2: Ma
 }
 
 export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Props) {
-  const [treeData, setTreeData] = useState<any>(null)
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!specId) return
-    setTreeData(null)
-    setError(null)
-    setLoading(true)
-    fetch(`/api/blizzard-tree?specId=${specId}`)
-      .then(r => r.json())
-      .then(d => { if (d.error) throw new Error(d.error); setTreeData(d) })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
-  }, [specId])
+  const { tree: treeData, loading, error } = useBlizzardTalentTree(specId ?? 0, {
+    skip: !specId,
+  })
 
   // Build WCL selection maps: nodeId → rank (empty maps when both players missing — hooks below still run)
   const sel1 = new Map<number, number>()
@@ -91,14 +64,9 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
 
   const allNodes: BlizzardNode[] = treeData?.nodes || []
   const edges = treeData?.edges || []
-  const heroNodeIds = new Set(allNodes.filter(n => n.type.startsWith('hero_')).map(n => n.nodeId))
-  const classNodesBase = stripColOutliers(allNodes.filter((n: BlizzardNode) => n.type === 'class' && !heroNodeIds.has(n.nodeId)))
-  const specNodesBase = stripColOutliers(allNodes.filter((n: BlizzardNode) => n.type === 'spec' && !heroNodeIds.has(n.nodeId)))
   const allHeroTypes: string[] = treeData?.heroTypes || []
-  const heroNodesByTypeBase: Record<string, BlizzardNode[]> = {}
-  allHeroTypes.forEach(t => {
-    heroNodesByTypeBase[t] = allNodes.filter((n: BlizzardNode) => n.type === t)
-  })
+  const { classNodesStripped: classNodesBase, specNodesStripped: specNodesBase, heroNodesByType: heroNodesByTypeBase } =
+    partitionBlizzardTalentNodes(allNodes, allHeroTypes)
 
   const classNodes = annotateDiff(classNodesBase, sel1, sel2)
   const specNodes = annotateDiff(specNodesBase, sel1, sel2)
@@ -108,13 +76,10 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
   })
   const heroTypes = allHeroTypes.filter(t => heroNodesByType[t].some(n => n.state !== 'neither'))
 
-  const uniformWidth = useMemo(() => {
-    if (!classNodes.length && !specNodes.length) return undefined
-    const classW = classNodes.length ? computeLayout(classNodes, NODE_PX, STEP, true).W : 0
-    const specW = specNodes.length ? computeLayout(specNodes, NODE_PX, STEP, true).W : 0
-    const maxNatural = Math.max(classW, specW)
-    return Math.min(maxNatural, MAX_TREE_W)
-  }, [classNodes, specNodes])
+  const uniformWidth = useMemo(
+    () => uniformClassSpecTreeWidth(classNodes, specNodes, NODE_PX, STEP, MAX_TREE_W),
+    [classNodes, specNodes]
+  )
 
   const allAnnotated = annotateDiff(allNodes, sel1, sel2)
   const p1Only = allAnnotated.filter(n => n.state === 'p1')
@@ -213,7 +178,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
 
             {heroTypes.map(ht => (
               <div key={ht} style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}>
-                <div style={LABEL}>{ht.replace(/^hero_/, '').replace(/_/g, ' ')}</div>
+                <div style={LABEL}>{heroTreeShortLabel(ht)}</div>
                 <TalentTreeSection nodes={heroNodesByType[ht] || []} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} maxWidth={200} />
               </div>
             ))}

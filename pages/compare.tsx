@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { TalentCompare } from '../components/TalentCompare'
+import { TalentCompare, fetchBlizzardTree } from '../components/TalentCompare'
 import {
   parseTalentStringHeader,
   decodeTalentString,
@@ -10,23 +10,10 @@ import {
   type DecodedTalentString,
 } from '../lib/talents/decodeTalentString'
 import { apiNodesToTreeNodes } from '../lib/talents/apiNodesToTreeNodes'
+import { parseNextApiJson } from '../lib/wclClient'
 import { s } from '../lib/styles'
 import { useAppSession } from '../contexts/AppSessionContext'
 import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
-
-interface BlizzardTreeResponse {
-  specId: number
-  treeId: number
-  nodes: Array<{
-    nodeId: number
-    nodeType: string
-    entries: Array<{ maxRanks: number }>
-    [key: string]: unknown
-  }>
-  specName: string | null
-  className: string | null
-  [key: string]: unknown
-}
 
 function decodedToTalentTree(decoded: DecodedTalentString) {
   return Array.from(decoded.nodes.entries()).map(([nodeID, node]) => ({
@@ -80,9 +67,7 @@ export default function ComparePage() {
       setWclTreesOnly(false)
       setLoading(true)
       try {
-        const res = await fetch(`/api/blizzard-tree?specId=${specId}`)
-        const tree: BlizzardTreeResponse = await res.json()
-        if ((tree as any).error) throw new Error((tree as any).error)
+        const tree = await fetchBlizzardTree(specId)
         const treeNodes = apiNodesToTreeNodes(tree.nodes)
         try {
           const enc1 = ex1
@@ -158,10 +143,7 @@ export default function ComparePage() {
 
     setLoading(true)
     try {
-      const res = await fetch(`/api/blizzard-tree?specId=${header1.specId}`)
-      const tree: BlizzardTreeResponse = await res.json()
-      if ((tree as any).error) throw new Error((tree as any).error)
-
+      const tree = await fetchBlizzardTree(header1.specId)
       const treeNodes = apiNodesToTreeNodes(tree.nodes)
 
       let decoded1: DecodedTalentString, decoded2: DecodedTalentString
@@ -283,7 +265,7 @@ export default function ComparePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'compare-talents', url }),
       })
-      const data = await res.json()
+      const data = await parseNextApiJson(res, '/api/wcl')
       if (data.error) {
         const dbg = data.debug ? ` — ${JSON.stringify(data.debug)}` : ''
         throw new Error(String(data.error) + dbg)

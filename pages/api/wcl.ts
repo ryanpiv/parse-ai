@@ -30,54 +30,92 @@ function tryParseJSON(text: string): { ok: true; data: unknown } | { ok: false }
   }
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'GET') {
-    const token = getToken()
-    if (!token) return res.status(500).json({ error: 'WCL_TOKEN not set in .env.local' })
-
-    try {
-      const { status, text } = await wclFetch(token, { query: RATE_LIMIT_QUERY })
-      if (status !== 200) return res.status(status).json({ error: `WCL returned ${status}`, body: text.slice(0, 300) })
-
-      const parsed = tryParseJSON(text)
-      if (!parsed.ok) return res.status(500).json({ error: 'WCL returned non-JSON — token likely expired', body: text.slice(0, 300) })
-
-      const data = parsed.data as Record<string, unknown>
-      return res.status(200).json({ ok: true, rateLimit: (data?.data as Record<string, unknown>)?.rateLimitData })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error'
-      return res.status(500).json({ error: message })
+function safeJson(res: NextApiResponse, status: number, payload: unknown) {
+  if (res.writableEnded) return
+  try {
+    return res.status(status).json(payload)
+  } catch (e) {
+    console.error('[api/wcl] res.json failed', e)
+    if (!res.writableEnded) {
+      return res.status(500).json({ error: 'Failed to serialize API response (WCL payload may be invalid).' })
     }
   }
+}
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
-
-  const token = getToken()
-  if (!token) return res.status(500).json({ error: 'WCL_TOKEN not set in .env.local' })
-
-  // Special action: extract talent strings from a WCL compare URL
-  if (req.body?.action === 'compare-talents') {
-    return handleCompareTalents(req, res, token)
-  }
-
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { status, text } = await wclFetch(token, req.body)
-    if (status !== 200) return res.status(status).json({ error: `WCL returned ${status}`, body: text.slice(0, 300) })
+    if (req.method === 'GET') {
+      const token = getToken()
+      if (!token) return safeJson(res, 500, { error: 'WCL_TOKEN not set in .env.local' })
 
-    const parsed = tryParseJSON(text)
-    if (!parsed.ok) {
-      return res.status(500).json({
-        error: 'WCL returned non-JSON — token likely expired. Get a new token from parse-analyzer-ai.html and update .env.local',
-        body: text.slice(0, 300),
+      try {
+        const { status, text } = await wclFetch(token, { query: RATE_LIMIT_QUERY })
+        if (status !== 200) {
+          return safeJson(res, status, { error: `WCL returned ${status}`, body: text.slice(0, 300) })
+        }
+
+        const parsed = tryParseJSON(text)
+        if (!parsed.ok) {
+          return safeJson(res, 500, {
+            error: 'WCL returned non-JSON — token likely expired',
+            body: text.slice(0, 300),
+          })
+        }
+
+        const data = parsed.data as Record<string, unknown>
+        return safeJson(res, 200, { ok: true, rateLimit: (data?.data as Record<string, unknown>)?.rateLimitData })
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error'
+        return safeJson(res, 500, { error: message })
+      }
+    }
+
+    if (req.method !== 'POST') {
+      return safeJson(res, 405, { error: 'Method not allowed' })
+    }
+
+    const token = getToken()
+    if (!token) return safeJson(res, 500, { error: 'WCL_TOKEN not set in .env.local' })
+
+    // Special action: extract talent strings from a WCL compare URL
+    if (req.body?.action === 'compare-talents') {
+      return await handleCompareTalents(req, res, token)
+    }
+
+    if (req.body == null || typeof req.body !== 'object' || typeof (req.body as { query?: unknown }).query !== 'string') {
+      return safeJson(res, 400, {
+        error: 'Expected JSON body { query: string, variables?: object }. If you see this in the app, the WCL client is misconfigured.',
       })
     }
 
-    return res.status(200).json(parsed.data)
+    try {
+      const { status, text } = await wclFetch(token, req.body as object)
+      if (status !== 200) {
+        return safeJson(res, status, { error: `WCL returned ${status}`, body: text.slice(0, 300) })
+      }
+
+      const parsed = tryParseJSON(text)
+      if (!parsed.ok) {
+        return safeJson(res, 500, {
+          error:
+            'WCL returned non-JSON — token likely expired. Get a new token from parse-analyzer-ai.html and update .env.local',
+          body: text.slice(0, 300),
+        })
+      }
+
+      return safeJson(res, 200, parsed.data)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      return safeJson(res, 500, { error: message })
+    }
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    return res.status(500).json({ error: message })
+    console.error('[api/wcl] unhandled', err)
+    if (!res.writableEnded) {
+      return safeJson(res, 500, {
+        error: err instanceof Error ? err.message : 'Internal server error',
+        hint: 'Check the terminal running `npm run dev` for [api/wcl] logs.',
+      })
+    }
   }
 }
 
