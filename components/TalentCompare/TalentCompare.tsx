@@ -56,6 +56,16 @@ function TalentLink({ spellId, name, color }: { spellId: number; name: string; c
   )
 }
 
+function annotateDiff(nodes: BlizzardNode[], sel1: Map<number, number>, sel2: Map<number, number>): BlizzardNode[] {
+  return nodes.map(n => {
+    const in1 = sel1.has(n.nodeId)
+    const in2 = sel2.has(n.nodeId)
+    const state: DiffState = in1 && in2 ? 'both' : in1 ? 'p1' : in2 ? 'p2' : 'neither'
+    const rank = sel1.get(n.nodeId) ?? sel2.get(n.nodeId) ?? 0
+    return { ...n, state, rank }
+  })
+}
+
 export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Props) {
   const [treeData, setTreeData] = useState<any>(null)
   const [loading, setLoading]   = useState(false)
@@ -73,34 +83,29 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
       .finally(() => setLoading(false))
   }, [specId])
 
-  if (!p1Talents && !p2Talents) return (
-    <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, color: 'var(--dim,#4a5a6a)' }}>
-      Talent data not available.
-    </div>
-  )
-
-  // Build WCL selection maps: nodeId → rank
+  // Build WCL selection maps: nodeId → rank (empty maps when both players missing — hooks below still run)
   const sel1 = new Map<number, number>()
   const sel2 = new Map<number, number>()
   ;(p1Talents?.talentTree || []).forEach((t: WCLTalent) => sel1.set(t.nodeID, t.rank))
   ;(p2Talents?.talentTree || []).forEach((t: WCLTalent) => sel2.set(t.nodeID, t.rank))
 
-  function annotate(nodes: BlizzardNode[]): BlizzardNode[] {
-    return nodes.map(n => {
-      const in1 = sel1.has(n.nodeId), in2 = sel2.has(n.nodeId)
-      const state: DiffState = in1 && in2 ? 'both' : in1 ? 'p1' : in2 ? 'p2' : 'neither'
-      return { ...n, state, rank: sel1.get(n.nodeId) ?? sel2.get(n.nodeId) }
-    })
-  }
-
   const allNodes: BlizzardNode[] = treeData?.nodes || []
   const edges = treeData?.edges || []
   const heroNodeIds = new Set(allNodes.filter(n => n.type.startsWith('hero_')).map(n => n.nodeId))
-  const classNodes = annotate(stripColOutliers(allNodes.filter((n: BlizzardNode) => n.type === 'class' && !heroNodeIds.has(n.nodeId))))
-  const specNodes  = annotate(stripColOutliers(allNodes.filter((n: BlizzardNode) => n.type === 'spec' && !heroNodeIds.has(n.nodeId))))
+  const classNodesBase = stripColOutliers(allNodes.filter((n: BlizzardNode) => n.type === 'class' && !heroNodeIds.has(n.nodeId)))
+  const specNodesBase = stripColOutliers(allNodes.filter((n: BlizzardNode) => n.type === 'spec' && !heroNodeIds.has(n.nodeId)))
   const allHeroTypes: string[] = treeData?.heroTypes || []
+  const heroNodesByTypeBase: Record<string, BlizzardNode[]> = {}
+  allHeroTypes.forEach(t => {
+    heroNodesByTypeBase[t] = allNodes.filter((n: BlizzardNode) => n.type === t)
+  })
+
+  const classNodes = annotateDiff(classNodesBase, sel1, sel2)
+  const specNodes = annotateDiff(specNodesBase, sel1, sel2)
   const heroNodesByType: Record<string, BlizzardNode[]> = {}
-  allHeroTypes.forEach(t => { heroNodesByType[t] = annotate(allNodes.filter((n: BlizzardNode) => n.type === t)) })
+  allHeroTypes.forEach(t => {
+    heroNodesByType[t] = annotateDiff(heroNodesByTypeBase[t], sel1, sel2)
+  })
   const heroTypes = allHeroTypes.filter(t => heroNodesByType[t].some(n => n.state !== 'neither'))
 
   const uniformWidth = useMemo(() => {
@@ -111,13 +116,21 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
     return Math.min(maxNatural, MAX_TREE_W)
   }, [classNodes, specNodes])
 
-  const allAnnotated = annotate(allNodes)
+  const allAnnotated = annotateDiff(allNodes, sel1, sel2)
   const p1Only = allAnnotated.filter(n => n.state === 'p1')
   const p2Only = allAnnotated.filter(n => n.state === 'p2')
   const both   = allAnnotated.filter(n => n.state === 'both')
 
   const className = treeData?.className || ''
   const specName  = treeData?.specName  || ''
+
+  if (!p1Talents && !p2Talents) {
+    return (
+      <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, color: 'var(--dim,#4a5a6a)' }}>
+        Talent data not available.
+      </div>
+    )
+  }
 
   return (
     <SpellTooltipProvider>

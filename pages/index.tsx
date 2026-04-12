@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useAppSession } from '../contexts/AppSessionContext'
 import Head from 'next/head'
 import { gql, callAI } from '../lib/wclClient'
 import { collectNames, resolveNames, fetchFullFightData, processFightData } from '../lib/fightAnalysis'
@@ -35,6 +36,7 @@ interface FightMeta {
 }
 
 export default function Home() {
+  const { hydrated, session, patchSession } = useAppSession()
   const [compareUrl, setCompareUrl] = useState('')
   const [status, setStatus]         = useState<{ type: string; msg: string } | null>(null)
   const [loading, setLoading]       = useState(false)
@@ -52,6 +54,7 @@ export default function Home() {
   const chatRef = useRef<HTMLDivElement>(null)
   const scrollAnchorRef = useRef<HTMLDivElement>(null)
   const lastUserMsgRef = useRef<HTMLDivElement>(null)
+  const compareUrlRestoredRef = useRef(false)
 
   const [authStatus, setAuthStatus] = useState<'checking' | 'ok' | 'needed'>('checking')
   const [clientId, setClientId]     = useState('')
@@ -73,6 +76,12 @@ export default function Home() {
   useEffect(() => {
     fetch('/api/auth').then(r => r.json()).then(d => setAuthStatus(d.authenticated ? 'ok' : 'needed')).catch(() => setAuthStatus('needed'))
   }, [])
+
+  useEffect(() => {
+    if (!hydrated || compareUrlRestoredRef.current) return
+    compareUrlRestoredRef.current = true
+    if (session.wclCompareUrl) setCompareUrl(session.wclCompareUrl)
+  }, [hydrated, session.wclCompareUrl])
 
   async function startAuth() {
     if (!clientId.trim()) { setAuthMsg({ type: 'err', msg: 'Enter your WCL Client ID.' }); return }
@@ -98,6 +107,8 @@ export default function Home() {
       const srcs = (u.searchParams.get('source') || '').split(',')
       src1 = srcs[0]; src2 = srcs[1] || srcs[0]
     } catch (e: any) { setStatus({ type: 'err', msg: 'Could not parse URL: ' + e.message }); return }
+
+    patchSession({ wclCompareUrl: compareUrl.trim() })
 
     setLoading(true); setP1data(null); setP2data(null); setTalentDiff(null); setMessages([])
 
@@ -213,6 +224,13 @@ export default function Home() {
         }
         const specId = tt1?.specID || tt2?.specID || undefined
         setTalentDiff({ t1: resolveTalentNames(tt1), t2: resolveTalentNames(tt2), name1, name2, specId })
+        patchSession({
+          compareStr1: typeof tt1?.talentString === 'string' ? tt1.talentString : '',
+          compareStr2: typeof tt2?.talentString === 'string' ? tt2.talentString : '',
+          compareName1: name1,
+          compareName2: name2,
+          specId: specId ?? null,
+        })
       }).catch(e => {
         console.warn('Talent fetch failed:', e)
         setTalentDiff({ t1: null, t2: null, name1, name2, error: e.message })

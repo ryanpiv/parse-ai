@@ -1,17 +1,19 @@
 /**
- * Dev / QA page: Raidbots-style single-build talent view (light chrome).
- * Open: /talent-preview?specId=<ID>&preset=budget
+ * Full talent layout for compare **player 1** only (Raidbots-style: gold = taken, gray = not).
+ * Ranks come from the last saved export string in app session (Analyze or Talent compare),
+ * when it matches the spec. Optional ?preset=budget|max|none for synthetic fills (QA).
  *
- * preset:
- *   none   — no ranks (mostly gray)
- *   budget — fill ranks in row order until class/spec/hero caps (default)
- *   max    — every node at max rank (stress test; totals may exceed caps)
+ * Open: /talent-preview — uses remembered specId + player 1 string after you load a compare.
+ * Or: /talent-preview?specId=64&preset=budget
  */
 import Head from 'next/head'
-import { useRouter } from 'next/router'
+import { useRouter, type NextRouter } from 'next/router'
 import { useEffect, useMemo, useState } from 'react'
 import { TalentTreeSection, computeLayout, type BlizzardNode } from '../components/TalentCompare/TalentTree'
 import { SpellTooltipProvider } from '../components/TalentCompare/SpellTooltip'
+import { useAppSession } from '../contexts/AppSessionContext'
+import { decodeTalentString } from '../lib/talents/decodeTalentString'
+import { apiNodesToTreeNodes } from '../lib/talents/apiNodesToTreeNodes'
 
 type TreePayload = {
   nodes: BlizzardNode[]
@@ -116,10 +118,20 @@ const COL_CLASS_CENTER = COL_CLASS_W / 2
 const COL_HERO_CENTER  = COL_CLASS_W + COL_HERO_W / 2
 const COL_SPEC_CENTER  = COL_CLASS_W + COL_HERO_W + COL_SPEC_W / 2
 
+function presetModeFromQuery(q: NextRouter['query']): 'default' | 'none' | 'budget' | 'max' | 'session' {
+  const raw = q.preset
+  if (raw === undefined || raw === '') return 'default'
+  const s = String(Array.isArray(raw) ? raw[0] : raw).toLowerCase()
+  if (s === 'none' || s === 'budget' || s === 'max' || s === 'session') return s
+  return 'budget'
+}
+
 export default function TalentPreviewPage() {
   const router = useRouter()
-  const specId = router.query.specId ? parseInt(String(router.query.specId), 10) || 0 : 0
-  const preset = String(router.query.preset || 'budget')
+  const { hydrated, session } = useAppSession()
+  const specFromQuery = router.query.specId ? parseInt(String(router.query.specId), 10) || 0 : 0
+  const effectiveSpecId = specFromQuery || (hydrated ? session.specId ?? 0 : 0)
+  const presetMode = presetModeFromQuery(router.query)
   const classCap = parseInt(String(router.query.classCap || '34'), 10) || 34
   const specCap = parseInt(String(router.query.specCap || '34'), 10) || 34
   const heroCap = parseInt(String(router.query.heroCap || '13'), 10) || 13
@@ -132,14 +144,20 @@ export default function TalentPreviewPage() {
 
   useEffect(() => {
     if (!router.isReady) return
-    if (!specId) {
+    if (!hydrated && !specFromQuery) return
+    if (!effectiveSpecId) {
       setLoading(false)
-      setError('No specId provided. Usage: /talent-preview?specId=<ID>')
+      setTree(null)
+      setError(
+        hydrated
+          ? 'No specialization id. Pass ?specId=… or load a fight on Analyze so we can remember your spec.'
+          : null
+      )
       return
     }
     setLoading(true)
     setError(null)
-    fetch(`/api/blizzard-tree?specId=${specId}`)
+    fetch(`/api/blizzard-tree?specId=${effectiveSpecId}`)
       .then(r => r.json())
       .then(d => {
         if (d.error) throw new Error(d.error)
@@ -147,11 +165,17 @@ export default function TalentPreviewPage() {
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
-  }, [router.isReady, specId])
+  }, [router.isReady, hydrated, specFromQuery, effectiveSpecId])
 
-  const { classNodes, specNodes, heroBlocks, edges } = useMemo(() => {
+  const { classNodes, specNodes, heroBlocks, edges, usingSavedP1 } = useMemo(() => {
     if (!tree) {
-      return { classNodes: [] as BlizzardNode[], specNodes: [] as BlizzardNode[], heroBlocks: [] as { key: string; label: string; nodes: BlizzardNode[] }[], edges: [] as { from: number; to: number }[] }
+      return {
+        classNodes: [] as BlizzardNode[],
+        specNodes: [] as BlizzardNode[],
+        heroBlocks: [] as { key: string; label: string; nodes: BlizzardNode[] }[],
+        edges: [] as { from: number; to: number }[],
+        usingSavedP1: false,
+      }
     }
     const all = tree.nodes as BlizzardNode[]
     const edges = tree.edges
@@ -168,9 +192,45 @@ export default function TalentPreviewPage() {
     let specR = new Map<number, number>()
     const heroRs: Record<string, Map<number, number>> = {}
 
-    if (preset === 'none') {
+    const savedMatchesSpec =
+      !!session.compareStr1 &&
+      session.specId != null &&
+      session.specId === effectiveSpecId
+    const useSavedExport =
+      !!session.compareStr1 &&
+      (presetMode === 'session' || (presetMode === 'default' && savedMatchesSpec))
+
+    let usingSavedP1 = false
+
+    if (presetMode === 'none') {
       // leave empty
-    } else if (preset === 'max') {
+    } else if (useSavedExport) {
+      try {
+        const treeNodes = apiNodesToTreeNodes(
+          tree.nodes as Array<{ nodeId: number; nodeType: string; entries: Array<{ maxRanks: number }> }>
+        )
+        const decoded = decodeTalentString(session.compareStr1!, treeNodes)
+        for (const [nodeId, node] of decoded.nodes) {
+          const blizz = all.find(n => n.nodeId === nodeId)
+          if (!blizz || node.rank <= 0) continue
+          if (blizz.type === 'class' && !heroNodeIds.has(nodeId)) classR.set(nodeId, node.rank)
+          else if (blizz.type === 'spec' && !heroNodeIds.has(nodeId)) specR.set(nodeId, node.rank)
+          else if (blizz.type.startsWith('hero_')) {
+            if (!heroRs[blizz.type]) heroRs[blizz.type] = new Map()
+            heroRs[blizz.type]!.set(nodeId, node.rank)
+          }
+        }
+        usingSavedP1 = true
+      } catch {
+        classR = allocateTalentRanks(classRaw, edges, classCap)
+        specR = allocateTalentRanks(specRaw, edges, specCap)
+        const primaryHero = heroTypes[0]
+        if (primaryHero) {
+          const heroNodes = all.filter((n: BlizzardNode) => n.type === primaryHero)
+          heroRs[primaryHero] = allocateTalentRanks(heroNodes, edges, heroCap)
+        }
+      }
+    } else if (presetMode === 'max') {
       for (const n of all) {
         const mr = maxRankForNode(n)
         if (n.type === 'class') classR.set(n.nodeId, mr)
@@ -204,8 +264,16 @@ export default function TalentPreviewPage() {
       specNodes: applyRanks(specRaw, specR),
       heroBlocks,
       edges,
+      usingSavedP1,
     }
-  }, [tree, preset, classCap, specCap, heroCap])
+  }, [tree, presetMode, classCap, specCap, heroCap, session.compareStr1, session.specId, effectiveSpecId])
+
+  /** Center column: hero tree that actually has points (player 1’s chosen hero), not always index 0. */
+  const heroBlockForP1 = useMemo(() => {
+    if (!heroBlocks.length) return null
+    const withPoints = heroBlocks.filter(b => sumRanks(b.nodes) > 0)
+    return withPoints[0] ?? heroBlocks[0]
+  }, [heroBlocks])
 
   const pageUrl = typeof window !== 'undefined' ? window.location.href : ''
 
@@ -229,11 +297,27 @@ export default function TalentPreviewPage() {
 
   const classLabel = tree?.className || 'Class'
   const specLabel = tree?.specName || 'Spec'
+  const p1Name = session.compareName1?.trim() || 'Player 1'
+
+  const classHdr = usingSavedP1
+    ? `${classLabel} · ${sumRanks(classNodes)}`
+    : `${classLabel}: ${sumRanks(classNodes)} / ${classCap}`
+  const specHdr = usingSavedP1
+    ? `${specLabel} · ${sumRanks(specNodes)}`
+    : `${specLabel}: ${sumRanks(specNodes)} / ${specCap}`
+  const heroHdr =
+    heroBlockForP1
+      ? usingSavedP1
+        ? `${heroBlockForP1.label} · ${sumRanks(heroBlockForP1.nodes)}`
+        : `${heroBlockForP1.label}: ${sumRanks(heroBlockForP1.nodes)} / ${heroCap}`
+      : 'Hero'
 
   return (
     <SpellTooltipProvider>
       <Head>
-        <title>Talent preview — parse-ai</title>
+        <title>
+          {usingSavedP1 ? `${p1Name} — talents — parse-ai` : `Talent preview — parse-ai`}
+        </title>
       </Head>
       <div
         style={{
@@ -245,8 +329,24 @@ export default function TalentPreviewPage() {
         }}
       >
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-          <p style={{ fontSize: 12, color: '#556', marginBottom: 12, fontFamily: 'IBM Plex Mono, monospace' }}>
-            /talent-preview &nbsp; specId={specId || '—'} &nbsp; preset={preset}
+          <h1
+            style={{
+              margin: '0 0 6px',
+              fontSize: 22,
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+            }}
+          >
+            {usingSavedP1 ? `${p1Name} — full talents` : 'Talent preview'}
+          </h1>
+          <p style={{ fontSize: 13, color: '#8899aa', margin: '0 0 16px', lineHeight: 1.5 }}>
+            {usingSavedP1
+              ? 'Compare player 1 only — same build as on Analyze / Talent compare (from your saved export).'
+              : 'Synthetic or demo fill. Load a fight on Analyze or run Compare to save player 1’s string, then open this page again — or set ?preset=budget.'}
+          </p>
+          <p style={{ fontSize: 11, color: '#556', marginBottom: 14, fontFamily: 'IBM Plex Mono, monospace' }}>
+            specId={effectiveSpecId || '—'} · preset={presetMode}
+            {hydrated && session.compareStr1 ? ' · session has export string' : ''}
           </p>
 
           {loading && <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 13, color: '#667' }}>Loading tree…</p>}
@@ -256,9 +356,9 @@ export default function TalentPreviewPage() {
             <>
               {/* Header row — fixed 1100px, labels centered over each column */}
               <div style={{ position: 'relative', width: CANVAS_W, height: 30, marginBottom: 4 }}>
-                <HeaderSlot leftPx={COL_CLASS_CENTER} label={`${classLabel}: ${sumRanks(classNodes)} / ${classCap}`} />
-                <HeaderSlot leftPx={COL_HERO_CENTER} label={heroBlocks[0] ? `${heroBlocks[0].label}: ${sumRanks(heroBlocks[0].nodes)} / ${heroCap}` : 'Hero'} />
-                <HeaderSlot leftPx={COL_SPEC_CENTER} label={`${specLabel}: ${sumRanks(specNodes)} / ${specCap}`} />
+                <HeaderSlot leftPx={COL_CLASS_CENTER} label={classHdr} />
+                <HeaderSlot leftPx={COL_HERO_CENTER} label={heroHdr} />
+                <HeaderSlot leftPx={COL_SPEC_CENTER} label={specHdr} />
               </div>
 
               {/* Tree columns — fixed widths matching Raidbots proportions */}
@@ -278,9 +378,9 @@ export default function TalentPreviewPage() {
                   )}
                 </div>
                 <div style={{ width: COL_HERO_W, display: 'flex', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                  {heroBlocks[0]?.nodes.length ? (
+                  {heroBlockForP1?.nodes.length ? (
                     <TalentTreeSection
-                      nodes={heroBlocks[0].nodes}
+                      nodes={heroBlockForP1.nodes}
                       edges={edges}
                       name1=""
                       name2=""

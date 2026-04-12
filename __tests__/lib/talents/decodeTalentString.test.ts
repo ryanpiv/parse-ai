@@ -2,6 +2,9 @@ import { describe, it, expect } from '@jest/globals'
 import {
   parseTalentStringHeader,
   decodeTalentString,
+  encodeTalentString,
+  decodedNodesEqual,
+  wclRowsToDecodedNodes,
   type TreeNodeInfo,
 } from '../../../lib/talents/decodeTalentString'
 
@@ -120,6 +123,56 @@ describe('decodeTalentString', () => {
     ]
     const result = decodeTalentString(str, nodes)
     expect(result.nodes.get(1)).toEqual({ rank: 3 })
+  })
+
+  it('round-trips encode → decode for the synthetic string', () => {
+    const dec = decodeTalentString(TEST_STRING, TEST_TREE_NODES)
+    const enc = encodeTalentString({
+      specId: dec.specId,
+      version: dec.version,
+      treeNodes: TEST_TREE_NODES,
+      nodes: dec.nodes,
+    })
+    const dec2 = decodeTalentString(enc, TEST_TREE_NODES)
+    expect(dec2.specId).toBe(dec.specId)
+    expect(dec2.version).toBe(dec.version)
+    expect(decodedNodesEqual(dec.nodes, dec2.nodes)).toBe(true)
+  })
+
+  it('encodes from WCL-shaped rows via wclRowsToDecodedNodes', () => {
+    const treeNodes: TreeNodeInfo[] = [{ nodeId: 10, nodeType: 'ACTIVE', maxRanks: 3 }]
+    const rows = [{ nodeID: 10, rank: 3 }]
+    const m = wclRowsToDecodedNodes(rows, treeNodes)
+    const s = encodeTalentString({ specId: 62, treeNodes, nodes: m })
+    const d = decodeTalentString(s, treeNodes)
+    expect(d.nodes.get(10)).toEqual({ rank: 3 })
+  })
+
+  it('versionFromExport copies only the header version byte, not specId', () => {
+    const ref = buildTalentString(99, 777, [0]) // version 99, bogus specId 777, one unselected node bit
+    const treeNodes: TreeNodeInfo[] = [{ nodeId: 10, nodeType: 'ACTIVE', maxRanks: 1 }]
+    const nodes = new Map([[10, { rank: 1 }]])
+    const enc = encodeTalentString({
+      specId: 62,
+      treeNodes,
+      nodes,
+      versionFromExport: ref,
+    })
+    const d = decodeTalentString(enc, treeNodes)
+    expect(d.version).toBe(99)
+    expect(d.specId).toBe(62)
+  })
+
+  it('round-trips granted and full-rank nodes', () => {
+    const str = buildTalentString(1, 64, [1, 0, 1, 1, 0, 0]) // granted then full max on maxRanks=3
+    const nodes: TreeNodeInfo[] = [
+      { nodeId: 1, nodeType: 'ACTIVE', maxRanks: 1 },
+      { nodeId: 2, nodeType: 'ACTIVE', maxRanks: 3 },
+    ]
+    const dec = decodeTalentString(str, nodes)
+    const enc = encodeTalentString({ specId: dec.specId, version: dec.version, treeNodes: nodes, nodes: dec.nodes })
+    const dec2 = decodeTalentString(enc, nodes)
+    expect(decodedNodesEqual(dec.nodes, dec2.nodes)).toBe(true)
   })
 
   it('throws when string is too short for the node data', () => {

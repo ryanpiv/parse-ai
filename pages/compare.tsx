@@ -5,10 +5,13 @@ import { TalentCompare } from '../components/TalentCompare'
 import {
   parseTalentStringHeader,
   decodeTalentString,
-  type TreeNodeInfo,
+  encodeTalentString,
+  wclRowsToDecodedNodes,
   type DecodedTalentString,
 } from '../lib/talents/decodeTalentString'
+import { apiNodesToTreeNodes } from '../lib/talents/apiNodesToTreeNodes'
 import { s } from '../lib/styles'
+import { useAppSession } from '../contexts/AppSessionContext'
 
 interface BlizzardTreeResponse {
   specId: number
@@ -32,18 +35,9 @@ function decodedToTalentTree(decoded: DecodedTalentString) {
   }))
 }
 
-function treeNodesToDecodeInput(nodes: BlizzardTreeResponse['nodes']): TreeNodeInfo[] {
-  return [...nodes]
-    .sort((a, b) => a.nodeId - b.nodeId)
-    .map(n => ({
-      nodeId: n.nodeId,
-      nodeType: n.nodeType,
-      maxRanks: n.entries[0]?.maxRanks ?? 1,
-    }))
-}
-
 export default function ComparePage() {
   const router = useRouter()
+  const { hydrated, session, patchSession } = useAppSession()
   const [str1, setStr1] = useState('')
   const [str2, setStr2] = useState('')
   const [name1, setName1] = useState('Build 1')
@@ -63,16 +57,23 @@ export default function ComparePage() {
   } | null>(null)
 
   const autoTriggered = useRef(false)
+  const sessionRestoredRef = useRef(false)
 
-  /** When WCL has talentTree rows but no export strings — same diff UI, no decode step. */
+  /** When WCL has talentTree rows — synthesize missing export strings; keep any real WCL exports. */
   const applyWclTalentTrees = useCallback(
     async (
       tree1: Array<{ id: number; nodeID: number; rank: number }>,
       tree2: Array<{ id: number; nodeID: number; rank: number }>,
       n1: string,
       n2: string,
-      specId: number
+      specId: number,
+      existingExport1 = '',
+      existingExport2 = ''
     ) => {
+      const ex1 = existingExport1.trim()
+      const ex2 = existingExport2.trim()
+      const versionFromExport = ex1 || ex2 || undefined
+
       setError(null)
       setCompareData(null)
       setWclTreesOnly(false)
@@ -81,6 +82,32 @@ export default function ComparePage() {
         const res = await fetch(`/api/blizzard-tree?specId=${specId}`)
         const tree: BlizzardTreeResponse = await res.json()
         if ((tree as any).error) throw new Error((tree as any).error)
+        const treeNodes = apiNodesToTreeNodes(tree.nodes)
+        try {
+          const enc1 = ex1
+            ? ex1
+            : encodeTalentString({
+                specId,
+                treeNodes,
+                nodes: wclRowsToDecodedNodes(tree1, treeNodes),
+                versionFromExport,
+              })
+          const enc2 = ex2
+            ? ex2
+            : encodeTalentString({
+                specId,
+                treeNodes,
+                nodes: wclRowsToDecodedNodes(tree2, treeNodes),
+                versionFromExport,
+              })
+          setStr1(enc1)
+          setStr2(enc2)
+          setWclTreesOnly(false)
+        } catch {
+          setStr1(ex1)
+          setStr2(ex2)
+          setWclTreesOnly(!(ex1 && ex2))
+        }
         setCompareData({
           p1: { name: n1, talentTree: tree1 },
           p2: { name: n2, talentTree: tree2 },
@@ -134,7 +161,7 @@ export default function ComparePage() {
       const tree: BlizzardTreeResponse = await res.json()
       if ((tree as any).error) throw new Error((tree as any).error)
 
-      const treeNodes = treeNodesToDecodeInput(tree.nodes)
+      const treeNodes = apiNodesToTreeNodes(tree.nodes)
 
       let decoded1: DecodedTalentString, decoded2: DecodedTalentString
       try {
@@ -182,6 +209,63 @@ export default function ComparePage() {
     }
   }, [router.isReady, router.query, runCompare])
 
+  // Restore fields from last session when URL has no ?b1=&b2=
+  useEffect(() => {
+    if (!router.isReady || !hydrated || sessionRestoredRef.current) return
+    const b1 = router.query.b1
+    const b2 = router.query.b2
+    if (typeof b1 === 'string' && typeof b2 === 'string' && b1 && b2) {
+      sessionRestoredRef.current = true
+      return
+    }
+    sessionRestoredRef.current = true
+    if (session.compareStr1 && session.compareStr2) {
+      setStr1(session.compareStr1)
+      setStr2(session.compareStr2)
+      setName1(session.compareName1 || 'Build 1')
+      setName2(session.compareName2 || 'Build 2')
+      void runCompare(
+        session.compareStr1,
+        session.compareStr2,
+        session.compareName1 || 'Build 1',
+        session.compareName2 || 'Build 2'
+      )
+    } else if (session.compareWclUrl) {
+      setWclUrl(session.compareWclUrl)
+    }
+  }, [
+    router.isReady,
+    hydrated,
+    router.query.b1,
+    router.query.b2,
+    session.compareStr1,
+    session.compareStr2,
+    session.compareWclUrl,
+    session.compareName1,
+    session.compareName2,
+    runCompare,
+  ])
+
+  useEffect(() => {
+    if (!hydrated) return
+    if (!str1.trim() && !str2.trim() && !wclUrl.trim()) return
+    const t = setTimeout(() => {
+      patchSession({
+        compareStr1: str1,
+        compareStr2: str2,
+        compareName1: name1,
+        compareName2: name2,
+        compareWclUrl: wclUrl,
+      })
+    }, 450)
+    return () => clearTimeout(t)
+  }, [hydrated, str1, str2, name1, name2, wclUrl, patchSession])
+
+  useEffect(() => {
+    if (!hydrated || !compareData) return
+    patchSession({ specId: compareData.specId })
+  }, [hydrated, compareData, patchSession])
+
   const handleWclFetch = useCallback(async () => {
     const url = wclUrl.trim()
     if (!url) return
@@ -207,11 +291,21 @@ export default function ComparePage() {
       setStr1(s1)
       setStr2(s2)
 
+      patchSession({ compareWclUrl: url })
+
       if (s1 && s2) {
         runCompare(s1, s2, data.n1 || 'Build 1', data.n2 || 'Build 2')
       } else if (data.tree1?.length > 0 && data.tree2?.length > 0 && data.specId) {
         setWclTreesOnly(!s1 && !s2)
-        await applyWclTalentTrees(data.tree1, data.tree2, data.n1 || 'Build 1', data.n2 || 'Build 2', data.specId)
+        await applyWclTalentTrees(
+          data.tree1,
+          data.tree2,
+          data.n1 || 'Build 1',
+          data.n2 || 'Build 2',
+          data.specId,
+          s1,
+          s2
+        )
       } else {
         setError(
           'WCL returned incomplete talent data for one or both players (no export strings and missing talent tree rows). Try re-exporting the compare URL from Warcraft Logs or pick different fights.',
@@ -222,7 +316,7 @@ export default function ComparePage() {
     } finally {
       setWclLoading(false)
     }
-  }, [wclUrl, runCompare, applyWclTalentTrees])
+  }, [wclUrl, runCompare, applyWclTalentTrees, patchSession])
 
   const handleClear = useCallback(() => {
     setStr1('')
@@ -288,7 +382,7 @@ export default function ComparePage() {
             </button>
           </div>
           <div style={s.note}>
-            Paste a WCL compare URL to load talent export strings when WCL stores them, or node-by-node talent rows otherwise (same diff view; share link needs in-game strings).
+            Paste a WCL compare URL: we use export strings when present, otherwise we synthesize strings from node rows when possible so textareas and share links stay populated.
           </div>
         </div>
 
@@ -332,7 +426,7 @@ export default function ComparePage() {
 
           {wclTreesOnly && (
             <div style={s.alertInfo}>
-              Warcraft Logs did not include talent export strings for this pull — the diff below uses node data from the log. Paste in-game / Wowhead strings above if you need shareable links or a decoded compare.
+              Could not synthesize export strings from this log’s talent rows (missing nodes or unusual shape). The diff still loads from WCL node data — paste in-game or Wowhead strings manually if you need a share link.
             </div>
           )}
 
