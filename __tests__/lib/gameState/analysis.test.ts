@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { annotateCasts, detectSequences } from '../../../lib/gameState/analysis'
+import { annotateCasts } from '../../../lib/gameState/analysis'
 
 function makeContext(overrides: Partial<Parameters<typeof annotateCasts>[1]> = {}) {
   return {
@@ -7,7 +7,7 @@ function makeContext(overrides: Partial<Parameters<typeof annotateCasts>[1]> = {
     getDamageAfterCast: () => [],
     getNPCDeathsBy: () => 0,
     fightStart: 0,
-    nameMap: { 30455: 'Ice Lance', 44614: 'Flurry', 84714: 'Frozen Orb' },
+    nameMap: { 30455: 'Ice Lance', 44614: 'Flurry', 84714: 'Frozen Orb' } as Record<number, string>,
     ...overrides,
   }
 }
@@ -18,15 +18,16 @@ describe('annotateCasts', () => {
       { type: 'cast', abilityGameID: 30455, timestamp: 5000, ability: { name: 'Ice Lance' } },
     ]
     const ctx = makeContext({
-      getStateAt: (t: number) => (t === 5 ? { 190446: 2 } : {}),
+      getStateAt: (t: number) => (t === 5 ? { 190446: 2 } : {}) as Record<number, number>,
       getDamageAfterCast: () => [{ amount: 50000, crit: true }],
+      nameMap: { 30455: 'Ice Lance', 190446: 'Fingers of Frost' },
     })
 
     const result = annotateCasts(casts, ctx)
     expect(result).toHaveLength(1)
     expect(result[0].t).toBe(5)
     expect(result[0].name).toBe('Ice Lance')
-    expect(result[0].state.fofStacks).toBe(2)
+    expect(result[0].activeBuffs[190446]).toEqual({ name: 'Fingers of Frost', stacks: 2 })
     expect(result[0].hitsCrit).toBe(true)
     expect(result[0].totalDamage).toBe(50000)
   })
@@ -38,40 +39,26 @@ describe('annotateCasts', () => {
     const result = annotateCasts(casts, makeContext())
     expect(result[0].name).toBe('Unknown Spell')
   })
-})
 
-describe('detectSequences', () => {
-  it('detects Ice Lance usage with and without FoF', () => {
+  it('includes all active buffs generically', () => {
     const casts = [
-      { id: 30455, name: 'Ice Lance', t: 1, state: { fofStacks: 1, brainFreezeActive: false, icyVeinsActive: false } },
-      { id: 30455, name: 'Ice Lance', t: 3, state: { fofStacks: 0, brainFreezeActive: false, icyVeinsActive: false } },
+      { type: 'cast', abilityGameID: 30455, timestamp: 3000, ability: { name: 'Ice Lance' } },
     ]
-    const seq = detectSequences(casts, 60)
-    expect(seq.iceLance.total).toBe(2)
-    expect(seq.iceLance.withFoF).toBe(1)
-    expect(seq.iceLance.withoutFoF).toBe(1)
+    const ctx = makeContext({
+      getStateAt: () => ({ 100: 1, 200: 3 }),
+      nameMap: { 30455: 'Ice Lance', 100: 'Buff A', 200: 'Buff B' },
+    })
+
+    const result = annotateCasts(casts, ctx)
+    expect(result[0].activeBuffs[100]).toEqual({ name: 'Buff A', stacks: 1 })
+    expect(result[0].activeBuffs[200]).toEqual({ name: 'Buff B', stacks: 3 })
   })
 
-  it('detects clean Glacial Spike combo (GS -> Flurry -> IL)', () => {
+  it('returns empty activeBuffs when no buffs are active', () => {
     const casts = [
-      { id: 199786, name: 'Glacial Spike', t: 10, state: { fofStacks: 0, brainFreezeActive: true, icyVeinsActive: false } },
-      { id: 44614, name: 'Flurry', t: 11, state: { fofStacks: 0, brainFreezeActive: true, icyVeinsActive: false } },
-      { id: 30455, name: 'Ice Lance', t: 12, state: { fofStacks: 0, brainFreezeActive: false, icyVeinsActive: false } },
+      { type: 'cast', abilityGameID: 30455, timestamp: 1000 },
     ]
-    const seq = detectSequences(casts, 60)
-    expect(seq.gsCombo.total).toBe(1)
-    expect(seq.gsCombo.clean).toBe(1)
-  })
-
-  it('detects Brain Freeze Flurry with and without follow-up IL', () => {
-    const casts = [
-      { id: 44614, name: 'Flurry', t: 5, state: { fofStacks: 0, brainFreezeActive: true, icyVeinsActive: false } },
-      { id: 30455, name: 'Ice Lance', t: 6, state: { fofStacks: 0, brainFreezeActive: false, icyVeinsActive: false } },
-      { id: 44614, name: 'Flurry', t: 20, state: { fofStacks: 0, brainFreezeActive: true, icyVeinsActive: false } },
-    ]
-    const seq = detectSequences(casts, 60)
-    expect(seq.bfFlurry.total).toBe(2)
-    expect(seq.bfFlurry.withIceLance).toBe(1)
-    expect(seq.bfFlurry.withoutIceLance).toBe(1)
+    const result = annotateCasts(casts, makeContext())
+    expect(Object.keys(result[0].activeBuffs)).toHaveLength(0)
   })
 })

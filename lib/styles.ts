@@ -24,12 +24,12 @@ export const s: Record<string, CSSProperties> = {
 export const PRESET_QUESTIONS = [
   'Where is my rotation different and why does it matter?',
   "What's wrong with my opener?",
-  'Am I using my procs efficiently? Where am I wasting FoF or Brain Freeze?',
-  'How should I be using Frozen Orb relative to Icy Veins and Ray of Frost?',
-  'When should I hold Frozen Orb for adds vs use it immediately?',
-  'What is the comparison player doing in their Icy Veins windows that I am not?',
-  'Am I using Alter Time correctly?',
-  'How can I improve my Glacial Spike combo execution?',
+  'Am I using my procs efficiently? Where am I wasting procs?',
+  'How should I be aligning my cooldowns for maximum burst?',
+  'When should I hold cooldowns for adds vs use them immediately?',
+  'What is the comparison player doing in their burst windows that I am not?',
+  'Am I using my defensive or utility cooldowns at the right times?',
+  'How can I improve my combo or priority execution?',
   'What is causing my downtime and how do I fix it?',
   'Give me a priority list of exactly what to fix first.',
 ]

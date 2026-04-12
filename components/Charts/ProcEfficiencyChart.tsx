@@ -5,21 +5,29 @@ export function ProcEfficiencyChart(props: any) {
   const { p1data, p2data } = props
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  function getMetrics(d: any) {
-    const il = d.sequences.iceLance
-    const bf = d.sequences.bfFlurry
-    const gs = d.sequences.gsCombo
-    return [
-      il.total > 0 ? Math.round(il.withFoF / il.total * 100) : 0,
-      bf.total > 0 ? Math.round(bf.withIceLance / bf.total * 100) : 0,
-      gs.total > 0 ? Math.round(gs.clean / gs.total * 100) : 0,
-      100 - d.downtime.pct,
-    ]
-  }
+  const allBuffIds = new Set([
+    ...Object.keys(p1data.uptimes || {}),
+    ...Object.keys(p2data.uptimes || {}),
+  ])
 
-  const labels = ['Ice Lance w/ FoF', 'BF → Ice Lance', 'GS Combo clean', 'Uptime']
-  const m1 = getMetrics(p1data)
-  const m2 = getMetrics(p2data)
+  const buffEntries = [...allBuffIds]
+    .map(id => {
+      const numId = Number(id)
+      const name = p1data.nameMap?.[numId] || p2data.nameMap?.[numId] || `Buff ${numId}`
+      const u1 = (p1data.uptimes?.[numId] as number) || 0
+      const u2 = (p2data.uptimes?.[numId] as number) || 0
+      return { name, u1, u2 }
+    })
+    .filter(e => (e.u1 > 0 || e.u2 > 0) && !e.name.startsWith('Buff '))
+    .sort((a, b) => Math.max(b.u1, b.u2) - Math.max(a.u1, a.u2))
+    .slice(0, 6)
+
+  const labels = [
+    ...buffEntries.map(e => e.name.length > 18 ? e.name.slice(0, 16) + '…' : e.name),
+    'Uptime',
+  ]
+  const m1 = [...buffEntries.map(e => e.u1), 100 - p1data.downtime.pct]
+  const m2 = [...buffEntries.map(e => e.u2), 100 - p2data.downtime.pct]
 
   useChart(canvasRef, {
     type: 'bar',
@@ -33,7 +41,7 @@ export function ProcEfficiencyChart(props: any) {
     options: {
       ...CHART_DEFAULTS,
       scales: {
-        x: { ...CHART_DEFAULTS.scales.x },
+        x: { ...CHART_DEFAULTS.scales.x, ticks: { ...CHART_DEFAULTS.scales.x.ticks, maxRotation: 35, minRotation: 20 } },
         y: { ...CHART_DEFAULTS.scales.y, min: 0, max: 100, title: { display: true, text: '%', color: '#4a5a6a', font: { size: 10, family: 'IBM Plex Mono' } } }
       }
     }

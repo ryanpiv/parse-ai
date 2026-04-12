@@ -68,7 +68,6 @@ import {
   buildTargetTracker,
   buildDamageLookup,
   annotateCasts,
-  detectSequences,
   computeUptimes,
   computeCastSpacing,
 } from '../gameState'
@@ -95,10 +94,8 @@ export interface AnalyzedFightData {
   downtime: { pct: number; sec: number; wins: { g: number }[]; cpm: number; total: number }
   opener: { name: string; at: number }[]
   spellMap: Record<string, { name: string; id: string; count: number; ts: number[]; ppm: number }>
-  sequences: any
   uptimes: any
   spacing: any
-  icyVeinsWindows: any[]
   critRates: Record<string, number>
   annotated: any[]
   buffWindows: any
@@ -118,7 +115,6 @@ export async function processFightData({ raw, fightStart, fightEnd, playerId, pl
   const { getDamageAfterCast, getCritRate } = buildDamageLookup(damage, fightStart)
 
   const annotated = annotateCasts(playerCasts, { getStateAt, getDamageAfterCast, getNPCDeathsBy, fightStart, nameMap })
-  const sequences = detectSequences(annotated, dur)
   const uptimes = computeUptimes(buffWindows, dur)
   const spacing = computeCastSpacing(annotated)
 
@@ -153,13 +149,6 @@ export async function processFightData({ raw, fightStart, fightEnd, playerId, pl
     s.ppm = parseFloat(((s.count / dur) * 60).toFixed(2))
   })
 
-  const IV_IDS = [12472, 382252]
-  const icyVeinsWindows: any[] = []
-  IV_IDS.forEach((id) => {
-    if (buffWindows[id]) icyVeinsWindows.push(...buffWindows[id])
-  })
-  icyVeinsWindows.sort((a, b) => a.start - b.start)
-
   const critRates: Record<string, number> = {}
   Object.keys(spellMap).forEach((id) => {
     const r = getCritRate(Number(id))
@@ -176,10 +165,8 @@ export async function processFightData({ raw, fightStart, fightEnd, playerId, pl
     downtime,
     opener,
     spellMap,
-    sequences,
     uptimes,
     spacing,
-    icyVeinsWindows,
     critRates,
     annotated,
     buffWindows,

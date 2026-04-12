@@ -168,7 +168,7 @@ export default function Home() {
       const resolvedNames = await resolveNames(allIds, nameMap)
 
       setLoadStep('Analyzing game state...')
-      setStatus({ type: 'info', msg: 'Analyzing proc efficiency, sequences, and buff windows...' })
+      setStatus({ type: 'info', msg: 'Analyzing buff windows and cast data...' })
 
       const p1 = await processFightData({ raw: raw1, fightStart: fight1.startTime, fightEnd: fight1.endTime, playerId: actor1?.id, playerName: name1, spec: spec1, dps: myDmg ? Math.round(myDmg.total / dur1) : null, takenTotal: tkE1.find((e: any) => e.name?.toLowerCase() === name1.toLowerCase())?.total, nameMap: resolvedNames })
       const p2 = await processFightData({ raw: raw2, fightStart: fight2.startTime, fightEnd: fight2.endTime, playerId: actor2?.id, playerName: name2, spec: spec2, dps: thDmg ? Math.round(thDmg.total / dur2) : null, takenTotal: tkE2.find((e: any) => e.name?.toLowerCase() === name2.toLowerCase())?.total, nameMap: resolvedNames })
@@ -337,20 +337,20 @@ export default function Home() {
                   <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 22, fontWeight: 700, color: p.color, lineHeight: 1.2 }}>{p.data.dps?.toLocaleString() || '?'} <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--dim)' }}>dps</span></div>
                   <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'var(--dim)', marginTop: 3 }}>{p.dur} · {p.data.downtime.cpm}/min · {p.data.downtime.pct}% downtime · {p.data.spec}</div>
                   <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-                    {p.data.sequences.iceLance.total > 0 && (
-                      <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)', marginBottom: 2 }}>
-                        IL w/ FoF: <span style={{ color: p.color }}>{Math.round(p.data.sequences.iceLance.withFoF / p.data.sequences.iceLance.total * 100)}%</span>
-                        {' '}· BF combo: <span style={{ color: p.color }}>{p.data.sequences.bfFlurry.total > 0 ? Math.round(p.data.sequences.bfFlurry.withIceLance / p.data.sequences.bfFlurry.total * 100) + '%' : '—'}</span>
-                        {' '}· Orbs: <span style={{ color: p.color }}>{p.data.sequences.frozenOrb.casts.length}</span>
-                      </div>
-                    )}
-                    {p.data.sequences.gsCombo.total > 0 && (
-                      <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)' }}>
-                        GS clean: <span style={{ color: p.color }}>{Math.round(p.data.sequences.gsCombo.clean / p.data.sequences.gsCombo.total * 100)}%</span>
-                        {' '}· IV casts: <span style={{ color: p.color }}>{p.data.sequences.icyVeins.casts}</span>
-                        {' '}· Alter Time: <span style={{ color: p.color }}>{p.data.sequences.alterTime.casts.length}</span>
-                      </div>
-                    )}
+                    {(() => {
+                      const topBuffs = Object.entries(p.data.uptimes || {})
+                        .map(([id, pct]) => ({ name: p.data.nameMap?.[Number(id)] || `Buff ${id}`, pct: pct as number }))
+                        .filter(b => b.pct > 0 && !b.name.startsWith('Buff '))
+                        .sort((a, b) => b.pct - a.pct)
+                        .slice(0, 3)
+                      return topBuffs.length > 0 ? (
+                        <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)' }}>
+                          {topBuffs.map((b, bi) => (
+                            <span key={bi}>{bi > 0 && ' · '}{b.name}: <span style={{ color: p.color }}>{b.pct}%</span></span>
+                          ))}
+                        </div>
+                      ) : null
+                    })()}
                   </div>
                 </div>
               ))}
@@ -397,7 +397,7 @@ export default function Home() {
               </ChartCard>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-              <ChartCard title="Proc efficiency %" height={200}>
+              <ChartCard title="Buff uptime %" height={200}>
                 <ProcEfficiencyChart p1data={p1data} p2data={p2data} />
               </ChartCard>
               <ChartCard title="Cooldown timeline" height={200}>

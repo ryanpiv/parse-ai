@@ -1,11 +1,8 @@
 import {
-  fmtAlterTime,
-  fmtIcyVeins,
-  fmtOrbUsage,
   fmtOverall,
+  fmtBuffUptimes,
+  fmtCastDetails,
   fmtPotion,
-  fmtProcEfficiency,
-  fmtSequences,
 } from './formatters'
 
 interface KillStatus {
@@ -26,9 +23,10 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, killStatus?:
   ctx += `- When explaining WHY something is better, reference the specific game state conditions (proc counts, buff windows, target counts) from the data\n`
   ctx += `- Do not give generic advice — every recommendation must be grounded in something specific you see in this data\n`
   ctx += `- ALWAYS link spell names to Wowhead using this exact format: [Spell Name](https://www.wowhead.com/spell=SPELL_ID)\n`
-  ctx += `  Use the spell ID map below to get the correct IDs\n\n`
+  ctx += `  Use the spell ID map below to get the correct IDs\n`
+  ctx += `- Use your deep knowledge of ${s1} rotation, priorities, and cooldown alignment to interpret the raw cast and buff data below\n`
+  ctx += `- Identify proc usage patterns, cooldown alignment, combo execution, and wasted opportunities from the cast-by-cast data\n\n`
 
-  // Wipe awareness
   if (!isKill1 || !isKill2) {
     ctx += `=== FIGHT COMPLETION STATUS ===\n`
     ctx += `${n1}: ${isKill1 ? 'KILL ✓' : 'WIPE — fight ended early, late-phase data is unavailable'}\n`
@@ -36,7 +34,6 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, killStatus?:
     ctx += `IMPORTANT: When one or both fights are wipes, do NOT critique late-fight cooldown usage or compare DPS at phases that didn't happen. Focus on: opener, early rotation (0-60s), mid-fight decisions, and patterns visible in the truncated data. Acknowledge the limitation when relevant.\n\n`
   }
 
-  // Spell ID map
   ctx += `=== SPELL ID MAP (use these for Wowhead links) ===\n`
   const allSpells = new Set()
   p1.spellRows?.forEach((r: any) => allSpells.add(JSON.stringify({ id: r.id, name: r.name })))
@@ -48,7 +45,6 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, killStatus?:
   })
   ctx += '\n'
 
-  // Talent diff
   if (talentDiff?.t1 || talentDiff?.t2) {
     ctx += `=== TALENT DIFFERENCES ===\n`
     const ids1 = new Set((talentDiff.t1?.talentTree || talentDiff.t1?.talents || []).map((t: any) => t.id))
@@ -94,40 +90,21 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, killStatus?:
   ctx += `${n1}: ${p1.downtime.pct}% (${p1.downtime.sec}s) — biggest gaps: ${p1.downtime.wins.map((w: any) => w.g + 's').join(', ') || 'none'}\n`
   ctx += `${n2}: ${p2.downtime.pct}% (${p2.downtime.sec}s) — biggest gaps: ${p2.downtime.wins.map((w: any) => w.g + 's').join(', ') || 'none'}\n\n`
 
-  ctx += `=== PROC AND BUFF EFFICIENCY ===\n`
-  ctx += fmtProcEfficiency(n1, p1.sequences, p1.uptimes, p1.nameMap)
+  ctx += `=== BUFF UPTIMES ===\n`
+  ctx += fmtBuffUptimes(n1, p1.uptimes, p1.nameMap)
   ctx += '\n'
-  ctx += fmtProcEfficiency(n2, p2.sequences, p2.uptimes, p2.nameMap)
-  ctx += '\n'
-
-  ctx += `=== COMBO SEQUENCE ANALYSIS ===\n`
-  ctx += fmtSequences(n1, p1.sequences)
-  ctx += '\n'
-  ctx += fmtSequences(n2, p2.sequences)
+  ctx += fmtBuffUptimes(n2, p2.uptimes, p2.nameMap)
   ctx += '\n'
 
-  ctx += `=== FROZEN ORB USAGE ===\n`
-  ctx += fmtOrbUsage(n1, p1.sequences)
+  ctx += `=== CAST-BY-CAST DETAILS (with active buffs at each cast) ===\n`
+  ctx += fmtCastDetails(n1, p1.annotated)
   ctx += '\n'
-  ctx += fmtOrbUsage(n2, p2.sequences)
-  ctx += '\n'
-
-  if (p1.sequences.alterTime.casts.length > 0 || p2.sequences.alterTime.casts.length > 0) {
-    ctx += `=== ALTER TIME USAGE ===\n`
-    ctx += fmtAlterTime(n1, p1.sequences)
-    ctx += fmtAlterTime(n2, p2.sequences)
-    ctx += '\n'
-  }
-
-  ctx += `=== ICY VEINS WINDOWS ===\n`
-  ctx += fmtIcyVeins(n1, p1.sequences, p1.icyVeinsWindows)
-  ctx += '\n'
-  ctx += fmtIcyVeins(n2, p2.sequences, p2.icyVeinsWindows)
+  ctx += fmtCastDetails(n2, p2.annotated)
   ctx += '\n'
 
   ctx += `=== POTION USAGE ===\n`
-  ctx += fmtPotion(n1, p1.sequences)
-  ctx += fmtPotion(n2, p2.sequences)
+  ctx += fmtPotion(n1, p1.annotated)
+  ctx += fmtPotion(n2, p2.annotated)
   ctx += '\n'
 
   ctx += `=== CAST TIMESTAMPS — key spells, first 15 casts ===\n`
@@ -141,7 +118,7 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, killStatus?:
   ctx += `=== HOW TO ANSWER QUESTIONS ===\n`
   ctx += `When asked about differences, explain:\n`
   ctx += `1. WHAT is different (the numbers)\n`
-  ctx += `2. WHY it matters mechanically (how it affects Shatter, proc generation, burst windows)\n`
+  ctx += `2. WHY it matters mechanically (how it affects damage, proc generation, burst windows)\n`
   ctx += `3. WHEN to make the decision differently (the specific game state conditions)\n`
   ctx += `4. HOW to fix it practically (what to look for and change)\n`
   ctx += `Always link spell names using [Spell Name](https://www.wowhead.com/spell=ID) format.\n`
