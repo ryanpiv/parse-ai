@@ -4,7 +4,12 @@
  * Run: node scripts/check-tree.mjs [specId]
  * Fetches the blizzard-tree API and reports node stats.
  */
-const specId = process.argv[2] || '64'
+const specId = process.argv[2]
+if (!specId) {
+  console.error('Usage: node scripts/check-tree.mjs <specId>')
+  console.error('Example: node scripts/check-tree.mjs 64')
+  process.exit(1)
+}
 const url = `http://localhost:3000/api/blizzard-tree?specId=${specId}`
 
 console.log(`Fetching ${url}...\n`)

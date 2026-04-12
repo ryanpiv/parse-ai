@@ -7,7 +7,7 @@ function makeContext(overrides: Partial<Parameters<typeof annotateCasts>[1]> = {
     getDamageAfterCast: () => [],
     getNPCDeathsBy: () => 0,
     fightStart: 0,
-    nameMap: { 30455: 'Ice Lance', 44614: 'Flurry', 84714: 'Frozen Orb' } as Record<number, string>,
+    nameMap: { 1001: 'Spell Alpha', 1002: 'Spell Beta', 1003: 'Spell Gamma' } as Record<number, string>,
     ...overrides,
   }
 }
@@ -15,19 +15,19 @@ function makeContext(overrides: Partial<Parameters<typeof annotateCasts>[1]> = {
 describe('annotateCasts', () => {
   it('annotates a cast with game state and damage data', () => {
     const casts = [
-      { type: 'cast', abilityGameID: 30455, timestamp: 5000, ability: { name: 'Ice Lance' } },
+      { type: 'cast', abilityGameID: 1001, timestamp: 5000, ability: { name: 'Spell Alpha' } },
     ]
     const ctx = makeContext({
-      getStateAt: (t: number) => (t === 5 ? { 190446: 2 } : {}) as Record<number, number>,
+      getStateAt: (t: number) => (t === 5 ? { 2001: 2 } : {}) as Record<number, number>,
       getDamageAfterCast: () => [{ amount: 50000, crit: true }],
-      nameMap: { 30455: 'Ice Lance', 190446: 'Fingers of Frost' },
+      nameMap: { 1001: 'Spell Alpha', 2001: 'Proc Buff' },
     })
 
     const result = annotateCasts(casts, ctx)
     expect(result).toHaveLength(1)
     expect(result[0].t).toBe(5)
-    expect(result[0].name).toBe('Ice Lance')
-    expect(result[0].activeBuffs[190446]).toEqual({ name: 'Fingers of Frost', stacks: 2 })
+    expect(result[0].name).toBe('Spell Alpha')
+    expect(result[0].activeBuffs[2001]).toEqual({ name: 'Proc Buff', stacks: 2 })
     expect(result[0].hitsCrit).toBe(true)
     expect(result[0].totalDamage).toBe(50000)
   })
@@ -42,11 +42,11 @@ describe('annotateCasts', () => {
 
   it('includes all active buffs generically', () => {
     const casts = [
-      { type: 'cast', abilityGameID: 30455, timestamp: 3000, ability: { name: 'Ice Lance' } },
+      { type: 'cast', abilityGameID: 1001, timestamp: 3000, ability: { name: 'Spell Alpha' } },
     ]
     const ctx = makeContext({
       getStateAt: () => ({ 100: 1, 200: 3 }),
-      nameMap: { 30455: 'Ice Lance', 100: 'Buff A', 200: 'Buff B' },
+      nameMap: { 1001: 'Spell Alpha', 100: 'Buff A', 200: 'Buff B' },
     })
 
     const result = annotateCasts(casts, ctx)
@@ -56,7 +56,7 @@ describe('annotateCasts', () => {
 
   it('returns empty activeBuffs when no buffs are active', () => {
     const casts = [
-      { type: 'cast', abilityGameID: 30455, timestamp: 1000 },
+      { type: 'cast', abilityGameID: 1001, timestamp: 1000 },
     ]
     const result = annotateCasts(casts, makeContext())
     expect(Object.keys(result[0].activeBuffs)).toHaveLength(0)

@@ -3,7 +3,7 @@
  * - Cast events
  * - Buff apply/remove (player buffs and procs)
  * - Debuff apply/remove (on target)
- * - Damage events with hit type (crit detection / Shatter)
+ * - Damage events with hit type (crit detection)
  * - Enemy NPC deaths (target count tracking)
  */
 

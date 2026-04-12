@@ -28,7 +28,7 @@ describe('/api/tooltip', () => {
   })
 
   it('fetches spell tooltip from Wowhead and returns data', async () => {
-    const tooltipData = { name: 'Ice Lance', icon: 'spell_frost_frostbolt02', tooltip: '<div>...</div>' }
+    const tooltipData = { name: 'Test Spell', icon: 'spell_nature_lightning', tooltip: '<div>...</div>' }
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => tooltipData } as Response)
 
     const res = mockRes()

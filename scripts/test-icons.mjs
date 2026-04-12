@@ -2,7 +2,7 @@
  * test-icons.mjs
  * Run with: node scripts/test-icons.mjs
  *
- * Tests Wowhead icon fetching for a set of known Frost Mage spell IDs.
+ * Tests Wowhead icon fetching for a set of well-known spell IDs.
  * Simulates exactly what /api/tooltip does server-side.
  * Output shows which spell IDs resolve to icons and which fail.
  */
@@ -11,21 +11,21 @@
 const WOWHEAD_BASE = 'https://nether.wowhead.com/tooltip/spell'
 const ZAMIMG_BASE  = 'https://wow.zamimg.com/images/wow/icons/medium'
 
-// Known Frost Mage spells (nodeIDs from Blizzard tree) — mix of class + spec
+// Sample spells from various classes to test icon resolution
 const TEST_SPELLS = [
-  { id: 116,    name: 'Frostbolt' },
-  { id: 44614,  name: 'Flurry' },
-  { id: 190356, name: 'Frozen Orb' },
-  { id: 228358, name: "Winter's Chill" },
-  { id: 12472,  name: 'Icy Veins' },
-  { id: 31661,  name: 'Dragon\'s Breath' },
-  { id: 235219, name: 'Cold Snap' },
-  { id: 205021, name: 'Ray of Frost' },
-  { id: 153595, name: 'Comet Storm' },
-  { id: 198144, name: 'Ice Form' },
-  { id: 414658, name: 'Frostfire Bolt' },
-  { id: 257537, name: 'Ebonbolt' },
-  // Some known-missing or passive IDs to test fallback:
+  { id: 585,    name: 'Smite' },
+  { id: 8042,   name: 'Earth Shock' },
+  { id: 100,    name: 'Charge' },
+  { id: 53351,  name: 'Kill Shot' },
+  { id: 1856,   name: 'Vanish' },
+  { id: 589,    name: 'Shadow Word: Pain' },
+  { id: 2948,   name: 'Scorch' },
+  { id: 172,    name: 'Corruption' },
+  { id: 8921,   name: 'Moonfire' },
+  { id: 100780, name: 'Tiger Palm' },
+  { id: 185438, name: 'Shadow Strike' },
+  { id: 190356, name: 'Blizzard' },
+  // Edge cases:
   { id: 0,      name: '(zero id — should skip)' },
   { id: 999999, name: '(bogus id — should 404)' },
 ]

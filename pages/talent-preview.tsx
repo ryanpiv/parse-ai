@@ -1,6 +1,6 @@
 /**
  * Dev / QA page: Raidbots-style single-build talent view (light chrome).
- * Open: /talent-preview?specId=64&preset=budget
+ * Open: /talent-preview?specId=<ID>&preset=budget
  *
  * preset:
  *   none   — no ranks (mostly gray)
@@ -118,7 +118,7 @@ const COL_SPEC_CENTER  = COL_CLASS_W + COL_HERO_W + COL_SPEC_W / 2
 
 export default function TalentPreviewPage() {
   const router = useRouter()
-  const specId = parseInt(String(router.query.specId || '64'), 10) || 64 // dev default: Frost Mage
+  const specId = router.query.specId ? parseInt(String(router.query.specId), 10) || 0 : 0
   const preset = String(router.query.preset || 'budget')
   const classCap = parseInt(String(router.query.classCap || '34'), 10) || 34
   const specCap = parseInt(String(router.query.specCap || '34'), 10) || 34
@@ -132,6 +132,11 @@ export default function TalentPreviewPage() {
 
   useEffect(() => {
     if (!router.isReady) return
+    if (!specId) {
+      setLoading(false)
+      setError('No specId provided. Usage: /talent-preview?specId=<ID>')
+      return
+    }
     setLoading(true)
     setError(null)
     fetch(`/api/blizzard-tree?specId=${specId}`)
@@ -241,7 +246,7 @@ export default function TalentPreviewPage() {
       >
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
           <p style={{ fontSize: 12, color: '#556', marginBottom: 12, fontFamily: 'IBM Plex Mono, monospace' }}>
-            /talent-preview &nbsp; specId={specId} &nbsp; preset={preset}
+            /talent-preview &nbsp; specId={specId || '—'} &nbsp; preset={preset}
           </p>
 
           {loading && <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 13, color: '#667' }}>Loading tree…</p>}

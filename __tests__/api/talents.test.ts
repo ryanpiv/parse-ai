@@ -53,9 +53,9 @@ describe('/api/talents', () => {
     const wclResponse = {
       data: {
         gameData: {
-          n0: { id: 1459, name: 'Arcane Intellect', icon: 'spell_holy_magicalsentry' },
-          n1: { id: 116011, name: 'Rune of Power', icon: 'spell_mage_runeofpower' },
-          n2: { id: 30455, name: 'Ice Lance', icon: 'spell_frost_frostblast' },
+          n0: { id: 1459, name: 'Ability One', icon: 'spell_holy_magicalsentry' },
+          n1: { id: 116011, name: 'Ability Two', icon: 'spell_nature_lightning' },
+          n2: { id: 30455, name: 'Ability Three', icon: 'spell_shadow_shadowbolt' },
         },
       },
     }
@@ -74,7 +74,7 @@ describe('/api/talents', () => {
     expect(Object.keys(result.nodeMap)).toHaveLength(3)
     expect(result.nodeMap[90269]).toEqual({
       spellId: 1459,
-      name: 'Arcane Intellect',
+      name: 'Ability One',
       icon: 'https://wow.zamimg.com/images/wow/icons/medium/spell_holy_magicalsentry',
     })
   })

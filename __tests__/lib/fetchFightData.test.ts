@@ -8,10 +8,10 @@ function makeGqlResponse(dataType: string, events: unknown[]) {
 
 describe('fetchFightData', () => {
   it('fetches all 5 event types in parallel and returns structured result', async () => {
-    const mockCasts = [{ type: 'cast', abilityGameID: 30455, timestamp: 1000 }]
-    const mockBuffs = [{ type: 'applybuff', abilityGameID: 190446, timestamp: 1100 }]
-    const mockDebuffs = [{ type: 'applydebuff', abilityGameID: 205473, timestamp: 1200 }]
-    const mockDamage = [{ type: 'damage', abilityGameID: 30455, amount: 50000, timestamp: 1300 }]
+    const mockCasts = [{ type: 'cast', abilityGameID: 1001, timestamp: 1000 }]
+    const mockBuffs = [{ type: 'applybuff', abilityGameID: 2001, timestamp: 1100 }]
+    const mockDebuffs = [{ type: 'applydebuff', abilityGameID: 3001, timestamp: 1200 }]
+    const mockDamage = [{ type: 'damage', abilityGameID: 1001, amount: 50000, timestamp: 1300 }]
     const mockDeaths = [{ type: 'death', timestamp: 5000 }]
 
     const gql: GqlFn = jest.fn()
@@ -26,7 +26,7 @@ describe('fetchFightData', () => {
       fightStart: 0,
       fightEnd: 30000,
       playerId: 5,
-      playerName: 'TestMage',
+      playerName: 'TestPlayer',
       gql,
     })
 
@@ -38,7 +38,7 @@ describe('fetchFightData', () => {
     expect(result.deaths).toEqual(mockDeaths)
     expect(result.dur).toBe(30)
     expect(result.playerId).toBe(5)
-    expect(result.playerName).toBe('TestMage')
+    expect(result.playerName).toBe('TestPlayer')
   })
 
   it('returns empty arrays when WCL returns no event data', async () => {
