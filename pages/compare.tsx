@@ -13,6 +13,7 @@ import { apiNodesToTreeNodes } from '../lib/talents/apiNodesToTreeNodes'
 import { parseNextApiJson } from '../lib/wclClient'
 import { s } from '../lib/styles'
 import { useAppSession } from '../contexts/AppSessionContext'
+import { useAnalyzePageCache } from '../contexts/AnalyzePageCacheContext'
 import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
 
 function decodedToTalentTree(decoded: DecodedTalentString) {
@@ -25,6 +26,7 @@ function decodedToTalentTree(decoded: DecodedTalentString) {
 
 export default function ComparePage() {
   const router = useRouter()
+  const analyzeCache = useAnalyzePageCache()
   const { hydrated, session, patchSession } = useAppSession()
   const [str1, setStr1] = useState('')
   const [str2, setStr2] = useState('')
@@ -192,7 +194,7 @@ export default function ComparePage() {
     }
   }, [router.isReady, router.query, runCompare])
 
-  // Restore fields from last session when URL has no ?b1=&b2=
+  // Restore from ?b1=&b2=, then in-memory Analyze snapshot, then persisted session.
   useEffect(() => {
     if (!router.isReady || !hydrated || sessionRestoredRef.current) return
     const b1 = router.query.b1
@@ -202,6 +204,41 @@ export default function ComparePage() {
       return
     }
     sessionRestoredRef.current = true
+
+    const snap = analyzeCache.read()
+    if (snap?.compareUrl) setWclUrl(snap.compareUrl)
+
+    if (snap?.p1data && snap?.p2data && snap.talentDiff) {
+      const td = snap.talentDiff as {
+        t1?: { talentString?: string; talentTree?: Array<{ id: number; nodeID: number; rank: number }> }
+        t2?: { talentString?: string; talentTree?: Array<{ id: number; nodeID: number; rank: number }> }
+        name1?: string
+        name2?: string
+        specId?: number
+        error?: string
+      }
+      if (td.specId && !td.error) {
+        const n1 = td.name1 || (snap.p1data as { name?: string }).name || 'Build 1'
+        const n2 = td.name2 || (snap.p2data as { name?: string }).name || 'Build 2'
+        const ex1 = typeof td.t1?.talentString === 'string' ? td.t1.talentString.trim() : ''
+        const ex2 = typeof td.t2?.talentString === 'string' ? td.t2.talentString.trim() : ''
+        const tree1 = td.t1?.talentTree
+        const tree2 = td.t2?.talentTree
+        if (ex1 && ex2) {
+          setStr1(ex1)
+          setStr2(ex2)
+          setName1(n1)
+          setName2(n2)
+          void runCompare(ex1, ex2, n1, n2)
+          return
+        }
+        if (Array.isArray(tree1) && tree1.length > 0 && Array.isArray(tree2) && tree2.length > 0) {
+          void applyWclTalentTrees(tree1, tree2, n1, n2, td.specId, ex1, ex2)
+          return
+        }
+      }
+    }
+
     if (session.compareStr1 && session.compareStr2) {
       setStr1(session.compareStr1)
       setStr2(session.compareStr2)
@@ -213,7 +250,7 @@ export default function ComparePage() {
         session.compareName1 || 'Build 1',
         session.compareName2 || 'Build 2'
       )
-    } else if (session.compareWclUrl) {
+    } else if (session.compareWclUrl && !snap?.compareUrl) {
       setWclUrl(session.compareWclUrl)
     }
   }, [
@@ -227,6 +264,8 @@ export default function ComparePage() {
     session.compareName1,
     session.compareName2,
     runCompare,
+    applyWclTalentTrees,
+    analyzeCache,
   ])
 
   useEffect(() => {

@@ -1,87 +1,201 @@
-import { useRef } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { useChart, CHART_DEFAULTS, GOLD, BLUE } from './chartDefaults'
+import {
+  estimatedCooldownSec,
+  isLikelyBuffUtility,
+  pickCooldownChartSpells,
+  type SpellRowLike,
+} from '../../lib/cooldownSpells/pickCooldownChartSpells'
 
-export function CooldownTimelineChart(props: any) {
-  const { p1data, p2data, spellRows } = props
+type SpellRow = SpellRowLike
+
+function collectSpellIdsForApiLookup(spellRows: SpellRow[]): number[] {
+  const ids = new Set<number>()
+  for (const r of spellRows) {
+    if (isLikelyBuffUtility(r)) continue
+    if ((r.count1 || 0) + (r.count2 || 0) === 0) continue
+    const ppm = Math.max(r.ppm1, r.ppm2)
+    if (ppm >= 6) continue
+    const id = Number(r.id)
+    if (Number.isFinite(id) && id > 0) ids.add(id)
+  }
+  return [...ids].slice(0, 48)
+}
+
+function CooldownBarInner({
+  sorted,
+  p1data,
+  p2data,
+  blizzardCooldownMs,
+}: {
+  sorted: SpellRow[]
+  p1data: { name: string; dur: number }
+  p2data: { name: string; dur: number }
+  blizzardCooldownMs: Record<string, number | null | undefined> | null
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const cdSpells = spellRows
-    .filter((r: any) => {
-      const ppm = Math.max(r.ppm1, r.ppm2)
-      return ppm > 0 && ppm < 3
-    })
-    .slice(0, 6)
-
-  if (!cdSpells.length) return null
-
-  const datasets: any[] = []
-  cdSpells.forEach((spell: any, si: number) => {
-    const color = si % 2 === 0 ? GOLD : BLUE
-    if (spell.ts1?.length) {
-      datasets.push({
-        label: `${p1data.name}: ${spell.name.slice(0, 16)}`,
-        data: spell.ts1.map((t: number) => ({ x: t, y: si * 2 + 1 })),
-        backgroundColor: GOLD,
-        borderColor: GOLD,
-        pointRadius: 6,
-        pointStyle: 'rectRot',
-        showLine: false,
-      })
+  const chartConfig = useMemo(() => {
+    const labels = sorted.map(r => (r.name.length > 16 ? `${r.name.slice(0, 14)}…` : r.name))
+    const estSec = (r: SpellRow) => estimatedCooldownSec(r, p1data.dur, p2data.dur)
+    const apiSec = (id: string) => {
+      const ms = blizzardCooldownMs?.[id]
+      if (ms != null && ms > 0) return ms / 1000
+      return null
     }
-    if (spell.ts2?.length) {
-      datasets.push({
-        label: `${p2data.name}: ${spell.name.slice(0, 16)}`,
-        data: spell.ts2.map((t: number) => ({ x: t, y: si * 2 + 2 })),
-        backgroundColor: BLUE,
-        borderColor: BLUE,
-        pointRadius: 6,
-        pointStyle: 'rectRot',
-        showLine: false,
-      })
-    }
-  })
-
-  const maxTime = Math.max(p1data.dur, p2data.dur)
-
-  useChart(canvasRef, {
-    type: 'scatter',
-    data: { datasets },
-    options: {
-      ...CHART_DEFAULTS,
-      plugins: {
-        ...CHART_DEFAULTS.plugins,
-        legend: { display: false },
-        tooltip: {
-          ...CHART_DEFAULTS.plugins.tooltip,
-          callbacks: {
-            label: (ctx: any) => `${ctx.dataset.label}: ${ctx.parsed.x.toFixed(1)}s`,
-          }
-        }
-      },
-      scales: {
-        x: {
-          ...CHART_DEFAULTS.scales.x,
-          type: 'linear',
-          min: 0, max: maxTime,
-          title: { display: true, text: 'fight time (seconds)', color: '#4a5a6a', font: { size: 10, family: 'IBM Plex Mono' } }
-        },
-        y: {
-          ...CHART_DEFAULTS.scales.y,
-          ticks: {
-            ...CHART_DEFAULTS.scales.y.ticks,
-            callback: (val: string | number) => {
-              const spellIdx = Math.floor((Number(val) - 1) / 2)
-              const spell = cdSpells[spellIdx]
-              return spell ? spell.name.slice(0, 14) : ''
-            },
-            stepSize: 1,
+    return {
+      type: 'bar' as const,
+      data: {
+        labels,
+        datasets: [
+          {
+            label: p1data.name,
+            data: sorted.map(r => r.count1),
+            backgroundColor: GOLD,
+            borderRadius: 3,
           },
-          min: 0,
-          max: cdSpells.length * 2 + 1,
-        }
-      }
+          {
+            label: p2data.name,
+            data: sorted.map(r => r.count2),
+            backgroundColor: BLUE,
+            borderRadius: 3,
+          },
+        ],
+      },
+      options: {
+        ...CHART_DEFAULTS,
+        plugins: {
+          ...CHART_DEFAULTS.plugins,
+          title: { display: false },
+          tooltip: {
+            ...CHART_DEFAULTS.plugins.tooltip,
+            callbacks: {
+              afterLabel: (ctx: any) => {
+                const r = sorted[ctx.dataIndex]
+                if (!r) return ''
+                const lines: string[] = []
+                const b = apiSec(r.id)
+                if (b != null) {
+                  const m = Math.floor(b / 60)
+                  const s = Math.round(b % 60)
+                  lines.push(
+                    m > 0 ? `Blizzard CD ~${m}m ${s}s` : `Blizzard CD ~${Math.round(b)}s`
+                  )
+                }
+                const sec = estSec(r)
+                const m2 = Math.floor(sec / 60)
+                const s2 = Math.round(sec % 60)
+                lines.push(
+                  m2 > 0
+                    ? `Observed gap ~${m2}m ${s2}s`
+                    : `Observed gap ~${Math.round(sec)}s`
+                )
+                return lines
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            ...CHART_DEFAULTS.scales.x,
+            ticks: {
+              ...CHART_DEFAULTS.scales.x.ticks,
+              maxRotation: 55,
+              minRotation: 40,
+              autoSkip: true,
+              maxTicksLimit: 16,
+            },
+          },
+          y: {
+            ...CHART_DEFAULTS.scales.y,
+            beginAtZero: true,
+            stacked: false,
+            title: {
+              display: true,
+              text: 'total casts',
+              color: '#4a5a6a',
+              font: { size: 10, family: 'IBM Plex Mono' },
+            },
+            ticks: { precision: 0 },
+          },
+        },
+      },
     }
-  })
+  }, [sorted, p1data.name, p2data.name, p1data.dur, p2data.dur, blizzardCooldownMs])
+
+  useChart(canvasRef, chartConfig as any)
 
   return <canvas ref={canvasRef} />
+}
+
+export function CooldownTimelineChart(props: {
+  p1data: { name: string; dur: number }
+  p2data: { name: string; dur: number }
+  spellRows: SpellRow[]
+}) {
+  const { p1data, p2data, spellRows } = props
+
+  const idSig = useMemo(() => collectSpellIdsForApiLookup(spellRows).join(','), [spellRows])
+
+  const [blizzardCooldownMs, setBlizzardCooldownMs] = useState<Record<
+    string,
+    number | null
+  > | null>(null)
+
+  useEffect(() => {
+    const ids = idSig ? idSig.split(',').map(s => parseInt(s, 10)).filter(n => n > 0) : []
+    if (!ids.length) {
+      setBlizzardCooldownMs({})
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/spell-cooldowns', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids }),
+        })
+        const data = await res.json()
+        if (cancelled) return
+        setBlizzardCooldownMs(typeof data.cooldowns === 'object' && data.cooldowns ? data.cooldowns : {})
+      } catch {
+        if (!cancelled) setBlizzardCooldownMs({})
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [idSig])
+
+  const sorted = useMemo(() => {
+    if (blizzardCooldownMs === null) return []
+    return pickCooldownChartSpells(spellRows, blizzardCooldownMs, p1data.dur, p2data.dur, 14)
+  }, [spellRows, blizzardCooldownMs, p1data.dur, p2data.dur])
+
+  if (blizzardCooldownMs === null) {
+    return (
+      <div
+        style={{
+          fontFamily: 'IBM Plex Mono, monospace',
+          fontSize: 11,
+          color: '#4a5a6a',
+          padding: '12px 0',
+        }}
+      >
+        Resolving spell cooldowns (Blizzard API)…
+      </div>
+    )
+  }
+
+  if (!sorted.length) return null
+
+  return (
+    <CooldownBarInner
+      sorted={sorted}
+      p1data={p1data}
+      p2data={p2data}
+      blizzardCooldownMs={blizzardCooldownMs}
+    />
+  )
 }

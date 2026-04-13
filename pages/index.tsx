@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react'
 import { useAppSession } from '../contexts/AppSessionContext'
+import { useAnalyzePageCache } from '../contexts/AnalyzePageCacheContext'
 import Head from 'next/head'
 import { gql, callAI } from '../lib/wclClient'
 import { collectNames, resolveNames, fetchFullFightData, processFightData } from '../lib/fightAnalysis'
@@ -13,6 +14,7 @@ import { TalentCompare } from '../components/TalentCompare'
 import { SpellUsageChart, CastTimelineChart, ProcEfficiencyChart, CooldownTimelineChart, ChartCard } from '../components/Charts'
 import { SpellTimeline, type SpellTimelineGroup } from '../components/Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../components/AIChat'
+import { CollapsibleSection } from '../components/CollapsibleSection'
 import { s, PRESET_QUESTIONS } from '../lib/styles'
 
 interface SpellRow {
@@ -37,42 +39,135 @@ interface FightMeta {
 }
 
 export default function Home() {
+  const analyzeCache = useAnalyzePageCache()
   const { hydrated, session, patchSession } = useAppSession()
   const [compareUrl, setCompareUrl] = useState('')
-  const [status, setStatus]         = useState<{ type: string; msg: string } | null>(null)
-  const [loading, setLoading]       = useState(false)
-  const [loadStep, setLoadStep]     = useState('')
-  const [p1data, setP1data]         = useState<AnalyzedFightData | null>(null)
-  const [p2data, setP2data]         = useState<AnalyzedFightData | null>(null)
-  const [spellRows, setSpellRows]   = useState<SpellRow[]>([])
+  const [status, setStatus] = useState<{ type: string; msg: string } | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [loadStep, setLoadStep] = useState('')
+  const [p1data, setP1data] = useState<AnalyzedFightData | null>(null)
+  const [p2data, setP2data] = useState<AnalyzedFightData | null>(null)
+  const [spellRows, setSpellRows] = useState<SpellRow[]>([])
   const [talentDiff, setTalentDiff] = useState<TalentDiffState | null>(null)
-  const [messages, setMessages]     = useState<Array<{ role: string; content: string }>>([])
-  const [input, setInput]           = useState('')
-  const [aiLoading, setAiLoading]   = useState(false)
-  const [bossName, setBossName]     = useState('')
+  const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([])
+  const [input, setInput] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [bossName, setBossName] = useState('')
   const [fightKill1, setFightKill1] = useState<boolean>(true)
   const [fightKill2, setFightKill2] = useState<boolean>(true)
   const chatRef = useRef<HTMLDivElement>(null)
-  const scrollAnchorRef = useRef<HTMLDivElement>(null)
   const lastUserMsgRef = useRef<HTMLDivElement>(null)
   const compareUrlRestoredRef = useRef(false)
+  /** Latest state for a flush on unmount so leaving / during async work still persists analysis. */
+  const analyzeFlushRef = useRef({
+    compareUrl,
+    status,
+    loadStep,
+    p1data,
+    p2data,
+    spellRows,
+    talentDiff,
+    messages,
+    bossName,
+    fightKill1,
+    fightKill2,
+    loading,
+  })
+  analyzeFlushRef.current = {
+    compareUrl,
+    status,
+    loadStep,
+    p1data,
+    p2data,
+    spellRows,
+    talentDiff,
+    messages,
+    bossName,
+    fightKill1,
+    fightKill2,
+    loading,
+  }
 
   const [authStatus, setAuthStatus] = useState<'checking' | 'ok' | 'needed'>('checking')
-  const [clientId, setClientId]     = useState('')
-  const [authMsg, setAuthMsg]       = useState<{ type: string; msg: string } | null>(null)
+  const [clientId, setClientId] = useState('')
+  const [authMsg, setAuthMsg] = useState<{ type: string; msg: string } | null>(null)
+
+  /** Keep the chat panel (not the browser window) scrolled so the latest user message stays near the top — read the assistant reply from the top downward. */
+  useEffect(() => {
+    const el = chatRef.current
+    if (!el || !lastUserMsgRef.current) return
+    const msgTop = lastUserMsgRef.current.offsetTop
+    el.scrollTo({ top: Math.max(0, msgTop - 12), behavior: aiLoading ? 'smooth' : 'auto' })
+  }, [messages, aiLoading])
+
+  useLayoutEffect(() => {
+    const s = analyzeCache.read()
+    if (!s?.p1data || !s?.p2data) return
+    compareUrlRestoredRef.current = true
+    setCompareUrl(s.compareUrl)
+    setStatus(s.status)
+    setLoadStep(s.loadStep)
+    setP1data(s.p1data)
+    setP2data(s.p2data)
+    setSpellRows(s.spellRows as SpellRow[])
+    setTalentDiff(s.talentDiff as TalentDiffState | null)
+    setMessages(s.messages || [])
+    setBossName(s.bossName || '')
+    setFightKill1(s.fightKill1 ?? true)
+    setFightKill2(s.fightKill2 ?? true)
+  }, [analyzeCache])
+
+  useLayoutEffect(() => {
+    const ac = analyzeCache
+    return () => {
+      const s = analyzeFlushRef.current
+      if (s.loading && !s.p1data && !s.p2data) return
+      ac.save({
+        compareUrl: s.compareUrl,
+        status: s.status,
+        loadStep: s.loadStep,
+        p1data: s.p1data,
+        p2data: s.p2data,
+        spellRows: s.spellRows,
+        talentDiff: s.talentDiff,
+        messages: s.messages,
+        bossName: s.bossName,
+        fightKill1: s.fightKill1,
+        fightKill2: s.fightKill2,
+      })
+    }
+  }, [analyzeCache])
 
   useEffect(() => {
-    if (aiLoading) {
-      if (lastUserMsgRef.current && chatRef.current) {
-        const msgTop = lastUserMsgRef.current.offsetTop
-        chatRef.current.scrollTo({ top: msgTop - 12, behavior: 'smooth' })
-      }
-    } else {
-      if (scrollAnchorRef.current) {
-        scrollAnchorRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
-      }
-    }
-  }, [messages, aiLoading])
+    if (loading) return
+    analyzeCache.save({
+      compareUrl,
+      status,
+      loadStep,
+      p1data,
+      p2data,
+      spellRows,
+      talentDiff,
+      messages,
+      bossName,
+      fightKill1,
+      fightKill2,
+    })
+  }, [
+    loading,
+    compareUrl,
+    status,
+    loadStep,
+    p1data,
+    p2data,
+    spellRows,
+    talentDiff,
+    messages,
+    bossName,
+    fightKill1,
+    fightKill2,
+    analyzeCache,
+  ])
 
   useEffect(() => {
     fetch('/api/auth').then(r => r.json()).then(d => setAuthStatus(d.authenticated ? 'ok' : 'needed')).catch(() => setAuthStatus('needed'))
@@ -185,9 +280,9 @@ export default function Home() {
       const p1 = await processFightData({ raw: raw1, fightStart: fight1.startTime, fightEnd: fight1.endTime, playerId: actor1?.id, playerName: name1, spec: spec1, dps: myDmg ? Math.round(myDmg.total / dur1) : null, takenTotal: tkE1.find((e: any) => e.name?.toLowerCase() === name1.toLowerCase())?.total, nameMap: resolvedNames })
       const p2 = await processFightData({ raw: raw2, fightStart: fight2.startTime, fightEnd: fight2.endTime, playerId: actor2?.id, playerName: name2, spec: spec2, dps: thDmg ? Math.round(thDmg.total / dur2) : null, takenTotal: tkE2.find((e: any) => e.name?.toLowerCase() === name2.toLowerCase())?.total, nameMap: resolvedNames })
 
-      // Attach kill status so buildRichContext can use it
-      ;(p1 as any).isKill = isKill1
-      ;(p2 as any).isKill = isKill2
+        // Attach kill status so buildRichContext can use it
+        ; (p1 as any).isKill = isKill1
+        ; (p2 as any).isKill = isKill2
 
       p1.boss = fight1.name; p2.boss = fight2.name
       const allSpellIds = new Set([...Object.keys(p1.spellMap), ...Object.keys(p2.spellMap)])
@@ -366,176 +461,237 @@ export default function Home() {
         {/* DATA CARDS */}
         {p1data && p2data && (
           <div style={s.panel}>
-            <div style={{ ...s.ptitle, justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><div style={s.ptitleBar} />{bossName}</div>
-              <button style={s.btnGhost} onClick={downloadData}>Download Data</button>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-              {[
-                { data: p1data, dur: dur1Fmt, color: 'var(--gold2)', label: 'you', isKill: fightKill1 },
-                { data: p2data, dur: dur2Fmt, color: 'var(--blue)', label: 'comparison', isKill: fightKill2 },
-              ].map((p, i) => (
-                <div key={i} style={{ background: 'var(--bg3)', border: `1px solid ${p.isKill ? 'var(--border)' : 'rgba(212,64,64,0.3)'}`, borderRadius: 4, padding: '10px 13px' }}>
-                  <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: '.8px', textTransform: 'uppercase', color: p.color, marginBottom: 4 }}>
-                    {p.data.name} — {p.label}
-                    {!p.isKill && <span style={{ marginLeft: 8, color: 'var(--red)', fontSize: 9 }}>WIPE</span>}
+            <CollapsibleSection
+              title={
+                <>
+                  <div style={s.ptitleBar} />
+                  {bossName}
+                </>
+              }
+              rightSlot={
+                <button type="button" style={s.btnGhost} onClick={downloadData}>
+                  Download Data
+                </button>
+              }
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+                {[
+                  { data: p1data, dur: dur1Fmt, color: 'var(--gold2)', label: 'you', isKill: fightKill1 },
+                  { data: p2data, dur: dur2Fmt, color: 'var(--blue)', label: 'comparison', isKill: fightKill2 },
+                ].map((p, i) => (
+                  <div key={i} style={{ background: 'var(--bg3)', border: `1px solid ${p.isKill ? 'var(--border)' : 'rgba(212,64,64,0.3)'}`, borderRadius: 4, padding: '10px 13px' }}>
+                    <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: '.8px', textTransform: 'uppercase', color: p.color, marginBottom: 4 }}>
+                      {p.data.name} — {p.label}
+                      {!p.isKill && <span style={{ marginLeft: 8, color: 'var(--red)', fontSize: 9 }}>WIPE</span>}
+                    </div>
+                    <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 22, fontWeight: 700, color: p.color, lineHeight: 1.2 }}>{p.data.dps?.toLocaleString() || '?'} <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--dim)' }}>dps</span></div>
+                    <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'var(--dim)', marginTop: 3 }}>{p.dur} · {p.data.downtime.cpm}/min · {p.data.downtime.pct}% downtime · {p.data.spec}</div>
+                    <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                      {(() => {
+                        const topBuffs = Object.entries(p.data.uptimes || {})
+                          .map(([id, pct]) => ({ name: p.data.nameMap?.[Number(id)] || `Buff ${id}`, pct: pct as number }))
+                          .filter(b => b.pct > 0 && !b.name.startsWith('Buff '))
+                          .sort((a, b) => b.pct - a.pct)
+                          .slice(0, 3)
+                        return topBuffs.length > 0 ? (
+                          <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)' }}>
+                            {topBuffs.map((b, bi) => (
+                              <span key={bi}>{bi > 0 && ' · '}{b.name}: <span style={{ color: p.color }}>{b.pct}%</span></span>
+                            ))}
+                          </div>
+                        ) : null
+                      })()}
+                    </div>
                   </div>
-                  <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 22, fontWeight: 700, color: p.color, lineHeight: 1.2 }}>{p.data.dps?.toLocaleString() || '?'} <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--dim)' }}>dps</span></div>
-                  <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'var(--dim)', marginTop: 3 }}>{p.dur} · {p.data.downtime.cpm}/min · {p.data.downtime.pct}% downtime · {p.data.spec}</div>
-                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-                    {(() => {
-                      const topBuffs = Object.entries(p.data.uptimes || {})
-                        .map(([id, pct]) => ({ name: p.data.nameMap?.[Number(id)] || `Buff ${id}`, pct: pct as number }))
-                        .filter(b => b.pct > 0 && !b.name.startsWith('Buff '))
-                        .sort((a, b) => b.pct - a.pct)
-                        .slice(0, 3)
-                      return topBuffs.length > 0 ? (
-                        <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)' }}>
-                          {topBuffs.map((b, bi) => (
-                            <span key={bi}>{bi > 0 && ' · '}{b.name}: <span style={{ color: p.color }}>{b.pct}%</span></span>
-                          ))}
-                        </div>
-                      ) : null
-                    })()}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            {/* Spell table */}
-            <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '.8px', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 6 }}>Spell breakdown — casts/min</div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
-                <thead><tr>{['Spell', p1data.name, p2data.name, 'Diff', 'First cast'].map((h, i) => (
-                  <th key={i} style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 10, letterSpacing: '.8px', textTransform: 'uppercase', color: i === 1 ? 'var(--gold2)' : i === 2 ? 'var(--blue)' : 'var(--dim)', padding: '5px 8px', textAlign: i > 0 ? 'right' : 'left', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>
-                ))}</tr></thead>
-                <tbody>{spellRows.filter(r => r.ppm1 > 0 || r.ppm2 > 0).map((r, i) => {
-                  const diff = r.ppm2 > 0 ? Math.round((r.ppm1 - r.ppm2) / r.ppm2 * 100) : null
-                  const dc = diff === null ? 'var(--dim)' : diff > 5 ? 'var(--green)' : diff < -5 ? 'var(--red)' : 'var(--dim)'
-                  const ft = r.first1 !== null && r.first2 !== null && Math.abs(r.first1 - r.first2) > 1.5
-                  return (
-                    <tr key={i} onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                      <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontFamily: 'IBM Plex Mono,monospace', color: 'var(--muted)' }}>
-                        <a href={`https://www.wowhead.com/spell=${r.id}`} target="_blank" rel="noreferrer" data-wh-spell={r.id} data-wh-name={r.name} style={{ color: 'var(--muted)', textDecoration: 'none', borderBottom: '1px dotted var(--dim)', cursor: 'help' }}>{r.name}</a>
-                      </td>
-                      <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontFamily: 'IBM Plex Mono,monospace', color: 'var(--gold2)', textAlign: 'right' }}>{r.ppm1}</td>
-                      <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontFamily: 'IBM Plex Mono,monospace', color: 'var(--blue)', textAlign: 'right' }}>{r.ppm2}</td>
-                      <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontFamily: 'IBM Plex Mono,monospace', color: dc, textAlign: 'right' }}>{diff === null ? '—' : (diff >= 0 ? '+' : '') + diff + '%'}</td>
-                      <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontSize: 11 }}>{ft && <><span style={{ color: 'var(--gold2)' }}>{r.first1}s</span> vs <span style={{ color: 'var(--blue)' }}>{r.first2}s</span></>}</td>
-                    </tr>
-                  )
-                })}</tbody>
-              </table>
-            </div>
+              {/* Spell table */}
+              <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '.8px', textTransform: 'uppercase', color: 'var(--dim)', marginBottom: 6 }}>Spell breakdown — total casts</div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                  <thead><tr>{['Spell', p1data.name, p2data.name, 'Diff', 'First cast'].map((h, i) => (
+                    <th key={i} style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 10, letterSpacing: '.8px', textTransform: 'uppercase', color: i === 1 ? 'var(--gold2)' : i === 2 ? 'var(--blue)' : 'var(--dim)', padding: '5px 8px', textAlign: i > 0 ? 'right' : 'left', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>
+                  ))}</tr></thead>
+                  <tbody>{spellRows.filter(r => r.count1 > 0 || r.count2 > 0).map((r, i) => {
+                    const diff = r.count2 > 0 ? Math.round(((r.count1 - r.count2) / r.count2) * 100) : null
+                    const dc = diff === null ? 'var(--dim)' : diff > 5 ? 'var(--green)' : diff < -5 ? 'var(--red)' : 'var(--dim)'
+                    const ft = r.first1 !== null && r.first2 !== null && Math.abs(r.first1 - r.first2) > 1.5
+                    return (
+                      <tr key={i} onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                        <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontFamily: 'IBM Plex Mono,monospace', color: 'var(--muted)' }}>
+                          <a href={`https://www.wowhead.com/spell=${r.id}`} target="_blank" rel="noreferrer" data-wh-spell={r.id} data-wh-name={r.name} style={{ color: 'var(--muted)', textDecoration: 'none', borderBottom: '1px dotted var(--dim)', cursor: 'help' }}>{r.name}</a>
+                        </td>
+                        <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontFamily: 'IBM Plex Mono,monospace', color: 'var(--gold2)', textAlign: 'right' }}>{r.count1}</td>
+                        <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontFamily: 'IBM Plex Mono,monospace', color: 'var(--blue)', textAlign: 'right' }}>{r.count2}</td>
+                        <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontFamily: 'IBM Plex Mono,monospace', color: dc, textAlign: 'right' }}>{diff === null ? '—' : (diff >= 0 ? '+' : '') + diff + '%'}</td>
+                        <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontSize: 11 }}>{ft && <><span style={{ color: 'var(--gold2)' }}>{r.first1}s</span> vs <span style={{ color: 'var(--blue)' }}>{r.first2}s</span></>}</td>
+                      </tr>
+                    )
+                  })}</tbody>
+                </table>
+              </div>
+            </CollapsibleSection>
           </div>
         )}
 
         {/* CHARTS */}
         {p1data && p2data && (
           <div style={s.panel}>
-            <div style={s.ptitle}><div style={s.ptitleBar} />Charts</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-              <ChartCard title="Spell usage — casts/min" height={240}>
-                <SpellUsageChart spellRows={spellRows} name1={p1data.name} name2={p2data.name} />
-              </ChartCard>
-              <ChartCard title="Cast rate over time (30s windows)" height={240}>
-                <CastTimelineChart p1data={p1data} p2data={p2data} />
-              </ChartCard>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-              <ChartCard title="Buff uptime %" height={200}>
-                <ProcEfficiencyChart p1data={p1data} p2data={p2data} />
-              </ChartCard>
-              <ChartCard title="Cooldown timeline" height={200}>
-                <CooldownTimelineChart p1data={p1data} p2data={p2data} spellRows={spellRows} />
-              </ChartCard>
-            </div>
-            {/* Spell Timeline — zoomable, pannable */}
-            <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 4, padding: '12px 14px' }}>
-              <div style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '.8px', textTransform: 'uppercase' as const, color: 'var(--dim)', marginBottom: 10 }}>
-                Spell cast timeline
+            <CollapsibleSection
+              title={
+                <>
+                  <div style={s.ptitleBar} />
+                  Spell usage & cast rate
+                </>
+              }
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <ChartCard title="Spell usage — casts/min" height={240}>
+                  <SpellUsageChart spellRows={spellRows} name1={p1data.name} name2={p2data.name} />
+                </ChartCard>
+                <ChartCard title="Cast rate over time (30s windows)" height={240}>
+                  <CastTimelineChart p1data={p1data} p2data={p2data} />
+                </ChartCard>
               </div>
-              <SpellTimeline
-                groups={spellTimelineGroups}
-                name1={p1data.name}
-                name2={p2data.name}
-                dur1={p1data.dur}
-                dur2={p2data.dur}
-              />
-            </div>
+            </CollapsibleSection>
+            <CollapsibleSection
+              title={
+                <>
+                  <div style={s.ptitleBar} />
+                  Buff uptime & major cooldowns
+                </>
+              }
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <ChartCard title="Buff uptime %" height={200}>
+                  <ProcEfficiencyChart p1data={p1data} p2data={p2data} />
+                </ChartCard>
+                <ChartCard title="Major cooldowns (Blizzard CD length + usage vs partner)" height={220}>
+                  <CooldownTimelineChart p1data={p1data} p2data={p2data} spellRows={spellRows} />
+                </ChartCard>
+              </div>
+            </CollapsibleSection>
+            <CollapsibleSection
+              title={
+                <>
+                  <div style={s.ptitleBar} />
+                  Spell cast timeline
+                </>
+              }
+            >
+              <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 4, padding: '12px 14px' }}>
+                <SpellTimeline
+                  groups={spellTimelineGroups}
+                  name1={p1data.name}
+                  name2={p2data.name}
+                  dur1={p1data.dur}
+                  dur2={p2data.dur}
+                />
+              </div>
+            </CollapsibleSection>
           </div>
         )}
 
         {/* TALENT COMPARE */}
         {talentDiff && (
           <div style={s.panel}>
-            <div style={{ ...s.ptitle, justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><div style={s.ptitleBar} />Talent Comparison</div>
-              {talentDiff.t1?.talentString && talentDiff.t2?.talentString && (
-                <a
-                  href={`/compare?b1=${encodeURIComponent(talentDiff.t1.talentString)}&b2=${encodeURIComponent(talentDiff.t2.talentString)}&n1=${encodeURIComponent(talentDiff.name1)}&n2=${encodeURIComponent(talentDiff.name2)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ ...s.btnGhost, textDecoration: 'none', fontSize: 10, padding: '4px 10px' }}
-                >
-                  Open shareable diff
-                </a>
+            <CollapsibleSection
+              title={
+                <>
+                  <div style={s.ptitleBar} />
+                  Talent comparison
+                </>
+              }
+              rightSlot={
+                talentDiff.t1?.talentString && talentDiff.t2?.talentString ? (
+                  <a
+                    href={`/compare?b1=${encodeURIComponent(talentDiff.t1.talentString)}&b2=${encodeURIComponent(talentDiff.t2.talentString)}&n1=${encodeURIComponent(talentDiff.name1)}&n2=${encodeURIComponent(talentDiff.name2)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ ...s.btnGhost, textDecoration: 'none', fontSize: 10, padding: '4px 10px' }}
+                  >
+                    Open shareable diff
+                  </a>
+                ) : undefined
+              }
+            >
+              {talentDiff.error && !talentDiff.t1 && !talentDiff.t2 ? (
+                <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, color: 'var(--dim)' }}>
+                  Could not load talent data: {talentDiff.error}
+                </div>
+              ) : (
+                <TalentCompare
+                  p1Talents={talentDiff.t1}
+                  p2Talents={talentDiff.t2}
+                  name1={talentDiff.name1}
+                  name2={talentDiff.name2}
+                  specId={talentDiff.specId}
+                />
               )}
-            </div>
-            {talentDiff.error && !talentDiff.t1 && !talentDiff.t2
-              ? <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, color: 'var(--dim)' }}>Could not load talent data: {talentDiff.error}</div>
-              : <TalentCompare p1Talents={talentDiff.t1} p2Talents={talentDiff.t2} name1={talentDiff.name1} name2={talentDiff.name2} specId={talentDiff.specId} />
-            }
+            </CollapsibleSection>
           </div>
         )}
 
         {/* CHAT */}
         {p1data && p2data && (
           <div style={s.panel}>
-            <div style={{ ...s.ptitle, justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}><div style={s.ptitleBar} />Ask Claude</div>
-              {messages.length > 0 && <CopyBtn text={messages.map(m => `${m.role === 'user' ? 'You' : 'Claude'}:\n${m.content}`).join('\n\n---\n\n')} label="Copy All" />}
-            </div>
-            <div ref={chatRef} style={{ display: 'flex', flexDirection: 'column', maxHeight: 560, overflowY: 'auto', marginBottom: 12, paddingRight: 4 }}>
-              {messages.map((m, i) => {
-                const isLastUser = m.role === 'user' && messages.slice(i + 1).every(x => x.role !== 'user')
-                return (
-                  <div key={i} ref={isLastUser ? lastUserMsgRef : null} style={{ marginBottom: m.role === 'user' ? 8 : 12 }}>
-                    {m.role === 'user'
-                      ? <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: '6px 6px 2px 6px', padding: '8px 12px', fontSize: 12, color: 'var(--muted)', alignSelf: 'flex-end', maxWidth: '74%', marginLeft: 'auto' }}>{m.content}</div>
-                      : <div style={{ position: 'relative' }}>
+            <CollapsibleSection
+              title={
+                <>
+                  <div style={s.ptitleBar} />
+                  Ask Claude
+                </>
+              }
+              rightSlot={
+                messages.length > 0 ? (
+                  <CopyBtn
+                    text={messages.map(m => `${m.role === 'user' ? 'You' : 'Claude'}:\n${m.content}`).join('\n\n---\n\n')}
+                    label="Copy All"
+                  />
+                ) : undefined
+              }
+            >
+              <div ref={chatRef} style={{ display: 'flex', flexDirection: 'column', maxHeight: 560, overflowY: 'auto', marginBottom: 12, paddingRight: 4 }}>
+                {messages.map((m, i) => {
+                  const isLastUser = m.role === 'user' && messages.slice(i + 1).every(x => x.role !== 'user')
+                  return (
+                    <div key={i} ref={isLastUser ? lastUserMsgRef : null} style={{ marginBottom: m.role === 'user' ? 8 : 12 }}>
+                      {m.role === 'user'
+                        ? <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: '6px 6px 2px 6px', padding: '8px 12px', fontSize: 12, color: 'var(--muted)', alignSelf: 'flex-end', maxWidth: '74%', marginLeft: 'auto' }}>{m.content}</div>
+                        : <div style={{ position: 'relative' }}>
                           <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: '2px 6px 6px 6px', padding: '13px 15px 36px 15px', fontSize: 13, lineHeight: 1.85 }}>
                             <FormatAI text={m.content} />
                           </div>
                           <div style={{ position: 'absolute', bottom: 8, right: 10 }}><CopyBtn text={m.content} label="Copy" /></div>
                         </div>
-                    }
+                      }
+                    </div>
+                  )
+                })}
+                {aiLoading && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '12px 15px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: '2px 6px 6px 6px', marginBottom: 10 }}>
+                    {[0, 200, 400].map(d => <div key={d} style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--dim)', animation: `td 1.2s ${d}ms infinite` }} />)}
+                    <span style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'IBM Plex Mono,monospace', marginLeft: 6 }}>Analyzing...</span>
                   </div>
-                )
-              })}
-              {aiLoading && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '12px 15px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: '2px 6px 6px 6px', marginBottom: 10 }}>
-                  {[0, 200, 400].map(d => <div key={d} style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--dim)', animation: `td 1.2s ${d}ms infinite` }} />)}
-                  <span style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'IBM Plex Mono,monospace', marginLeft: 6 }}>Analyzing...</span>
-                </div>
-              )}
-              <div ref={scrollAnchorRef} />
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'IBM Plex Mono,monospace', marginBottom: 6 }}>Quick questions:</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginBottom: 10 }}>
-              {PRESET_QUESTIONS.map((q, i) => (
-                <button key={i} onClick={() => sendQuestion(q)} disabled={aiLoading}
-                  style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, padding: '7px 10px', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 3, color: 'var(--muted)', cursor: aiLoading ? 'not-allowed' : 'pointer', textAlign: 'left', lineHeight: 1.4 }}
-                  onMouseEnter={e => { if (!aiLoading) { (e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'; (e.target as HTMLButtonElement).style.color = 'var(--gold)' } }}
-                  onMouseLeave={e => { (e.target as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.target as HTMLButtonElement).style.color = 'var(--muted)' }}>
-                  {q}
-                </button>
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input style={s.input} value={input} onChange={e => setInput(e.target.value)} placeholder="Ask anything — why am I losing DPS, when should I hold cooldowns, etc." onKeyDown={e => e.key === 'Enter' && sendQuestion()} disabled={aiLoading} />
-              <button style={aiLoading ? s.btnGoldDis : s.btnGold} onClick={() => sendQuestion()} disabled={aiLoading}>Ask</button>
-            </div>
+                )}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'IBM Plex Mono,monospace', marginBottom: 6 }}>Quick questions:</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginBottom: 10 }}>
+                {PRESET_QUESTIONS.map((q, i) => (
+                  <button key={i} onClick={() => sendQuestion(q)} disabled={aiLoading}
+                    style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, padding: '7px 10px', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 3, color: 'var(--muted)', cursor: aiLoading ? 'not-allowed' : 'pointer', textAlign: 'left', lineHeight: 1.4 }}
+                    onMouseEnter={e => { if (!aiLoading) { (e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'; (e.target as HTMLButtonElement).style.color = 'var(--gold)' } }}
+                    onMouseLeave={e => { (e.target as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.target as HTMLButtonElement).style.color = 'var(--muted)' }}>
+                    {q}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input style={s.input} value={input} onChange={e => setInput(e.target.value)} placeholder="Ask anything — why am I losing DPS, when should I hold cooldowns, etc." onKeyDown={e => e.key === 'Enter' && sendQuestion()} disabled={aiLoading} />
+                <button style={aiLoading ? s.btnGoldDis : s.btnGold} onClick={() => sendQuestion()} disabled={aiLoading}>Ask</button>
+              </div>
+            </CollapsibleSection>
           </div>
         )}
 

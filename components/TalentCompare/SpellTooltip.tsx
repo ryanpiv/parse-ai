@@ -11,6 +11,14 @@ interface WowheadTooltipData {
 const cache = new Map<number, WowheadTooltipData | null>()
 const inflight = new Map<number, Promise<WowheadTooltipData | null>>()
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 async function fetchTooltip(spellId: number): Promise<WowheadTooltipData | null> {
   if (cache.has(spellId)) return cache.get(spellId)!
 
@@ -19,7 +27,7 @@ async function fetchTooltip(spellId: number): Promise<WowheadTooltipData | null>
   const p = (async () => {
     try {
       const res = await fetch(
-        `https://nether.wowhead.com/tooltip/spell/${spellId}?dataEnv=1&locale=0`
+        `https://nether.wowhead.com/tooltip/spell/${spellId}?dataEnv=11&locale=0`
       )
       if (!res.ok) throw new Error(String(res.status))
       const json = await res.json()
@@ -45,7 +53,7 @@ async function fetchTooltip(spellId: number): Promise<WowheadTooltipData | null>
 /* ---------- Context ---------- */
 
 interface TooltipCtx {
-  show: (spellId: number, rect: DOMRect) => void
+  show: (spellId: number, rect: DOMRect, fallbackName?: string) => void
   hide: () => void
 }
 
@@ -61,7 +69,7 @@ export function SpellTooltipProvider({ children }: { children: ReactNode }) {
   const activeSpell = useRef<number | null>(null)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const show = useCallback((spellId: number, rect: DOMRect) => {
+  const show = useCallback((spellId: number, rect: DOMRect, fallbackName?: string) => {
     if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null }
     activeSpell.current = spellId
 
@@ -70,8 +78,12 @@ export function SpellTooltipProvider({ children }: { children: ReactNode }) {
 
     void fetchTooltip(spellId).then(data => {
       if (activeSpell.current !== spellId) return
-      if (data) {
+      if (data?.tooltip) {
         setHtml(data.tooltip)
+      } else if (data?.name) {
+        setHtml(`<div class="wh-tooltip-inner q q3">${escapeHtml(data.name)}</div>`)
+      } else if (fallbackName) {
+        setHtml(`<div class="wh-tooltip-inner" style="color:#aaa">${escapeHtml(fallbackName)}</div>`)
       } else {
         setHtml(null)
         setPos(null)

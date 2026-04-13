@@ -5,6 +5,7 @@ import { TalentTreeSection, type BlizzardNode, type DiffState } from './TalentTr
 import { SpellTooltipProvider } from './SpellTooltip'
 import { uniformClassSpecTreeWidth } from './uniformClassSpecTreeWidth'
 import { useBlizzardTalentTree } from './useBlizzardTalentTree'
+import { useSpellTooltip } from './SpellTooltip'
 
 interface WCLTalent { id: number; nodeID: number; rank: number }
 interface TalentData { name: string; talentTree?: WCLTalent[]; talents?: any[] }
@@ -27,15 +28,27 @@ const NODE_PX = 28
 const STEP = 42
 const MAX_TREE_W = 340
 
-function TalentLink({ spellId, name, color }: { spellId: number; name: string; color: 'gold' | 'blue' }) {
+function TalentDiffLink({ spellId, name, color }: { spellId: number; name: string; color: 'gold' | 'blue' }) {
+  const { show, hide } = useSpellTooltip()
   const c = color === 'gold'
     ? { text: 'rgba(201,162,39,1)', border: 'rgba(201,162,39,0.4)' }
     : { text: 'rgba(90,173,240,1)', border: 'rgba(90,173,240,0.4)' }
   return (
-    <a href={`https://www.wowhead.com/spell=${spellId}`} target="_blank" rel="noreferrer"
-      data-wh-spell={spellId} data-wh-name={name}
-      style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: c.text,
-        textDecoration: 'none', borderBottom: `1px dotted ${c.border}`, cursor: 'help' }}>
+    <a
+      href={`https://www.wowhead.com/spell=${spellId}`}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        fontFamily: 'IBM Plex Mono,monospace',
+        fontSize: 11,
+        color: c.text,
+        textDecoration: 'none',
+        borderBottom: `1px dotted ${c.border}`,
+        cursor: 'help',
+      }}
+      onMouseEnter={e => show(spellId, e.currentTarget.getBoundingClientRect(), name)}
+      onMouseLeave={() => hide()}
+    >
       {name}
     </a>
   )
@@ -116,7 +129,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                 <span style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 9, fontWeight: 600, letterSpacing: '.5px', textTransform: 'uppercase', color: 'rgba(201,162,39,0.7)', flexShrink: 0 }}>{name1}:</span>
                 {p1Only.map(n => n.entries[0]?.spellId ? (
-                  <TalentLink key={n.nodeId} spellId={n.entries[0].spellId} name={n.entries[0].name || `Node ${n.nodeId}`} color="gold" />
+                  <TalentDiffLink key={n.nodeId} spellId={n.entries[0].spellId} name={n.entries[0].name || `Node ${n.nodeId}`} color="gold" />
                 ) : (
                   <span key={n.nodeId} style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'rgba(201,162,39,0.7)' }}>{n.entries[0]?.name || `Node ${n.nodeId}`}</span>
                 ))}
@@ -126,7 +139,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                 <span style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 9, fontWeight: 600, letterSpacing: '.5px', textTransform: 'uppercase', color: 'rgba(90,173,240,0.7)', flexShrink: 0 }}>{name2}:</span>
                 {p2Only.map(n => n.entries[0]?.spellId ? (
-                  <TalentLink key={n.nodeId} spellId={n.entries[0].spellId} name={n.entries[0].name || `Node ${n.nodeId}`} color="blue" />
+                  <TalentDiffLink key={n.nodeId} spellId={n.entries[0].spellId} name={n.entries[0].name || `Node ${n.nodeId}`} color="blue" />
                 ) : (
                   <span key={n.nodeId} style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'rgba(90,173,240,0.7)' }}>{n.entries[0]?.name || `Node ${n.nodeId}`}</span>
                 ))}
