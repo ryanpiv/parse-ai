@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useAppSession } from '../contexts/AppSessionContext'
 import Head from 'next/head'
 import { gql, callAI } from '../lib/wclClient'
@@ -11,7 +11,7 @@ import { fetchTalents } from '../lib/talents'
 import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
 import { TalentCompare } from '../components/TalentCompare'
 import { SpellUsageChart, CastTimelineChart, ProcEfficiencyChart, CooldownTimelineChart, ChartCard } from '../components/Charts'
-import { SpellTimeline } from '../components/Charts/SpellTimeline'
+import { SpellTimeline, type SpellTimelineGroup } from '../components/Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../components/AIChat'
 import { s, PRESET_QUESTIONS } from '../lib/styles'
 
@@ -291,6 +291,32 @@ export default function Home() {
   const dur1Fmt = p1data ? `${Math.floor(p1data.dur / 60)}:${String(Math.round(p1data.dur % 60)).padStart(2, '0')}` : ''
   const dur2Fmt = p2data ? `${Math.floor(p2data.dur / 60)}:${String(Math.round(p2data.dur % 60)).padStart(2, '0')}` : ''
 
+  const spellTimelineGroups: SpellTimelineGroup[] = useMemo(() => {
+    if (!p1data || !p2data) return []
+    const ids = new Set<number>()
+    for (const s of p1data.castTimeline || []) ids.add(s.spellId)
+    for (const s of p2data.castTimeline || []) ids.add(s.spellId)
+    const resolveName = (spellId: number) =>
+      p1data.spellMap[String(spellId)]?.name ||
+      p2data.spellMap[String(spellId)]?.name ||
+      p1data.nameMap[spellId] ||
+      `Spell ${spellId}`
+
+    return [...ids]
+      .map(spellId => ({
+        spellId,
+        name: resolveName(spellId),
+        segments1: (p1data.castTimeline || []).filter(s => s.spellId === spellId),
+        segments2: (p2data.castTimeline || []).filter(s => s.spellId === spellId),
+      }))
+      .sort((a, b) => {
+        const na = a.segments1.length + a.segments2.length
+        const nb = b.segments1.length + b.segments2.length
+        return nb - na
+      })
+      .slice(0, 22)
+  }, [p1data, p2data])
+
   return (
     <>
       <Head><title>Parse Analyzer</title></Head>
@@ -430,7 +456,7 @@ export default function Home() {
                 Spell cast timeline
               </div>
               <SpellTimeline
-                spellRows={spellRows}
+                groups={spellTimelineGroups}
                 name1={p1data.name}
                 name2={p2data.name}
                 dur1={p1data.dur}

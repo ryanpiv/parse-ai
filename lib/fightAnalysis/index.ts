@@ -70,6 +70,8 @@ import {
   annotateCasts,
   computeUptimes,
   computeCastSpacing,
+  buildCastTimelineSegments,
+  type CastTimelineSegment,
 } from '../gameState'
 
 interface ProcessFightDataParams {
@@ -102,6 +104,8 @@ export interface AnalyzedFightData {
   npcDeaths: any
   boss?: string
   spellRows?: any[]
+  /** Paired begincast→cast segments + instant casts (seconds from fight start) */
+  castTimeline: CastTimelineSegment[]
 }
 
 export async function processFightData({ raw, fightStart, fightEnd, playerId, playerName, spec, dps, takenTotal, nameMap }: ProcessFightDataParams): Promise<AnalyzedFightData> {
@@ -109,6 +113,7 @@ export async function processFightData({ raw, fightStart, fightEnd, playerId, pl
   const { casts, buffs, debuffs, damage, deaths } = raw
 
   const playerCasts = casts.filter((e: any) => e.type === 'cast' && e.sourceID === playerId)
+  const castTimeline = buildCastTimelineSegments(casts, fightStart, playerId, nameMap)
 
   const { getStateAt, buffWindows } = buildStateTracker(buffs, debuffs, fightStart) as { getStateAt: any; buffWindows: Record<number, any[]> }
   const { getNPCDeathsBy, npcDeaths } = buildTargetTracker(deaths, fightStart)
@@ -171,5 +176,6 @@ export async function processFightData({ raw, fightStart, fightEnd, playerId, pl
     annotated,
     buffWindows,
     npcDeaths,
+    castTimeline,
   }
 }

@@ -1,48 +1,65 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo, useId } from 'react'
+import type { CastTimelineSegment } from '../../lib/gameState/castTimeline'
 
-const GOLD   = 'rgba(201,162,39,0.95)'
-const BLUE   = 'rgba(90,173,240,0.95)'
-const BG     = '#0a0c0f'
+const GOLD = 'rgba(201,162,39,0.95)'
+const BLUE = 'rgba(90,173,240,0.95)'
+const BG = '#0a0c0f'
 const BG_ALT = '#0d1014'
 const BORDER = '#2a3340'
-const DIM    = '#4a5a6a'
-const TEXT   = '#8a9bb0'
+const DIM = '#4a5a6a'
+const TEXT = '#8a9bb0'
+const CANCEL_STROKE = 'rgba(212,72,72,0.95)'
 
-const ROW_H    = 26
-const LABEL_W  = 148
-const TICK_W   = 3
-const TICK_H   = 9
+const ROW_PLAYER = 22
+const SPELL_LABEL_H = 14
+const GROUP_GAP = 8
+const LABEL_W = 168
 const HEADER_H = 22
+const ICON_SZ = 14
 
-interface SpellRow {
-  id: string; name: string
-  ppm1: number; ppm2: number
-  ts1: number[]; ts2: number[]
+export type SpellTimelineGroup = {
+  spellId: number
+  name: string
+  segments1: CastTimelineSegment[]
+  segments2: CastTimelineSegment[]
 }
 
 interface Props {
-  spellRows: SpellRow[]
-  name1: string; name2: string
-  dur1: number; dur2: number
+  groups: SpellTimelineGroup[]
+  name1: string
+  name2: string
+  dur1: number
+  dur2: number
+  color1?: string
+  color2?: string
 }
 
-export function SpellTimeline({ spellRows, name1, name2, dur1, dur2 }: Props) {
-  const dur = Math.min(dur1, dur2)
-  const rows = spellRows.filter(r => r.ppm1 > 0.12 || r.ppm2 > 0.12).slice(0, 18)
+function segmentIntersectsView(s: CastTimelineSegment, dur: number, offset: number, windowSec: number): boolean {
+  const pad = 1
+  return s.tEnd >= offset - pad && s.tStart <= offset + windowSec + pad && s.tStart <= dur + pad
+}
 
-  // Use refs for zoom/offset to avoid re-render jitter during drag/slide
+export function SpellTimeline({ groups, name1, name2, dur1, dur2, color1 = GOLD, color2 = BLUE }: Props) {
+  const dur = Math.min(dur1, dur2)
+  const c1 = color1
+  const c2 = color2
+
   const windowSecRef = useRef(dur)
   const offsetSecRef = useRef(0)
   const [, forceRender] = useState(0)
   const redraw = useCallback(() => forceRender(n => n + 1), [])
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const svgRef = useRef<SVGSVGElement>(null)
   const dragRef = useRef<{ startX: number; startOffset: number } | null>(null)
   const [containerW, setContainerW] = useState(800)
   const [isDragging, setIsDragging] = useState(false)
 
-  // Sync on dur change
+  const clipUid = useId().replace(/:/g, '')
+  const clipPathId = `spellTlClip-${clipUid}`
+
+  const spellIdsSig = useMemo(() => groups.map(g => g.spellId).join(','), [groups])
+  const [icons, setIcons] = useState<Record<number, string>>({})
+
   useEffect(() => {
     windowSecRef.current = dur
     offsetSecRef.current = 0
@@ -56,38 +73,70 @@ export function SpellTimeline({ spellRows, name1, name2, dur1, dur2 }: Props) {
     return () => ro.disconnect()
   }, [])
 
+  useEffect(() => {
+    if (!spellIdsSig) return
+    const ids = spellIdsSig.split(',').map(s => parseInt(s, 10)).filter(n => n > 0)
+    let cancelled = false
+    ;(async () => {
+      const next: Record<number, string> = {}
+      const batch = ids.slice(0, 48)
+      for (const id of batch) {
+        try {
+          const res = await fetch(`/api/tooltip?id=${id}`)
+          if (!res.ok) continue
+          const d = await res.json()
+          if (d.icon) next[id] = `https://wow.zamimg.com/images/wow/icons/small/${d.icon}.jpg`
+        } catch {
+          /* ignore */
+        }
+        if (cancelled) return
+      }
+      if (!cancelled) setIcons(prev => ({ ...prev, ...next }))
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [spellIdsSig])
+
   const windowSec = windowSecRef.current
   const offset = Math.min(offsetSecRef.current, Math.max(0, dur - windowSec))
-  const chartW = containerW - LABEL_W
+  const chartW = Math.max(120, containerW - LABEL_W)
 
   function tx(t: number) {
     return LABEL_W + ((t - offset) / windowSec) * chartW
   }
-  function inView(t: number) {
-    return t >= offset - 1 && t <= offset + windowSec + 1
+
+  function inViewSeg(s: CastTimelineSegment) {
+    return segmentIntersectsView(s, dur, offset, windowSec)
   }
 
-  // Axis tick interval based on zoom
   const tickInterval = windowSec <= 20 ? 5 : windowSec <= 60 ? 10 : windowSec <= 150 ? 20 : 30
   const axisTicks: number[] = []
   const first = Math.ceil(offset / tickInterval) * tickInterval
   for (let t = first; t <= offset + windowSec + 0.1; t += tickInterval) axisTicks.push(+t.toFixed(1))
 
-  // Drag to pan
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
-    dragRef.current = { startX: e.clientX, startOffset: offsetSecRef.current }
-    setIsDragging(true)
-    e.preventDefault()
-  }, [])
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      dragRef.current = { startX: e.clientX, startOffset: offsetSecRef.current }
+      setIsDragging(true)
+      e.preventDefault()
+    },
+    []
+  )
 
-  const onMouseMove = useCallback((e: MouseEvent) => {
-    if (!dragRef.current) return
-    const dx = e.clientX - dragRef.current.startX
-    const dSec = -(dx / chartW) * windowSecRef.current
-    const max = Math.max(0, dur - windowSecRef.current)
-    offsetSecRef.current = Math.max(0, Math.min(max, dragRef.current.startOffset + dSec))
-    redraw()
-  }, [chartW, dur, redraw])
+  const onMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!dragRef.current) return
+      const dx = e.clientX - dragRef.current.startX
+      const w = windowSecRef.current
+      const cw = Math.max(120, containerW - LABEL_W)
+      const dSec = -(dx / cw) * w
+      const max = Math.max(0, dur - w)
+      offsetSecRef.current = Math.max(0, Math.min(max, dragRef.current.startOffset + dSec))
+      redraw()
+    },
+    [containerW, dur, redraw]
+  )
 
   const onMouseUp = useCallback(() => {
     dragRef.current = null
@@ -103,44 +152,77 @@ export function SpellTimeline({ spellRows, name1, name2, dur1, dur2 }: Props) {
     }
   }, [onMouseMove, onMouseUp])
 
-  if (!rows.length) return null
+  const onWheel = useCallback(
+    (e: React.WheelEvent) => {
+      const zoomMod = e.metaKey || e.ctrlKey
+      if (zoomMod) {
+        e.preventDefault()
+        const dy = e.deltaY
+        const factor = dy > 0 ? 1.08 : 0.92
+        let newW = windowSecRef.current * factor
+        const minW = Math.max(5, Math.round(dur * 0.04))
+        newW = Math.min(dur, Math.max(minW, newW))
+        const center = offsetSecRef.current + windowSecRef.current / 2
+        windowSecRef.current = newW
+        const maxOff = Math.max(0, dur - newW)
+        offsetSecRef.current = Math.max(0, Math.min(maxOff, center - newW / 2))
+        redraw()
+        return
+      }
+      const panX =
+        Math.abs(e.deltaX) > Math.abs(e.deltaY)
+          ? e.deltaX
+          : e.shiftKey
+            ? e.deltaY
+            : 0
+      if (Math.abs(panX) > 1) {
+        e.preventDefault()
+        const cw = Math.max(120, containerW - LABEL_W)
+        const maxOff = Math.max(0, dur - windowSecRef.current)
+        offsetSecRef.current += (panX / cw) * windowSecRef.current
+        offsetSecRef.current = Math.max(0, Math.min(maxOff, offsetSecRef.current))
+        redraw()
+      }
+    },
+    [containerW, dur, redraw]
+  )
 
-  const totalH = HEADER_H + rows.length * ROW_H
+  if (!groups.length) return null
+
+  const rowsPerSpell = 2
+  const blockH = SPELL_LABEL_H + rowsPerSpell * ROW_PLAYER
+  const totalH = HEADER_H + groups.length * blockH + Math.max(0, groups.length - 1) * GROUP_GAP
   const zoomPct = Math.round((dur / windowSec) * 100)
   const trimmed = dur < Math.max(dur1, dur2)
 
+  const minWin = Math.max(5, Math.round(dur * 0.04))
+
   return (
     <div style={{ width: '100%' }}>
-      {/* Controls row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
-        {/* Legend */}
         <div style={{ display: 'flex', gap: 12, fontFamily: 'IBM Plex Mono, monospace', fontSize: 10, color: DIM, flexShrink: 0 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 3, background: GOLD, display: 'inline-block', borderRadius: 1 }} />{name1}
+            <span style={{ width: 10, height: 10, background: c1, borderRadius: 2, display: 'inline-block' }} />
+            {name1}
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 3, background: BLUE, display: 'inline-block', borderRadius: 1 }} />{name2}
+            <span style={{ width: 10, height: 10, background: c2, borderRadius: 2, display: 'inline-block' }} />
+            {name2}
           </span>
-          {trimmed && <span style={{ color: 'rgba(212,64,64,0.7)' }}>⚠ trimmed to shorter fight</span>}
+          {trimmed && <span style={{ color: 'rgba(212,64,64,0.75)' }}>trimmed to shorter fight</span>}
         </div>
-
-        {/* Spacer */}
         <div style={{ flex: 1 }} />
-
-        {/* Zoom controls — always on one line */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 10, color: DIM, whiteSpace: 'nowrap' }}>
-            {zoomPct}%
-          </span>
+          <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 10, color: DIM, whiteSpace: 'nowrap' }}>{zoomPct}%</span>
           <input
             type="range"
-            min={Math.max(5, Math.round(dur * 0.04))}
+            min={minWin}
             max={dur}
             step={1}
-            defaultValue={dur}
+            value={windowSec}
             style={{ width: 100, accentColor: GOLD, cursor: 'pointer' }}
-            onInput={e => {
-              const newWin = Number((e.target as HTMLInputElement).value)
+            onChange={e => {
+              const newWin = Number(e.target.value)
               const centre = offsetSecRef.current + windowSecRef.current / 2
               windowSecRef.current = newWin
               const max = Math.max(0, dur - newWin)
@@ -149,36 +231,52 @@ export function SpellTimeline({ spellRows, name1, name2, dur1, dur2 }: Props) {
             }}
           />
           <button
-            onClick={() => { offsetSecRef.current = 0; redraw() }}
+            type="button"
+            onClick={() => {
+              windowSecRef.current = dur
+              offsetSecRef.current = 0
+              redraw()
+            }}
             style={{
-              fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 10,
-              letterSpacing: '.6px', textTransform: 'uppercase', padding: '3px 8px',
-              background: 'transparent', border: `1px solid ${BORDER}`,
-              borderRadius: 3, color: DIM, cursor: 'pointer', whiteSpace: 'nowrap',
-              opacity: offset > 0 ? 1 : 0.3,
+              fontFamily: 'Rajdhani, sans-serif',
+              fontWeight: 600,
+              fontSize: 10,
+              letterSpacing: '.6px',
+              textTransform: 'uppercase',
+              padding: '3px 8px',
+              background: 'transparent',
+              border: `1px solid ${BORDER}`,
+              borderRadius: 3,
+              color: DIM,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
             }}
           >
-            ← Reset
+            Reset
           </button>
         </div>
       </div>
 
-      {/* SVG chart */}
       <div
         ref={containerRef}
-        style={{ width: '100%', cursor: isDragging ? 'grabbing' : 'grab', userSelect: 'none' }}
+        style={{
+          width: '100%',
+          cursor: isDragging ? 'grabbing' : 'grab',
+          userSelect: 'none',
+          touchAction: 'pan-y',
+        }}
         onMouseDown={onMouseDown}
+        onWheel={onWheel}
       >
-        <svg
-          ref={svgRef}
-          width={containerW}
-          height={totalH}
-          style={{ display: 'block' }}
-        >
+        <svg width={containerW} height={totalH} style={{ display: 'block' }}>
+          <defs>
+            <clipPath id={clipPathId}>
+              <rect x={LABEL_W} y={HEADER_H} width={chartW} height={totalH - HEADER_H} />
+            </clipPath>
+          </defs>
           <rect x={0} y={0} width={containerW} height={totalH} fill={BG} />
           <rect x={LABEL_W} y={0} width={chartW} height={HEADER_H} fill={BG_ALT} />
 
-          {/* Grid lines + axis */}
           {axisTicks.map(t => {
             const x = tx(t)
             if (x < LABEL_W - 1 || x > containerW + 1) return null
@@ -186,45 +284,151 @@ export function SpellTimeline({ spellRows, name1, name2, dur1, dur2 }: Props) {
               <g key={t}>
                 <line x1={x} y1={HEADER_H} x2={x} y2={totalH} stroke={BORDER} strokeWidth={0.5} strokeOpacity={0.5} />
                 <line x1={x} y1={HEADER_H - 5} x2={x} y2={HEADER_H} stroke={BORDER} strokeWidth={1} />
-                <text x={x} y={HEADER_H - 7} textAnchor="middle" fontSize={8} fill={DIM} fontFamily="IBM Plex Mono, monospace">{t}s</text>
-              </g>
-            )
-          })}
-
-          {/* Rows */}
-          {rows.map((row, ri) => {
-            const y = HEADER_H + ri * ROW_H
-            const mid = y + ROW_H / 2
-            const vis1 = row.ts1.filter(t => t <= dur && inView(t))
-            const vis2 = row.ts2.filter(t => t <= dur && inView(t))
-            return (
-              <g key={row.id}>
-                <rect x={0} y={y} width={containerW} height={ROW_H} fill={ri % 2 === 0 ? BG_ALT : BG} />
-                <text x={LABEL_W - 8} y={mid + 4} textAnchor="end" fontSize={10} fill={TEXT} fontFamily="IBM Plex Mono, monospace">
-                  {row.name.length > 17 ? row.name.slice(0, 15) + '…' : row.name}
+                <text x={x} y={HEADER_H - 7} textAnchor="middle" fontSize={8} fill={DIM} fontFamily="IBM Plex Mono, monospace">
+                  {t}s
                 </text>
-                <line x1={LABEL_W} y1={mid} x2={containerW} y2={mid} stroke={BORDER} strokeWidth={0.4} strokeDasharray="4,5" />
-                {vis1.map((t, ti) => (
-                  <rect key={`a${ti}`} x={tx(t) - TICK_W / 2} y={mid - TICK_H - 1} width={TICK_W} height={TICK_H} fill={GOLD} rx={1}>
-                    <title>{row.name} @ {t.toFixed(1)}s ({name1})</title>
-                  </rect>
-                ))}
-                {vis2.map((t, ti) => (
-                  <rect key={`b${ti}`} x={tx(t) - TICK_W / 2} y={mid + 2} width={TICK_W} height={TICK_H} fill={BLUE} rx={1}>
-                    <title>{row.name} @ {t.toFixed(1)}s ({name2})</title>
-                  </rect>
-                ))}
               </g>
             )
           })}
 
-          {/* Label column mask — covers ticks that drift into label area */}
-          <rect x={0} y={0} width={LABEL_W - 1} height={totalH} fill={BG} />
+          {groups.map((g, gi) => {
+            const yBase = HEADER_H + gi * (blockH + GROUP_GAP)
+            const yRows = yBase + SPELL_LABEL_H
+
+            const renderPlayerRow = (
+              playerIdx: 0 | 1,
+              segments: CastTimelineSegment[],
+              fill: string,
+              pName: string
+            ) => {
+              const y = yRows + playerIdx * ROW_PLAYER
+              const mid = y + ROW_PLAYER / 2
+              const vis = segments.filter(s => s.tEnd <= dur + 0.01 && inViewSeg(s))
+              return (
+                <g key={playerIdx}>
+                  <rect x={0} y={y} width={containerW} height={ROW_PLAYER} fill={(gi + playerIdx) % 2 === 0 ? BG_ALT : BG} />
+                  <line x1={LABEL_W} y1={mid} x2={containerW} y2={mid} stroke={BORDER} strokeWidth={0.35} strokeDasharray="3,4" />
+                  <g clipPath={`url(#${clipPathId})`}>
+                    {vis.map((seg, si) => {
+                      const x0 = tx(seg.tStart)
+                      const x1 = tx(Math.min(seg.tEnd, dur))
+                      const rawW = x1 - x0
+                      const iconHref = icons[g.spellId]
+                      const iconW = iconHref ? ICON_SZ + 4 : 0
+                      const w = Math.max(seg.instant ? 5 : 3, rawW)
+                      const barX = x0
+                      const barH = ROW_PLAYER - 10
+                      const barY = y + 5
+                      const stroke = seg.cancelled ? CANCEL_STROKE : 'none'
+                      const strokeW = seg.cancelled ? 1.5 : 0
+                      const fillOp = seg.cancelled ? 0.35 : 0.55
+                      return (
+                        <g key={`${playerIdx}-${si}-${seg.tStart}`}>
+                          {iconHref ? (
+                            <image
+                              href={iconHref}
+                              x={barX - 1}
+                              y={barY - 1}
+                              width={ICON_SZ + 2}
+                              height={ICON_SZ + 2}
+                              preserveAspectRatio="xMidYMid slice"
+                              style={{ opacity: 0.95 }}
+                            />
+                          ) : null}
+                          <rect
+                            x={barX + iconW}
+                            y={barY}
+                            width={Math.max(2, w - iconW)}
+                            height={barH}
+                            fill={fill}
+                            fillOpacity={fillOp}
+                            stroke={stroke}
+                            strokeWidth={strokeW}
+                            rx={2}
+                          >
+                            <title>
+                              {seg.name} — {pName}
+                              {seg.instant ? ' (instant)' : ''}
+                              {seg.cancelled ? ' (cancelled / clipped)' : ''} · {seg.tStart.toFixed(2)}s → {seg.tEnd.toFixed(2)}s
+                            </title>
+                          </rect>
+                        </g>
+                      )
+                    })}
+                  </g>
+                </g>
+              )
+            }
+
+            return (
+              <g key={g.spellId}>
+                <rect x={0} y={yBase} width={containerW} height={SPELL_LABEL_H} fill={BG_ALT} opacity={0.85} />
+                {renderPlayerRow(0, g.segments1, c1, name1)}
+                {renderPlayerRow(1, g.segments2, c2, name2)}
+              </g>
+            )
+          })}
+
           <line x1={LABEL_W} y1={0} x2={LABEL_W} y2={totalH} stroke={BORDER} strokeWidth={1} />
+
+          {groups.map((g, gi) => {
+            const yBase = HEADER_H + gi * (blockH + GROUP_GAP)
+            const yRows = yBase + SPELL_LABEL_H
+            const spellLabel =
+              g.name.length > 22 ? `${g.name.slice(0, 20)}…` : g.name
+            return (
+              <g key={`lab-${g.spellId}`}>
+                <rect x={0} y={yBase} width={LABEL_W - 2} height={blockH} fill={BG} />
+                <text
+                  x={LABEL_W - 10}
+                  y={yBase + 11}
+                  textAnchor="end"
+                  fontSize={9}
+                  fill={TEXT}
+                  fontFamily="IBM Plex Mono, monospace"
+                  fontWeight={600}
+                  letterSpacing="0.04em"
+                  style={{ textTransform: 'uppercase' }}
+                >
+                  {spellLabel}
+                </text>
+                <text
+                  x={LABEL_W - 10}
+                  y={yRows + ROW_PLAYER / 2 + 4}
+                  textAnchor="end"
+                  fontSize={9}
+                  fill={DIM}
+                  fontFamily="IBM Plex Mono, monospace"
+                >
+                  {name1.length > 14 ? `${name1.slice(0, 12)}…` : name1}
+                </text>
+                <text
+                  x={LABEL_W - 10}
+                  y={yRows + ROW_PLAYER + ROW_PLAYER / 2 + 4}
+                  textAnchor="end"
+                  fontSize={9}
+                  fill={DIM}
+                  fontFamily="IBM Plex Mono, monospace"
+                >
+                  {name2.length > 14 ? `${name2.slice(0, 12)}…` : name2}
+                </text>
+                <rect x={LABEL_W - 12} y={yRows + 5} width={3} height={ROW_PLAYER - 10} fill={c1} rx={1} opacity={0.9} />
+                <rect
+                  x={LABEL_W - 12}
+                  y={yRows + ROW_PLAYER + 5}
+                  width={3}
+                  height={ROW_PLAYER - 10}
+                  fill={c2}
+                  rx={1}
+                  opacity={0.9}
+                />
+              </g>
+            )
+          })}
         </svg>
       </div>
       <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 9, color: DIM, marginTop: 4, textAlign: 'right' }}>
-        drag to pan · slide to zoom
+        drag to pan · horizontal scroll (trackpad) or Shift + mouse wheel · ⌘/Ctrl + scroll to zoom · slider to zoom
       </div>
     </div>
   )
