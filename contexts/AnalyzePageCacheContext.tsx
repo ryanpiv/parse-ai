@@ -20,6 +20,8 @@ export type AnalyzePageSnapshot = {
   bossName: string
   fightKill1: boolean
   fightKill2: boolean
+  /** Opt-in: include SimC default APL + grounded framing in Claude system prompt (Frost Mage when bundled). */
+  simcCompareEnabled: boolean
 }
 
 type Ctx = {

@@ -35,8 +35,13 @@ describe('/api/tooltip', () => {
     await handler(mockReq({ id: '30455' }), res)
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://nether.wowhead.com/tooltip/spell/30455?dataEnv=11&locale=0',
-      expect.objectContaining({ headers: expect.objectContaining({ 'User-Agent': 'Mozilla/5.0' }) }),
+      'https://nether.wowhead.com/tooltip/spell/30455',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'User-Agent': 'Mozilla/5.0',
+          Accept: 'application/json',
+        }),
+      }),
     )
     expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'public, max-age=3600')
     expect(res.status).toHaveBeenCalledWith(200)
@@ -50,7 +55,7 @@ describe('/api/tooltip', () => {
     await handler(mockReq({ id: '12345', type: 'talent' }), res)
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://nether.wowhead.com/tooltip/talent/12345?dataEnv=11&locale=0',
+      'https://nether.wowhead.com/tooltip/talent/12345',
       expect.anything(),
     )
   })

@@ -1,0 +1,16 @@
+{
+  "guides": [
+    {
+      "specId": 64,
+      "title": "Frost Mage — PvE DPS (Wowhead)",
+      "sourceUrl": "https://www.wowhead.com/guide/classes/mage/frost/overview-pve-dps",
+      "additionalWowheadUrls": [
+        "https://www.wowhead.com/guide/classes/mage/frost/rotation-cooldowns-pve-dps",
+        "https://www.wowhead.com/guide/classes/mage/frost/cheat-sheet",
+        "https://www.wowhead.com/guide/classes/mage/frost/hero-talents"
+      ],
+      "as_of": "2026-04-12",
+      "notes": "Wowhead-only. Re-read these URLs in-browser when updating; do not mirror other guide sites."
+    }
+  ]
+}

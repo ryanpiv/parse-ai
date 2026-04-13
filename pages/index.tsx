@@ -8,6 +8,7 @@ import type { AnalyzedFightData } from '../lib/fightAnalysis'
 import { genVerifier, genChallenge } from '../lib/pkce'
 import '../lib/spellTooltips'
 import { buildRichContext } from '../lib/buildContext'
+import { simcAplAvailableForSpec } from '../lib/knowledge/embeddedSimc'
 import { fetchTalents } from '../lib/talents'
 import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
 import { TalentCompare } from '../components/TalentCompare'
@@ -55,6 +56,8 @@ export default function Home() {
   const [bossName, setBossName] = useState('')
   const [fightKill1, setFightKill1] = useState<boolean>(true)
   const [fightKill2, setFightKill2] = useState<boolean>(true)
+  /** Opt-in SimC comparison in AI prompts (default off — log vs partner first). */
+  const [simcCompareEnabled, setSimcCompareEnabled] = useState(false)
   const chatRef = useRef<HTMLDivElement>(null)
   const lastUserMsgRef = useRef<HTMLDivElement>(null)
   const compareUrlRestoredRef = useRef(false)
@@ -71,6 +74,7 @@ export default function Home() {
     bossName,
     fightKill1,
     fightKill2,
+    simcCompareEnabled,
     loading,
   })
   analyzeFlushRef.current = {
@@ -85,6 +89,7 @@ export default function Home() {
     bossName,
     fightKill1,
     fightKill2,
+    simcCompareEnabled,
     loading,
   }
 
@@ -115,6 +120,7 @@ export default function Home() {
     setBossName(s.bossName || '')
     setFightKill1(s.fightKill1 ?? true)
     setFightKill2(s.fightKill2 ?? true)
+    setSimcCompareEnabled(s.simcCompareEnabled ?? false)
   }, [analyzeCache])
 
   useLayoutEffect(() => {
@@ -134,6 +140,7 @@ export default function Home() {
         bossName: s.bossName,
         fightKill1: s.fightKill1,
         fightKill2: s.fightKill2,
+        simcCompareEnabled: s.simcCompareEnabled,
       })
     }
   }, [analyzeCache])
@@ -152,6 +159,7 @@ export default function Home() {
       bossName,
       fightKill1,
       fightKill2,
+      simcCompareEnabled,
     })
   }, [
     loading,
@@ -166,6 +174,7 @@ export default function Home() {
     bossName,
     fightKill1,
     fightKill2,
+    simcCompareEnabled,
     analyzeCache,
   ])
 
@@ -178,6 +187,10 @@ export default function Home() {
     compareUrlRestoredRef.current = true
     if (session.wclCompareUrl) setCompareUrl(session.wclCompareUrl)
   }, [hydrated, session.wclCompareUrl])
+
+  useEffect(() => {
+    if (!simcAplAvailableForSpec(talentDiff?.specId)) setSimcCompareEnabled(false)
+  }, [talentDiff?.specId])
 
   async function startAuth() {
     if (!clientId.trim()) { setAuthMsg({ type: 'err', msg: 'Enter your WCL Client ID.' }); return }
@@ -303,10 +316,12 @@ export default function Home() {
       setStatus({ type: 'ok', msg: `✓ Loaded — ${name1} (${spec1}) vs ${name2} (${spec2}) on ${fight1.name}${wipeWarning}` })
 
       setLoadStep('Fetching talent data...')
-      Promise.all([
-        fetchTalents({ reportCode: r1, fightId: f1id, fightStart: fight1.startTime, fightEnd: fight1.endTime, playerName: name1, playerId: actor1?.id, gql }),
-        fetchTalents({ reportCode: r2, fightId: f2id, fightStart: fight2.startTime, fightEnd: fight2.endTime, playerName: name2, playerId: actor2?.id, gql }),
-      ]).then(([tt1, tt2]) => {
+      let talentDiffResolved: TalentDiffState | null = null
+      try {
+        const [tt1, tt2] = await Promise.all([
+          fetchTalents({ reportCode: r1, fightId: f1id, fightStart: fight1.startTime, fightEnd: fight1.endTime, playerName: name1, playerId: actor1?.id, gql }),
+          fetchTalents({ reportCode: r2, fightId: f2id, fightStart: fight2.startTime, fightEnd: fight2.endTime, playerName: name2, playerId: actor2?.id, gql }),
+        ])
         function resolveTalentNames(talentData: any) {
           if (!talentData) return talentData
           return {
@@ -319,7 +334,8 @@ export default function Home() {
           }
         }
         const specId = tt1?.specID || tt2?.specID || undefined
-        setTalentDiff({ t1: resolveTalentNames(tt1), t2: resolveTalentNames(tt2), name1, name2, specId })
+        talentDiffResolved = { t1: resolveTalentNames(tt1), t2: resolveTalentNames(tt2), name1, name2, specId }
+        setTalentDiff(talentDiffResolved)
         patchSession({
           compareStr1: typeof tt1?.talentString === 'string' ? tt1.talentString : '',
           compareStr2: typeof tt2?.talentString === 'string' ? tt2.talentString : '',
@@ -328,14 +344,23 @@ export default function Home() {
           specId: specId ?? null,
           p1TalentTreeJson: talentDataToP1RowsJson(tt1?.talentTree?.length ? tt1.talentTree : tt1?.talents),
         })
-      }).catch(e => {
+      } catch (e: any) {
         console.warn('Talent fetch failed:', e)
-        setTalentDiff({ t1: null, t2: null, name1, name2, error: e.message })
-      })
+        talentDiffResolved = { t1: null, t2: null, name1, name2, error: e.message }
+        setTalentDiff(talentDiffResolved)
+      }
 
-      const ctx = buildRichContext(p1, p2, talentDiff, { isKill1, isKill2 })
+      const useSimc = simcCompareEnabled && simcAplAvailableForSpec(talentDiffResolved?.specId)
+      const ctx = buildRichContext(p1, p2, talentDiffResolved, {
+        isKill1,
+        isKill2,
+        simcGroundedAnalysis: useSimc,
+      })
+      const simcUserLine = useSimc
+        ? `\n\n**Analysis mode:** I enabled **SimulationCraft default APL** comparison — use it with the log to show where my play diverges from those sim priorities when the evidence supports it.\n`
+        : ''
       await runAI(
-        `Analyze the fight data and respond in two parts:\n\n**Part 1 — Priority Summary**\nGive me a numbered list of the top 5 most impactful changes ${name1} should make, ordered by DPS impact. For each one, give a one-line description of what to change and why it matters. Keep this section tight — no more than 2 sentences per item.\n\n**Part 2 — Full Analysis**\nGo deep on each of the 5 items above. For each one:\n- What exactly is happening in the data (with specific numbers and timestamps)\n- The mechanical reason WHY it costs DPS\n- Exactly WHEN and HOW to make the decision differently\n\n${(!isKill1 || !isKill2) ? `NOTE: ${[!isKill1 && `${name1}'s fight is a wipe`, !isKill2 && `${name2}'s fight is a wipe`].filter(Boolean).join(', ')}. Account for this — the fight ended early so late-phase cooldown usage and fight-end DPS patterns are not available. Focus on opener, early rotation, and mid-fight decisions.\n\n` : ''}Link every spell name to Wowhead using this format: [Spell Name](https://www.wowhead.com/spell=SPELL_ID)\nUse the spell IDs from the data. Both players are ${spec1} spec.`,
+        `Analyze the fight data and respond in two parts:\n\n**Part 1 — Priority Summary**\nGive me a numbered list of the top 5 most impactful changes ${name1} should make, ordered by DPS impact. For each one, give a one-line description of what to change and why it matters. Keep this section tight — no more than 2 sentences per item.\n\n**Part 2 — Full Analysis**\nGo deep on each of the 5 items above. For each one:\n- What exactly is happening in the data (with specific numbers and timestamps)\n- The mechanical reason WHY it costs DPS\n- Exactly WHEN and HOW to make the decision differently\n\n${(!isKill1 || !isKill2) ? `NOTE: ${[!isKill1 && `${name1}'s fight is a wipe`, !isKill2 && `${name2}'s fight is a wipe`].filter(Boolean).join(', ')}. Account for this — the fight ended early so late-phase cooldown usage and fight-end DPS patterns are not available. Focus on opener, early rotation, and mid-fight decisions.\n\n` : ''}Link every spell name to Wowhead using this format: [Spell Name](https://www.wowhead.com/spell=SPELL_ID)\nUse the spell IDs from the data. Both players are ${spec1} spec.${simcUserLine}`,
         [], ctx
       )
 
@@ -349,7 +374,12 @@ export default function Home() {
 
   function buildContext() {
     if (!p1data || !p2data) return ''
-    return buildRichContext(p1data, p2data, talentDiff, { isKill1: fightKill1, isKill2: fightKill2 })
+    const useSimc = simcCompareEnabled && simcAplAvailableForSpec(talentDiff?.specId)
+    return buildRichContext(p1data, p2data, talentDiff, {
+      isKill1: fightKill1,
+      isKill2: fightKill2,
+      simcGroundedAnalysis: useSimc,
+    })
   }
 
   async function runAI(userMsg: string, existingMessages: typeof messages, ctxOverride?: string) {
@@ -652,6 +682,35 @@ export default function Home() {
                 ) : undefined
               }
             >
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 10,
+                  marginBottom: 12,
+                  cursor: simcAplAvailableForSpec(talentDiff?.specId) ? 'pointer' : 'not-allowed',
+                  fontFamily: 'IBM Plex Mono,monospace',
+                  fontSize: 11,
+                  color: 'var(--muted)',
+                  lineHeight: 1.45,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={simcCompareEnabled && simcAplAvailableForSpec(talentDiff?.specId)}
+                  disabled={!simcAplAvailableForSpec(talentDiff?.specId)}
+                  onChange={e => setSimcCompareEnabled(e.target.checked)}
+                  style={{ marginTop: 2, flexShrink: 0 }}
+                />
+                <span>
+                  <strong style={{ color: 'var(--text)' }}>Compare to SimulationCraft</strong>
+                  {' — '}
+                  include the default Frost Mage APL in context and frame answers against sim priorities (opt-in; default analysis stays log vs comparison player).
+                  {!simcAplAvailableForSpec(talentDiff?.specId) && (
+                    <span style={{ color: 'var(--dim)' }}> (available when both players are Frost Mage.)</span>
+                  )}
+                </span>
+              </label>
               <div ref={chatRef} style={{ display: 'flex', flexDirection: 'column', maxHeight: 560, overflowY: 'auto', marginBottom: 12, paddingRight: 4 }}>
                 {messages.map((m, i) => {
                   const isLastUser = m.role === 'user' && messages.slice(i + 1).every(x => x.role !== 'user')

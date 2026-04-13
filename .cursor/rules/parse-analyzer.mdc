@@ -1,0 +1,35 @@
+---
+description: Parse-analyzer (parse-ai) architecture and knowledge corpora — use when editing app code or AI context
+alwaysApply: true
+---
+
+# Parse-analyzer — dev context
+
+## Stack
+- **Next.js 14** (Pages Router). Main flow: [`pages/index.tsx`](pages/index.tsx) (analyze), [`pages/_app.tsx`](pages/_app.tsx) wraps `AppSessionProvider` + `AnalyzePageCacheProvider`.
+- **Claude**: [`lib/wclClient/index.ts`](lib/wclClient/index.ts) `callAI()` POSTs to [`pages/api/ai.ts`](pages/api/ai.ts). Fight text is built by [`lib/buildContext/index.ts`](lib/buildContext/index.ts) `buildRichContext()` and sent as the **system** prompt.
+
+## Critical: client-side context
+- `buildRichContext` runs in the **browser** (invoked from `pages/index.tsx`). **Do not** use `fs` or server-only reads for prompt text. Static knowledge must be **imported** from bundled modules (e.g. [`lib/knowledge/embeddedGuides.ts`](lib/knowledge/embeddedGuides.ts), [`lib/knowledge/embeddedSimc.ts`](lib/knowledge/embeddedSimc.ts)).
+
+## Knowledge corpora
+- **Wowhead summaries**: [`knowledge/guides/`](knowledge/guides/) — **Wowhead-only** authoring policy; see [`knowledge/guides/README.md`](knowledge/guides/README.md). Sync human markdown → [`lib/knowledge/embeddedGuides.ts`](lib/knowledge/embeddedGuides.ts) when editing bodies.
+- **SimulationCraft APL**: vendored `.simc` under [`knowledge/simc/`](knowledge/simc/). After changing the file, run **`npm run embed-simc`** to regenerate [`lib/knowledge/embeddedSimc.ts`](lib/knowledge/embeddedSimc.ts). GPL-3.0 upstream; see [`knowledge/simc/README.md`](knowledge/simc/README.md). The SimC block is **opt-in** in the UI (`simcCompareEnabled`); default prompts stay log vs comparison player without SimC.
+- Class reference (Wowhead summary) uses **`talentDiff.specId`** when present. SimC embed currently matches **Frost Mage 64** only when opt-in is on.
+
+## Fight pipeline (for context changes)
+- WCL fetch/process: [`lib/fightAnalysis/`](lib/fightAnalysis/), game state: [`lib/gameState/`](lib/gameState/). Rich prompt sections use [`lib/buildContext/formatters.ts`](lib/buildContext/formatters.ts).
+
+## SimulationCraft upstream (simulationcraft/simc, branch `midnight`)
+Facts from the SimC repo READMEs—use so we don’t misuse vendored APL files:
+
+- **`ActionPriorityLists/`** holds **generated** raw APL text (`.simc`). Upstream says these files **must not be manually edited**; they are produced from **`engine/class_modules/`** and **`engine/class_modules/apl/`** (C++ / converter pipeline).
+- **`ActionPriorityLists/default/`** — default lists per spec/module from that generation path.
+- **`ActionPriorityLists/assisted_combat/`** — lists derived from Blizzard **DBC** tables (`AssistedCombat`, `AssistedCombatStep`, `AssistedCombatRule`), not the same as `default/`.
+- **APL snippet shape** (for reading/parsing): lines like `actions=…`, `actions+=/spell,if=condition`, named lists `actions.list+=/…`, comments `# …`. Not a full SimC **profile** (gear/talents/options)—those are separate.
+- **This app**: we **vendor snapshots** (e.g. `knowledge/simc/mage_frost.midnight.simc`) for Claude context. Refresh by re-downloading **raw** `midnight` URLs and `npm run embed-simc`—do not treat our copy as the place to “fix” SimC’s canonical APL (real fixes belong upstream in SimC).
+- **Docs / community**: SimC wiki (starters guide, common issues), Discord **SimCMinMax** — for semantics disputes, not for embedding whole dumps into parse-ai.
+
+## Conventions
+- Prefer **small, focused diffs**; match existing patterns in touched files.
+- Run **`npm run build`** (and tests if touching logic) before finishing.

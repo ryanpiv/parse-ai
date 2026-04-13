@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "embed-simc": "node scripts/embed-simc-frost.mjs"
   },
   "dependencies": {
     "chart.js": "^4.4.3",

@@ -4,17 +4,25 @@ import {
   fmtCastDetails,
   fmtPotion,
 } from './formatters'
+import { getClassGuideSupplement } from '../knowledge/embeddedGuides'
+import { getSimcAplSupplement } from '../knowledge/embeddedSimc'
 
 interface KillStatus {
   isKill1: boolean
   isKill2: boolean
 }
 
-export function buildRichContext(p1: any, p2: any, talentDiff: any, killStatus?: KillStatus): string {
+export type BuildRichContextOptions = KillStatus & {
+  /** When true, include SimC default APL + opt-in framing (Frost Mage / spec 64 only for now). */
+  simcGroundedAnalysis?: boolean
+}
+
+export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: BuildRichContextOptions): string {
   const { name: n1, spec: s1 } = p1
   const { name: n2 } = p2
-  const isKill1 = killStatus?.isKill1 ?? true
-  const isKill2 = killStatus?.isKill2 ?? true
+  const isKill1 = options?.isKill1 ?? true
+  const isKill2 = options?.isKill2 ?? true
+  const simcGrounded = options?.simcGroundedAnalysis === true
 
   let ctx = `You are an expert World of Warcraft raiding coach with deep knowledge of ${s1} mechanics in The War Within / Midnight Season 1.\n\n`
   ctx += `CRITICAL RULES:\n`
@@ -26,6 +34,12 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, killStatus?:
   ctx += `  Use the spell ID map below to get the correct IDs\n`
   ctx += `- Use your deep knowledge of ${s1} rotation, priorities, and cooldown alignment to interpret the raw cast and buff data below\n`
   ctx += `- Identify proc usage patterns, cooldown alignment, combo execution, and wasted opportunities from the cast-by-cast data\n\n`
+
+  const guideExtra = getClassGuideSupplement(talentDiff?.specId)
+  if (guideExtra) ctx += guideExtra
+
+  const simcExtra = getSimcAplSupplement(talentDiff?.specId, simcGrounded, n1)
+  if (simcExtra) ctx += simcExtra
 
   if (!isKill1 || !isKill2) {
     ctx += `=== FIGHT COMPLETION STATUS ===\n`
