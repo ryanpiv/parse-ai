@@ -9,12 +9,14 @@ import {
 
 type SpellRow = SpellRowLike
 
-function collectSpellIdsForApiLookup(spellRows: SpellRow[]): number[] {
+function collectSpellIdsForApiLookup(spellRows: SpellRow[], solo?: boolean): number[] {
   const ids = new Set<number>()
   for (const r of spellRows) {
     if (isLikelyBuffUtility(r)) continue
-    if ((r.count1 || 0) + (r.count2 || 0) === 0) continue
-    const ppm = Math.max(r.ppm1, r.ppm2)
+    if (solo) {
+      if (!r.count1) continue
+    } else if ((r.count1 || 0) + (r.count2 || 0) === 0) continue
+    const ppm = solo ? r.ppm1 : Math.max(r.ppm1, r.ppm2)
     if (ppm >= 6) continue
     const id = Number(r.id)
     if (Number.isFinite(id) && id > 0) ids.add(id)
@@ -27,27 +29,35 @@ function CooldownBarInner({
   p1data,
   p2data,
   blizzardCooldownMs,
+  solo,
 }: {
   sorted: SpellRow[]
   p1data: { name: string; dur: number }
   p2data: { name: string; dur: number }
   blizzardCooldownMs: Record<string, number | null | undefined> | null
+  solo?: boolean
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const chartConfig = useMemo(() => {
     const labels = sorted.map(r => (r.name.length > 16 ? `${r.name.slice(0, 14)}…` : r.name))
-    const estSec = (r: SpellRow) => estimatedCooldownSec(r, p1data.dur, p2data.dur)
+    const estSec = (r: SpellRow) =>
+      estimatedCooldownSec(r, p1data.dur, solo ? p1data.dur : p2data.dur)
     const apiSec = (id: string) => {
       const ms = blizzardCooldownMs?.[id]
       if (ms != null && ms > 0) return ms / 1000
       return null
     }
-    return {
-      type: 'bar' as const,
-      data: {
-        labels,
-        datasets: [
+    const datasets = solo
+      ? [
+          {
+            label: p1data.name,
+            data: sorted.map(r => r.count1),
+            backgroundColor: GOLD,
+            borderRadius: 3,
+          },
+        ]
+      : [
           {
             label: p1data.name,
             data: sorted.map(r => r.count1),
@@ -60,7 +70,13 @@ function CooldownBarInner({
             backgroundColor: BLUE,
             borderRadius: 3,
           },
-        ],
+        ]
+
+    return {
+      type: 'bar' as const,
+      data: {
+        labels,
+        datasets,
       },
       options: {
         ...CHART_DEFAULTS,
@@ -121,7 +137,7 @@ function CooldownBarInner({
         },
       },
     }
-  }, [sorted, p1data.name, p2data.name, p1data.dur, p2data.dur, blizzardCooldownMs])
+  }, [sorted, p1data.name, p2data.name, p1data.dur, p2data.dur, blizzardCooldownMs, solo])
 
   useChart(canvasRef, chartConfig as any)
 
@@ -132,10 +148,11 @@ export function CooldownTimelineChart(props: {
   p1data: { name: string; dur: number }
   p2data: { name: string; dur: number }
   spellRows: SpellRow[]
+  solo?: boolean
 }) {
-  const { p1data, p2data, spellRows } = props
+  const { p1data, p2data, spellRows, solo } = props
 
-  const idSig = useMemo(() => collectSpellIdsForApiLookup(spellRows).join(','), [spellRows])
+  const idSig = useMemo(() => collectSpellIdsForApiLookup(spellRows, solo).join(','), [spellRows, solo])
 
   const [blizzardCooldownMs, setBlizzardCooldownMs] = useState<Record<
     string,
@@ -170,8 +187,14 @@ export function CooldownTimelineChart(props: {
 
   const sorted = useMemo(() => {
     if (blizzardCooldownMs === null) return []
-    return pickCooldownChartSpells(spellRows, blizzardCooldownMs, p1data.dur, p2data.dur, 14)
-  }, [spellRows, blizzardCooldownMs, p1data.dur, p2data.dur])
+    return pickCooldownChartSpells(
+      spellRows,
+      blizzardCooldownMs,
+      p1data.dur,
+      solo ? p1data.dur : p2data.dur,
+      14
+    )
+  }, [spellRows, blizzardCooldownMs, p1data.dur, p2data.dur, solo])
 
   if (blizzardCooldownMs === null) {
     return (
@@ -196,6 +219,7 @@ export function CooldownTimelineChart(props: {
       p1data={p1data}
       p2data={p2data}
       blizzardCooldownMs={blizzardCooldownMs}
+      solo={solo}
     />
   )
 }

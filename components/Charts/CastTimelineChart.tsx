@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useChart, CHART_DEFAULTS, GOLD, GOLD_DIM, BLUE, BLUE_DIM } from './chartDefaults'
 
 export function CastTimelineChart(props: any) {
-  const { p1data, p2data } = props
+  const { p1data, p2data, solo } = props
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   function bucketCasts(annotated: { t: number }[], dur: number, bucketSize = 30) {
@@ -16,20 +16,24 @@ export function CastTimelineChart(props: any) {
   }
 
   const bucketSize = 30
-  const dur = Math.max(p1data.dur, p2data.dur)
+  const dur = solo ? p1data.dur : Math.max(p1data.dur, p2data.dur)
   const numBuckets = Math.ceil(dur / bucketSize)
   const labels = Array.from({ length: numBuckets }, (_, i) => `${i * bucketSize}s`)
   const b1 = bucketCasts(p1data.annotated || [], p1data.dur, bucketSize)
   const b2 = bucketCasts(p2data.annotated || [], p2data.dur, bucketSize)
 
+  const datasets = solo
+    ? [{ label: p1data.name, data: b1, borderColor: GOLD, backgroundColor: GOLD_DIM, fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2 }]
+    : [
+        { label: p1data.name, data: b1, borderColor: GOLD, backgroundColor: GOLD_DIM, fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2 },
+        { label: p2data.name, data: b2, borderColor: BLUE, backgroundColor: BLUE_DIM, fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2 },
+      ]
+
   useChart(canvasRef, {
     type: 'line',
     data: {
       labels,
-      datasets: [
-        { label: p1data.name, data: b1, borderColor: GOLD, backgroundColor: GOLD_DIM, fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2 },
-        { label: p2data.name, data: b2, borderColor: BLUE, backgroundColor: BLUE_DIM, fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2 },
-      ]
+      datasets,
     },
     options: {
       ...CHART_DEFAULTS,

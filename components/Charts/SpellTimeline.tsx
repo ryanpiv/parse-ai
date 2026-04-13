@@ -32,6 +32,8 @@ interface Props {
   dur2: number
   color1?: string
   color2?: string
+  /** Single-player row per spell (player 1 only). */
+  solo?: boolean
 }
 
 function segmentIntersectsView(s: CastTimelineSegment, dur: number, offset: number, windowSec: number): boolean {
@@ -39,8 +41,8 @@ function segmentIntersectsView(s: CastTimelineSegment, dur: number, offset: numb
   return s.tEnd >= offset - pad && s.tStart <= offset + windowSec + pad && s.tStart <= dur + pad
 }
 
-export function SpellTimeline({ groups, name1, name2, dur1, dur2, color1 = GOLD, color2 = BLUE }: Props) {
-  const dur = Math.min(dur1, dur2)
+export function SpellTimeline({ groups, name1, name2, dur1, dur2, color1 = GOLD, color2 = BLUE, solo }: Props) {
+  const dur = solo ? dur1 : Math.min(dur1, dur2)
   const c1 = color1
   const c2 = color2
 
@@ -189,11 +191,11 @@ export function SpellTimeline({ groups, name1, name2, dur1, dur2, color1 = GOLD,
 
   if (!groups.length) return null
 
-  const rowsPerSpell = 2
+  const rowsPerSpell = solo ? 1 : 2
   const blockH = SPELL_LABEL_H + rowsPerSpell * ROW_PLAYER
   const totalH = HEADER_H + groups.length * blockH + Math.max(0, groups.length - 1) * GROUP_GAP
   const zoomPct = Math.round((dur / windowSec) * 100)
-  const trimmed = dur < Math.max(dur1, dur2)
+  const trimmed = !solo && dur < Math.max(dur1, dur2)
 
   const minWin = Math.max(5, Math.round(dur * 0.04))
 
@@ -205,10 +207,12 @@ export function SpellTimeline({ groups, name1, name2, dur1, dur2, color1 = GOLD,
             <span style={{ width: 10, height: 10, background: c1, borderRadius: 2, display: 'inline-block' }} />
             {name1}
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 10, background: c2, borderRadius: 2, display: 'inline-block' }} />
-            {name2}
-          </span>
+          {!solo && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ width: 10, height: 10, background: c2, borderRadius: 2, display: 'inline-block' }} />
+              {name2}
+            </span>
+          )}
           {trimmed && <span style={{ color: 'rgba(212,64,64,0.75)' }}>trimmed to shorter fight</span>}
         </div>
         <div style={{ flex: 1 }} />
@@ -364,7 +368,7 @@ export function SpellTimeline({ groups, name1, name2, dur1, dur2, color1 = GOLD,
               <g key={g.spellId}>
                 <rect x={0} y={yBase} width={containerW} height={SPELL_LABEL_H} fill={BG_ALT} opacity={0.85} />
                 {renderPlayerRow(0, g.segments1, c1, name1)}
-                {renderPlayerRow(1, g.segments2, c2, name2)}
+                {!solo && renderPlayerRow(1, g.segments2, c2, name2)}
               </g>
             )
           })}
@@ -402,26 +406,22 @@ export function SpellTimeline({ groups, name1, name2, dur1, dur2, color1 = GOLD,
                 >
                   {name1.length > 14 ? `${name1.slice(0, 12)}…` : name1}
                 </text>
-                <text
-                  x={LABEL_W - 10}
-                  y={yRows + ROW_PLAYER + ROW_PLAYER / 2 + 4}
-                  textAnchor="end"
-                  fontSize={9}
-                  fill={DIM}
-                  fontFamily="IBM Plex Mono, monospace"
-                >
-                  {name2.length > 14 ? `${name2.slice(0, 12)}…` : name2}
-                </text>
+                {!solo && (
+                  <>
+                    <text
+                      x={LABEL_W - 10}
+                      y={yRows + ROW_PLAYER + ROW_PLAYER / 2 + 4}
+                      textAnchor="end"
+                      fontSize={9}
+                      fill={DIM}
+                      fontFamily="IBM Plex Mono, monospace"
+                    >
+                      {name2.length > 14 ? `${name2.slice(0, 12)}…` : name2}
+                    </text>
+                    <rect x={LABEL_W - 12} y={yRows + ROW_PLAYER + 5} width={3} height={ROW_PLAYER - 10} fill={c2} rx={1} opacity={0.9} />
+                  </>
+                )}
                 <rect x={LABEL_W - 12} y={yRows + 5} width={3} height={ROW_PLAYER - 10} fill={c1} rx={1} opacity={0.9} />
-                <rect
-                  x={LABEL_W - 12}
-                  y={yRows + ROW_PLAYER + 5}
-                  width={3}
-                  height={ROW_PLAYER - 10}
-                  fill={c2}
-                  rx={1}
-                  opacity={0.9}
-                />
               </g>
             )
           })}

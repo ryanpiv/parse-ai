@@ -6,11 +6,11 @@ alwaysApply: true
 # Parse-analyzer — dev context
 
 ## Stack
-- **Next.js 14** (Pages Router). Main flow: [`pages/index.tsx`](pages/index.tsx) (analyze), [`pages/_app.tsx`](pages/_app.tsx) wraps `AppSessionProvider` + `AnalyzePageCacheProvider`.
-- **Claude**: [`lib/wclClient/index.ts`](lib/wclClient/index.ts) `callAI()` POSTs to [`pages/api/ai.ts`](pages/api/ai.ts). Fight text is built by [`lib/buildContext/index.ts`](lib/buildContext/index.ts) `buildRichContext()` and sent as the **system** prompt.
+- **Next.js 14** (Pages Router). [`pages/index.tsx`](pages/index.tsx) is **Analyze** at `/` with **Solo** | **Compare** subtabs (player-1-only vs side-by-side); [`pages/analyze.tsx`](pages/analyze.tsx) redirects to `/`. [`components/analyze/SoloFightView.tsx`](components/analyze/SoloFightView.tsx) and [`CompareFightView.tsx`](components/analyze/CompareFightView.tsx) hold the two bodies. [`pages/_app.tsx`](pages/_app.tsx) wraps `AppSessionProvider` → `AnalyzePageCacheProvider` → **`FightAnalysisProvider`** (WCL URL, load, dual chat threads, `analysisSubtab`, auth). [`components/AppNav.tsx`](components/AppNav.tsx) holds the global compare URL + auth strip.
+- **Claude**: [`lib/wclClient/index.ts`](lib/wclClient/index.ts) `callAI()` POSTs to [`pages/api/ai.ts`](pages/api/ai.ts). Fight text is built by [`lib/buildContext/index.ts`](lib/buildContext/index.ts) `buildRichContext()` (compare) or `buildRichContextPlayerOne()` (analyze tab) and sent as the **system** prompt.
 
 ## Critical: client-side context
-- `buildRichContext` runs in the **browser** (invoked from `pages/index.tsx`). **Do not** use `fs` or server-only reads for prompt text. Static knowledge must be **imported** from bundled modules (e.g. [`lib/knowledge/embeddedGuides.ts`](lib/knowledge/embeddedGuides.ts), [`lib/knowledge/embeddedSimc.ts`](lib/knowledge/embeddedSimc.ts)).
+- `buildRichContext` / `buildRichContextPlayerOne` run in the **browser** (from `FightAnalysisContext`). **Do not** use `fs` or server-only reads for prompt text. Static knowledge must be **imported** from bundled modules (e.g. [`lib/knowledge/embeddedGuides.ts`](lib/knowledge/embeddedGuides.ts), [`lib/knowledge/embeddedSimc.ts`](lib/knowledge/embeddedSimc.ts)).
 
 ## Knowledge corpora
 - **Wowhead summaries**: [`knowledge/guides/`](knowledge/guides/) — **Wowhead-only** authoring policy; see [`knowledge/guides/README.md`](knowledge/guides/README.md). Sync human markdown → [`lib/knowledge/embeddedGuides.ts`](lib/knowledge/embeddedGuides.ts) when editing bodies.

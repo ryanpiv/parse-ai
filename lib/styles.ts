@@ -33,3 +33,14 @@ export const PRESET_QUESTIONS = [
   'What is causing my downtime and how do I fix it?',
   'Give me a priority list of exactly what to fix first.',
 ]
+
+export const PRESET_QUESTIONS_SOLO = [
+  "What's wrong with my opener?",
+  'Am I using my procs efficiently? Where am I wasting procs?',
+  'How should I be aligning my cooldowns for maximum burst?',
+  'When should I hold cooldowns for adds vs use them immediately?',
+  'Am I using my defensive or utility cooldowns at the right times?',
+  'How can I improve my combo or priority execution?',
+  'What is causing my downtime and how do I fix it?',
+  'Give me a priority list of exactly what to fix first.',
+]

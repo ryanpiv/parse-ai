@@ -2,12 +2,12 @@ import { useRef } from 'react'
 import { useChart, CHART_DEFAULTS, GOLD, BLUE } from './chartDefaults'
 
 export function ProcEfficiencyChart(props: any) {
-  const { p1data, p2data } = props
+  const { p1data, p2data, solo } = props
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const allBuffIds = new Set([
     ...Object.keys(p1data.uptimes || {}),
-    ...Object.keys(p2data.uptimes || {}),
+    ...(solo ? [] : Object.keys(p2data.uptimes || {})),
   ])
 
   const buffEntries = [...allBuffIds]
@@ -18,8 +18,8 @@ export function ProcEfficiencyChart(props: any) {
       const u2 = (p2data.uptimes?.[numId] as number) || 0
       return { name, u1, u2 }
     })
-    .filter(e => (e.u1 > 0 || e.u2 > 0) && !e.name.startsWith('Buff '))
-    .sort((a, b) => Math.max(b.u1, b.u2) - Math.max(a.u1, a.u2))
+    .filter(e => (solo ? e.u1 > 0 : e.u1 > 0 || e.u2 > 0) && !e.name.startsWith('Buff '))
+    .sort((a, b) => (solo ? b.u1 - a.u1 : Math.max(b.u1, b.u2) - Math.max(a.u1, a.u2)))
     .slice(0, 6)
 
   const labels = [
@@ -29,14 +29,18 @@ export function ProcEfficiencyChart(props: any) {
   const m1 = [...buffEntries.map(e => e.u1), 100 - p1data.downtime.pct]
   const m2 = [...buffEntries.map(e => e.u2), 100 - p2data.downtime.pct]
 
+  const datasets = solo
+    ? [{ label: p1data.name, data: m1, backgroundColor: GOLD, borderRadius: 3 }]
+    : [
+        { label: p1data.name, data: m1, backgroundColor: GOLD, borderRadius: 3 },
+        { label: p2data.name, data: m2, backgroundColor: BLUE, borderRadius: 3 },
+      ]
+
   useChart(canvasRef, {
     type: 'bar',
     data: {
       labels,
-      datasets: [
-        { label: p1data.name, data: m1, backgroundColor: GOLD, borderRadius: 3 },
-        { label: p2data.name, data: m2, backgroundColor: BLUE, borderRadius: 3 },
-      ]
+      datasets,
     },
     options: {
       ...CHART_DEFAULTS,

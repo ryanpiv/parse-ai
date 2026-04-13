@@ -16,12 +16,17 @@ export type AnalyzePageSnapshot = {
   p2data: AnalyzedFightData | null
   spellRows: unknown[]
   talentDiff: unknown | null
-  messages: Array<{ role: string; content: string }>
+  /** @deprecated use messagesCompare */
+  messages?: Array<{ role: string; content: string }>
+  messagesCompare?: Array<{ role: string; content: string }>
+  messagesAnalyze?: Array<{ role: string; content: string }>
   bossName: string
   fightKill1: boolean
   fightKill2: boolean
   /** Opt-in: include SimC default APL + grounded framing in Claude system prompt (Frost Mage when bundled). */
   simcCompareEnabled: boolean
+  /** Solo = your pull only; Compare = side-by-side vs other player. */
+  analysisSubtab?: 'solo' | 'compare'
 }
 
 type Ctx = {
