@@ -27,6 +27,8 @@ export type AnalyzePageSnapshot = {
   simcCompareEnabled: boolean
   /** Solo = your pull only; Compare = side-by-side vs other player. */
   analysisSubtab?: 'solo' | 'compare'
+  /** True when data came from a single /reports/<code> URL (no vs-partner). */
+  soloFromReport?: boolean
 }
 
 type Ctx = {

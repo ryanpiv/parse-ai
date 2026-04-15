@@ -1,0 +1,33 @@
+import { describe, it, expect } from '@jest/globals'
+import { parseWclUrl } from '../../lib/wclReportUrl'
+
+describe('parseWclUrl', () => {
+  it('parses compare URLs', () => {
+    const u =
+      'https://www.warcraftlogs.com/reports/compare/Ab1cdEf2/XYz9wVu8?fight=12%2C34&source=Foo%2CBar'
+    const p = parseWclUrl(u)
+    expect(p).toEqual({
+      kind: 'compare',
+      r1: 'Ab1cdEf2',
+      r2: 'XYz9wVu8',
+      f1id: 12,
+      f2id: 34,
+      src1: 'Foo',
+      src2: 'Bar',
+    })
+  })
+
+  it('parses single-report URLs with fight and source', () => {
+    const p = parseWclUrl('https://www.warcraftlogs.com/reports/aBcDeFg1?fight=7&source=123')
+    expect(p).toEqual({ kind: 'report', code: 'aBcDeFg1', fightId: 7, source: '123' })
+  })
+
+  it('parses relative single-report path', () => {
+    const p = parseWclUrl('/reports/zzZZ1234?fight=1')
+    expect(p).toEqual({ kind: 'report', code: 'zzZZ1234', fightId: 1, source: '' })
+  })
+
+  it('rejects single-report without fight', () => {
+    expect(() => parseWclUrl('https://www.warcraftlogs.com/reports/abc123')).toThrow(/fight/)
+  })
+})

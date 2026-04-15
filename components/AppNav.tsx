@@ -127,12 +127,12 @@ export function AppNav() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, marginBottom: 10 }}>
             <div style={s.field}>
-              <label style={s.label}>Compare URL</label>
+              <label style={s.label}>Report or compare URL</label>
               <input
                 style={s.input}
                 value={fa.compareUrl}
                 onChange={e => fa.setCompareUrl(e.target.value)}
-                placeholder="https://www.warcraftlogs.com/reports/compare/..."
+                placeholder="https://www.warcraftlogs.com/reports/… or …/compare/…"
                 onKeyDown={e => e.key === 'Enter' && !fa.loading && fa.loadCompare()}
               />
             </div>
@@ -157,6 +157,75 @@ export function AppNav() {
               }
             >
               {fa.status.msg}
+            </div>
+          )}
+          {fa.soloPlayerChoices.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <div
+                style={{
+                  fontFamily: 'Rajdhani,sans-serif',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: '.8px',
+                  textTransform: 'uppercase',
+                  color: 'var(--dim)',
+                  marginBottom: 8,
+                }}
+              >
+                Select character (solo)
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                }}
+              >
+                {fa.soloPlayerChoices.map(p => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    disabled={fa.loading}
+                    onClick={() => void fa.confirmSoloReportPlayer(String(p.id))}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 12px',
+                      background: 'var(--bg3)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 4,
+                      cursor: fa.loading ? 'not-allowed' : 'pointer',
+                      color: 'var(--muted)',
+                      fontFamily: 'IBM Plex Mono,monospace',
+                      fontSize: 12,
+                      textAlign: 'left',
+                    }}
+                    title={`${p.role} · ${p.className}`}
+                  >
+                    {p.iconUrl ? (
+                      <img src={p.iconUrl} alt="" width={24} height={24} style={{ borderRadius: 3, flexShrink: 0 }} />
+                    ) : (
+                      <span
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 3,
+                          background: 'var(--bg4)',
+                          flexShrink: 0,
+                          display: 'inline-block',
+                        }}
+                      />
+                    )}
+                    <span>
+                      <span style={{ color: 'var(--gold2)', fontWeight: 600 }}>{p.name}</span>
+                      <span style={{ display: 'block', fontSize: 10, color: 'var(--dim)', marginTop: 2 }}>
+                        {p.specLabel}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>

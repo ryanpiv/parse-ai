@@ -60,10 +60,11 @@ export function SoloFightView() {
         {!p1data && (
           <div style={s.panel}>
             <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 13, color: 'var(--muted)', lineHeight: 1.6 }}>
-              Paste a Warcraft Logs <strong style={{ color: 'var(--text)' }}>compare</strong> URL above and click{' '}
-              <strong style={{ color: 'var(--text)' }}>Load</strong>. You are <strong style={{ color: 'var(--gold2)' }}>player 1</strong> in
-              that compare — use the <strong style={{ color: 'var(--text)' }}>Solo</strong> subtab for your pull only, or{' '}
-              <strong style={{ color: 'var(--text)' }}>Compare</strong> for side-by-side.
+              Paste a Warcraft Logs <strong style={{ color: 'var(--text)' }}>report</strong> URL{' '}
+              (<code style={{ color: 'var(--blue)' }}>?fight=…</code>) or a <strong style={{ color: 'var(--text)' }}>compare</strong>{' '}
+              URL, then click <strong style={{ color: 'var(--text)' }}>Load</strong>. For a compare link you are{' '}
+              <strong style={{ color: 'var(--gold2)' }}>player 1</strong> — use <strong style={{ color: 'var(--text)' }}>Solo</strong> for
+              your pull only, or <strong style={{ color: 'var(--text)' }}>Compare</strong> when two players are loaded.
             </div>
           </div>
         )}

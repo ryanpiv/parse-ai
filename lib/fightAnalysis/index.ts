@@ -179,3 +179,25 @@ export async function processFightData({ raw, fightStart, fightEnd, playerId, pl
     castTimeline,
   }
 }
+
+/** Placeholder “player 2” for solo-from-report loads (charts expect an object; Compare tab stays off). */
+export function createSoloAnalysisPartnerStub(p1: AnalyzedFightData): AnalyzedFightData {
+  return {
+    name: '\u2014',
+    spec: '',
+    dps: null,
+    takenTotal: undefined,
+    dur: p1.dur,
+    nameMap: {},
+    downtime: { pct: 0, sec: 0, wins: [], cpm: 0, total: 0 },
+    opener: [],
+    spellMap: {},
+    uptimes: {},
+    spacing: {},
+    critRates: {},
+    annotated: [],
+    buffWindows: {},
+    npcDeaths: {},
+    castTimeline: [],
+  }
+}

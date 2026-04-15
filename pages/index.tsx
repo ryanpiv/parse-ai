@@ -30,7 +30,7 @@ const subActive: CSSProperties = {
 export default function HomePage() {
   const fa = useFightAnalysis()
   const { analysisSubtab, setAnalysisSubtab, p1data, p2data } = fa
-  const compareReady = Boolean(p1data && p2data)
+  const compareReady = Boolean(p1data && p2data && !fa.soloFromReport)
 
   function goSub(next: AnalysisSubtab) {
     if (next === 'compare' && !compareReady) return
@@ -103,7 +103,9 @@ export default function HomePage() {
             title={
               compareReady
                 ? 'You vs comparison player — side-by-side'
-                : 'Load a Warcraft Logs compare report first'
+                : fa.soloFromReport
+                  ? 'Compare needs a two-player Warcraft Logs compare URL'
+                  : 'Load a Warcraft Logs compare URL (two players) first'
             }
           >
             Compare
