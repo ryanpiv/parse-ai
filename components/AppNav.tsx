@@ -43,7 +43,7 @@ export function AppNav() {
           Talent compare
         </Link>
         <Link href="/talent-preview" style={linkStyle(path === '/talent-preview')}>
-          P1 talents
+          Talents
         </Link>
       </nav>
 
@@ -172,7 +172,7 @@ export function AppNav() {
                   marginBottom: 8,
                 }}
               >
-                Select character (solo)
+                {fa.p1data && fa.soloFromReport ? 'Switch character (solo)' : 'Select character (solo)'}
               </div>
               <div
                 style={{
@@ -181,7 +181,9 @@ export function AppNav() {
                   gap: 8,
                 }}
               >
-                {fa.soloPlayerChoices.map(p => (
+                {fa.soloPlayerChoices.map(p => {
+                  const active = fa.soloRosterSelectedPlayerId === p.id
+                  return (
                   <button
                     key={p.id}
                     type="button"
@@ -192,8 +194,8 @@ export function AppNav() {
                       alignItems: 'center',
                       gap: 8,
                       padding: '8px 12px',
-                      background: 'var(--bg3)',
-                      border: '1px solid var(--border)',
+                      background: active ? 'var(--bg2)' : 'var(--bg3)',
+                      border: active ? '1px solid var(--golddim)' : '1px solid var(--border)',
                       borderRadius: 4,
                       cursor: fa.loading ? 'not-allowed' : 'pointer',
                       color: 'var(--muted)',
@@ -224,7 +226,8 @@ export function AppNav() {
                       </span>
                     </span>
                   </button>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}

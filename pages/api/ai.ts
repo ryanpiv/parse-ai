@@ -1,13 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { anthropicApiKey } from '../../lib/serverEnv'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey || apiKey.includes('paste_your_key')) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set in .env.local' })
+  const apiKey = anthropicApiKey()
+  if (!apiKey) {
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set (Vercel env or .env.local)' })
   }
 
   try {

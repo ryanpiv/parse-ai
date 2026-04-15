@@ -4,6 +4,7 @@
  * GET /api/debug-tree
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { wclToken } from '../../lib/serverEnv'
 
 async function wcl(token: string, query: string, variables = {}) {
   const r = await fetch('https://www.warcraftlogs.com/api/v2/client', {
@@ -15,8 +16,8 @@ async function wcl(token: string, query: string, variables = {}) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const token = process.env.WCL_TOKEN
-  if (!token) return res.status(500).json({ error: 'WCL_TOKEN not set' })
+  const token = wclToken()
+  if (!token) return res.status(500).json({ error: 'WCL_TOKEN not set (Vercel env or .env.local)' })
 
   // Step 1: introspect GameData to see all available fields
   const introspect = await wcl(token, `{

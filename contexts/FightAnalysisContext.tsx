@@ -11,7 +11,7 @@ import {
 } from 'react'
 import type { FightPlayerRow } from '../lib/wclFightPlayers'
 import { fetchFightPlayerRows } from '../lib/wclFightPlayers'
-import { parseWclUrl } from '../lib/wclReportUrl'
+import { parseWclUrl, resolveReportFightQuery } from '../lib/wclReportUrl'
 import { useAppSession } from './AppSessionContext'
 import { useAnalyzePageCache } from './AnalyzePageCacheContext'
 import { gql, callAI } from '../lib/wclClient'
@@ -103,6 +103,8 @@ type FightAnalysisCtx = {
   soloFromReport: boolean
   /** When a report has several characters and no `source=`, pick one here. */
   soloPlayerChoices: FightPlayerRow[]
+  /** Which roster id is loaded (solo report); used to highlight the active chip while the roster stays open. */
+  soloRosterSelectedPlayerId: number | null
   confirmSoloReportPlayer: (sourceToken: string) => Promise<void>
 }
 
@@ -132,6 +134,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
   const [analysisSubtab, setAnalysisSubtab] = useState<AnalysisSubtab>('solo')
   const [soloFromReport, setSoloFromReport] = useState(false)
   const [soloPlayerChoices, setSoloPlayerChoices] = useState<FightPlayerRow[]>([])
+  const [soloRosterSelectedPlayerId, setSoloRosterSelectedPlayerId] = useState<number | null>(null)
 
   const [authStatus, setAuthStatus] = useState<'checking' | 'ok' | 'needed'>('checking')
   const [clientId, setClientId] = useState('')
@@ -493,6 +496,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     setP1data(p1)
     setP2data(pStub)
     setSpellRows(rows)
+    setSoloRosterSelectedPlayerId(Number(pid))
 
     const wipeWarning = !isKill1 ? ` ⚠ ${name1}: wipe` : ''
     setStatus({
@@ -558,7 +562,8 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         return
       }
       if (parsed.kind !== 'report') return
-      setSoloPlayerChoices([])
+      const pickedId = parseInt(sourceToken.trim(), 10)
+      if (!Number.isNaN(pickedId)) setSoloRosterSelectedPlayerId(pickedId)
       setLoading(true)
       setP1data(null)
       setP2data(null)
@@ -569,10 +574,17 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       setLoadStep('Loading fight…')
       setStatus({ type: 'info', msg: 'Loading fight…' })
       try {
-        await executeSoloReportFullRef.current(parsed.code, parsed.fightId, sourceToken)
+        const m1Resolve = await gql(
+          `query($c:String!){reportData{report(code:$c){fights{id startTime endTime}}}}`,
+          { c: parsed.code }
+        )
+        const fightsResolve = (m1Resolve as any).reportData?.report?.fights || []
+        const fightIdResolved = resolveReportFightQuery(fightsResolve, parsed.fightQuery)
+        await executeSoloReportFullRef.current(parsed.code, fightIdResolved, sourceToken)
       } catch (e: any) {
         setStatus({ type: 'err', msg: 'Error: ' + e.message })
         console.error(e)
+        setSoloRosterSelectedPlayerId(null)
       } finally {
         setLoading(false)
         setLoadStep('')
@@ -604,6 +616,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     setMessagesCompare([])
     setMessagesAnalyze([])
     setSoloPlayerChoices([])
+    setSoloRosterSelectedPlayerId(null)
 
     try {
       setLoadStep('Fetching report metadata...')
@@ -611,23 +624,32 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
 
       if (parsed.kind === 'report') {
         setSoloFromReport(false)
-        const { code, fightId, source } = parsed
+        const { code, fightQuery, source } = parsed
 
         const m1 = await gql(
           `query($c:String!){reportData{report(code:$c){title fights{id name startTime endTime kill} masterData{actors{id name type subType}}}}}`,
           { c: code }
         )
         if (!(m1 as any).reportData?.report) throw new Error('Report not found or inaccessible.')
-        const fight1 = (m1 as any).reportData.report.fights.find((f: FightMeta) => f.id === fightId)
+        const fights = (m1 as any).reportData.report.fights || []
+        const fightId = resolveReportFightQuery(fights, fightQuery)
+        const fight1 = fights.find((f: FightMeta) => f.id === fightId)
         if (!fight1) {
-          const ids = (m1 as any).reportData.report.fights.map((f: FightMeta) => f.id).join(', ')
+          const ids = fights.map((f: FightMeta) => f.id).join(', ')
           throw new Error(`Fight ${fightId} not found. Available fight IDs: ${ids}`)
         }
 
         let srcToUse = source.trim()
         if (!srcToUse) {
-          const players = await fetchFightPlayerRows(gql, code, fightId)
-          if (!players.length) throw new Error('No player roster returned for this fight (try adding ?source= to the URL).')
+          const players = await fetchFightPlayerRows(gql, code, fightId, {
+            startTime: fight1.startTime,
+            endTime: fight1.endTime,
+          })
+          if (!players.length) {
+            throw new Error(
+              'No player roster found for this fight (WCL returned no playerDetails and no damage/healing rankings for the fight window). Try ?source= with a player id from the log.',
+            )
+          }
           if (players.length > 1) {
             setSoloPlayerChoices(players)
             setStatus({
@@ -927,6 +949,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       setAnalysisSubtab,
       soloFromReport,
       soloPlayerChoices,
+      soloRosterSelectedPlayerId,
       confirmSoloReportPlayer,
     }),
     [
@@ -960,6 +983,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       analysisSubtab,
       soloFromReport,
       soloPlayerChoices,
+      soloRosterSelectedPlayerId,
       confirmSoloReportPlayer,
     ]
   )

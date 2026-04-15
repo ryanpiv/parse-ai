@@ -13,7 +13,11 @@ export type WclParsedCompare = {
 export type WclParsedReport = {
   kind: 'report'
   code: string
-  fightId: number
+  /**
+   * Raw `fight` query segment: numeric id, or WCL keywords `last` / `first` (case-insensitive).
+   * Resolved to a numeric fight id after the report’s fight list is loaded.
+   */
+  fightQuery: string
   /** `source` query: player id or name; empty if absent */
   source: string
 }
@@ -28,9 +32,44 @@ function toAbsUrl(raw: string): string {
   return `https://www.warcraftlogs.com${path}`
 }
 
+/** Minimal fight row from WCL `report.fights` (used to resolve `fight=last` / `first`). */
+export type WclReportFightRow = { id: number; startTime: number; endTime: number }
+
+/**
+ * Turn `fight=12`, `fight=last`, or `fight=first` into a concrete WCL fight id.
+ */
+export function resolveReportFightQuery(fights: WclReportFightRow[], fightQuery: string): number {
+  const q = fightQuery.trim()
+  if (!q) throw new Error('Fight selector is empty.')
+  if (!fights.length) throw new Error('This report has no fights.')
+
+  if (/^\d+$/.test(q)) {
+    const id = parseInt(q, 10)
+    if (!fights.some(f => f.id === id)) {
+      const ids = fights.map(f => f.id).join(', ')
+      throw new Error(`Fight ${id} not found. Available fight IDs: ${ids}`)
+    }
+    return id
+  }
+
+  const key = q.toLowerCase()
+  if (key === 'last') {
+    const sorted = [...fights].sort((a, b) => b.endTime - a.endTime)
+    return sorted[0].id
+  }
+  if (key === 'first') {
+    const sorted = [...fights].sort((a, b) => a.startTime - b.startTime)
+    return sorted[0].id
+  }
+
+  throw new Error(
+    `Unknown fight value “${q}”. Use a numeric fight id, or WCL’s last or first (e.g. ?fight=last).`,
+  )
+}
+
 /**
  * Parse a Warcraft Logs compare URL or a single-report URL.
- * Single-report URLs must include `?fight=<id>` (same as the site uses).
+ * Single-report URLs need `?fight=` with a numeric id, last, or first.
  */
 export function parseWclUrl(raw: string): WclParsedUrl {
   const href = toAbsUrl(raw)
@@ -62,12 +101,13 @@ export function parseWclUrl(raw: string): WclParsedUrl {
   }
 
   const fightRaw = u.searchParams.get('fight') || ''
-  const fightFirst = fightRaw.split(',')[0]?.trim() || ''
-  const fightId = parseInt(fightFirst, 10)
-  if (!Number.isFinite(fightId) || fightId <= 0) {
-    throw new Error('Single-report URLs need a fight id (?fight=<id>). Open the fight on Warcraft Logs and copy the URL from the address bar.')
+  const fightQuery = fightRaw.split(',')[0]?.trim() || ''
+  if (!fightQuery) {
+    throw new Error(
+      'Single-report URLs need ?fight= (numeric id, last, or first). Copy the URL from Warcraft Logs while viewing the fight.',
+    )
   }
 
   const source = (u.searchParams.get('source') || '').trim()
-  return { kind: 'report', code, fightId, source }
+  return { kind: 'report', code, fightQuery, source }
 }

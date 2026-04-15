@@ -1,14 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import fs from 'fs'
 import path from 'path'
+import { wclToken } from '../../lib/serverEnv'
 
 const WCL_ENDPOINT = 'https://www.warcraftlogs.com/api/v2/client'
 const WCL_TOKEN_ENDPOINT = 'https://www.warcraftlogs.com/oauth/token'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    const token = process.env.WCL_TOKEN
-    if (!token || token === 'paste_your_wcl_token_here') {
+    const token = wclToken()
+    if (!token) {
       return res.status(200).json({ authenticated: false })
     }
 

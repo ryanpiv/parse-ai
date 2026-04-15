@@ -1,12 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { wclToken } from '../../lib/serverEnv'
 
 const WCL_ENDPOINT = 'https://www.warcraftlogs.com/api/v2/client'
 const RATE_LIMIT_QUERY = '{ rateLimitData { limitPerHour pointsSpentThisHour pointsResetIn } }'
 
 function getToken(): string | undefined {
-  const token = process.env.WCL_TOKEN
-  if (!token || token === 'paste_your_wcl_token_here') return undefined
-  return token
+  return wclToken()
 }
 
 async function wclFetch(token: string, body: object): Promise<{ status: number; text: string }> {
@@ -46,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     if (req.method === 'GET') {
       const token = getToken()
-      if (!token) return safeJson(res, 500, { error: 'WCL_TOKEN not set in .env.local' })
+      if (!token) return safeJson(res, 500, { error: 'WCL_TOKEN not set (Vercel env or .env.local)' })
 
       try {
         const { status, text } = await wclFetch(token, { query: RATE_LIMIT_QUERY })
@@ -75,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const token = getToken()
-    if (!token) return safeJson(res, 500, { error: 'WCL_TOKEN not set in .env.local' })
+    if (!token) return safeJson(res, 500, { error: 'WCL_TOKEN not set (Vercel env or .env.local)' })
 
     // Special action: extract talent strings from a WCL compare URL
     if (req.body?.action === 'compare-talents') {
@@ -98,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!parsed.ok) {
         return safeJson(res, 500, {
           error:
-            'WCL returned non-JSON — token likely expired. Get a new token from parse-analyzer-ai.html and update .env.local',
+            'WCL returned non-JSON — token likely expired. Update WCL_TOKEN in Vercel or .env.local',
           body: text.slice(0, 300),
         })
       }

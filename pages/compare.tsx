@@ -414,8 +414,7 @@ export default function ComparePage() {
                 lineHeight: 1.5,
               }}
             >
-              Paste a Warcraft Logs <strong style={{ color: 'var(--text)' }}>compare</strong> URL in the site header, then
-              fetch talent export strings (or node rows) from that link.
+              Paste two export strings below — or a Warcraft Logs <strong style={{ color: 'var(--text)' }}>compare</strong> URL in the header, then Fetch talents from URL to pull both builds from that log.
             </p>
             <button
               type="button"

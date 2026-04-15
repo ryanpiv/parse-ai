@@ -4,15 +4,17 @@
  * Token is cached in memory for its lifetime (usually 24h).
  */
 
+import { blizzardClientId, blizzardClientSecret } from './serverEnv'
+
 let _token: string | null = null
 let _tokenExpiry = 0
 
 async function getToken(): Promise<string> {
   if (_token && Date.now() < _tokenExpiry) return _token
 
-  const id     = process.env.BLIZZARD_CLIENT_ID
-  const secret = process.env.BLIZZARD_CLIENT_SECRET
-  if (!id || !secret) throw new Error('BLIZZARD_CLIENT_ID / BLIZZARD_CLIENT_SECRET not set in .env.local')
+  const id = blizzardClientId()
+  const secret = blizzardClientSecret()
+  if (!id || !secret) throw new Error('BLIZZARD_CLIENT_ID / BLIZZARD_CLIENT_SECRET not set (Vercel env or .env.local)')
 
   const r = await fetch('https://oauth.battle.net/token', {
     method: 'POST',
