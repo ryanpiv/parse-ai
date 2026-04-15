@@ -14,6 +14,7 @@ import { parseNextApiJson } from '../lib/wclClient'
 import { s } from '../lib/styles'
 import { useAppSession } from '../contexts/AppSessionContext'
 import { useAnalyzePageCache } from '../contexts/AnalyzePageCacheContext'
+import { useFightAnalysis } from '../contexts/FightAnalysisContext'
 import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
 
 function decodedToTalentTree(decoded: DecodedTalentString) {
@@ -28,13 +29,13 @@ export default function ComparePage() {
   const router = useRouter()
   const analyzeCache = useAnalyzePageCache()
   const { hydrated, session, patchSession } = useAppSession()
+  const { compareUrl, setCompareUrl } = useFightAnalysis()
   const [str1, setStr1] = useState('')
   const [str2, setStr2] = useState('')
   const [name1, setName1] = useState('Build 1')
   const [name2, setName2] = useState('Build 2')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [wclUrl, setWclUrl] = useState('')
   const [wclLoading, setWclLoading] = useState(false)
   /** WCL had node rows but no export strings — strings stay empty; diff still works */
   const [wclTreesOnly, setWclTreesOnly] = useState(false)
@@ -206,7 +207,6 @@ export default function ComparePage() {
     sessionRestoredRef.current = true
 
     const snap = analyzeCache.read()
-    if (snap?.compareUrl) setWclUrl(snap.compareUrl)
 
     if (snap?.p1data && snap?.p2data && snap.talentDiff) {
       const td = snap.talentDiff as {
@@ -251,7 +251,7 @@ export default function ComparePage() {
         session.compareName2 || 'Build 2'
       )
     } else if (session.compareWclUrl && !snap?.compareUrl) {
-      setWclUrl(session.compareWclUrl)
+      setCompareUrl(session.compareWclUrl)
     }
   }, [
     router.isReady,
@@ -266,22 +266,23 @@ export default function ComparePage() {
     runCompare,
     applyWclTalentTrees,
     analyzeCache,
+    setCompareUrl,
   ])
 
   useEffect(() => {
     if (!hydrated) return
-    if (!str1.trim() && !str2.trim() && !wclUrl.trim()) return
+    if (!str1.trim() && !str2.trim() && !compareUrl.trim()) return
     const t = setTimeout(() => {
       patchSession({
         compareStr1: str1,
         compareStr2: str2,
         compareName1: name1,
         compareName2: name2,
-        compareWclUrl: wclUrl,
+        compareWclUrl: compareUrl,
       })
     }, 450)
     return () => clearTimeout(t)
-  }, [hydrated, str1, str2, name1, name2, wclUrl, patchSession])
+  }, [hydrated, str1, str2, name1, name2, compareUrl, patchSession])
 
   useEffect(() => {
     if (!hydrated || !compareData) return
@@ -294,7 +295,7 @@ export default function ComparePage() {
   }, [hydrated, compareData?.p1?.talentTree, patchSession])
 
   const handleWclFetch = useCallback(async () => {
-    const url = wclUrl.trim()
+    const url = compareUrl.trim()
     if (!url) return
     setError(null)
     setWclLoading(true)
@@ -346,7 +347,7 @@ export default function ComparePage() {
     } finally {
       setWclLoading(false)
     }
-  }, [wclUrl, runCompare, applyWclTalentTrees, patchSession])
+  }, [compareUrl, runCompare, applyWclTalentTrees, patchSession])
 
   const handleClear = useCallback(() => {
     setStr1('')
@@ -356,12 +357,12 @@ export default function ComparePage() {
     setError(null)
     setCompareData(null)
     setWclTreesOnly(false)
-    setWclUrl('')
+    setCompareUrl('')
     // Clear query params without full reload
     if (router.query.b1 || router.query.b2) {
       router.replace('/compare', undefined, { shallow: true })
     }
-  }, [router])
+  }, [router, setCompareUrl])
 
   const ready = str1.trim().length > 0 && str2.trim().length > 0
 
@@ -385,42 +386,45 @@ export default function ComparePage() {
           <a href="/" style={{ ...s.btnGhost, textDecoration: 'none' }}>Back to analysis</a>
         </div>
 
-        {/* WCL URL input */}
-        <div style={s.panel}>
-          <div style={s.ptitle}>
-            <span style={s.ptitleBar} />
-            Import from WarcraftLogs
-          </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
-            <div style={{ ...s.field, flex: 1 }}>
-              <label style={s.label}>WCL Compare URL</label>
-              <input
-                value={wclUrl}
-                onChange={e => setWclUrl(e.target.value)}
-                placeholder="https://www.warcraftlogs.com/reports/compare/ABC123/XYZ789?fight=1,2&source=3,5"
-                style={s.input}
-                onKeyDown={e => e.key === 'Enter' && handleWclFetch()}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={handleWclFetch}
-              disabled={!wclUrl.trim() || wclLoading}
-              style={wclUrl.trim() && !wclLoading ? s.btnGold : s.btnGoldDis}
-            >
-              {wclLoading ? 'Loading...' : 'Fetch talents'}
-            </button>
-          </div>
-          <div style={s.note}>
-            Paste a WCL compare URL: we use export strings when present, otherwise we synthesize strings from node rows when possible so textareas and share links stay populated.
-          </div>
-        </div>
-
         {/* Talent string inputs */}
         <div style={s.panel}>
           <div style={s.ptitle}>
             <span style={s.ptitleBar} />
             Talent strings
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 10,
+              alignItems: 'center',
+              marginBottom: 14,
+              paddingBottom: 12,
+              borderBottom: '1px solid var(--border)',
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                flex: '1 1 200px',
+                fontFamily: 'IBM Plex Mono,monospace',
+                fontSize: 11,
+                color: 'var(--muted)',
+                lineHeight: 1.5,
+              }}
+            >
+              Paste a Warcraft Logs <strong style={{ color: 'var(--text)' }}>compare</strong> URL in the site header, then
+              fetch talent export strings (or node rows) from that link.
+            </p>
+            <button
+              type="button"
+              onClick={() => void handleWclFetch()}
+              disabled={!compareUrl.trim() || wclLoading}
+              style={compareUrl.trim() && !wclLoading ? s.btnGold : s.btnGoldDis}
+            >
+              {wclLoading ? 'Loading...' : 'Fetch talents from URL'}
+            </button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
