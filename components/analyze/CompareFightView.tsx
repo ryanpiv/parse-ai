@@ -6,7 +6,7 @@ import { SpellUsageChart, CastTimelineChart, ProcEfficiencyChart, CooldownTimeli
 import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
-import { s, PRESET_QUESTIONS } from '../../lib/styles'
+import { s, PRESET_QUESTIONS, COMPARE_INITIAL_QUICK_LABEL } from '../../lib/styles'
 
 export function CompareFightView() {
   const fa = useFightAnalysis()
@@ -21,6 +21,9 @@ export function CompareFightView() {
     aiLoading,
     simcCompareEnabled,
     setSimcCompareEnabled,
+    autoRunCompareAiAfterLoad,
+    setAutoRunCompareAiAfterLoad,
+    startInitialCompareAnalysis,
     bossName,
     fightKill1,
     fightKill2,
@@ -440,6 +443,32 @@ export function CompareFightView() {
                   )}
                 </span>
               </label>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 10,
+                  marginBottom: 12,
+                  cursor: 'pointer',
+                  fontFamily: 'IBM Plex Mono,monospace',
+                  fontSize: 11,
+                  color: 'var(--muted)',
+                  lineHeight: 1.45,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={autoRunCompareAiAfterLoad}
+                  onChange={e => setAutoRunCompareAiAfterLoad(e.target.checked)}
+                  style={{ marginTop: 2, flexShrink: 0 }}
+                />
+                <span>
+                  <strong style={{ color: 'var(--text)' }}>Auto-run initial analysis</strong>
+                  {' — '}
+                  after a compare finishes loading, send the default “top 5 changes” prompt to Claude immediately (saved in
+                  this browser).
+                </span>
+              </label>
               <div
                 ref={chatRef}
                 style={{
@@ -451,6 +480,23 @@ export function CompareFightView() {
                   paddingRight: 4,
                 }}
               >
+                {messagesCompare.length === 0 && !aiLoading && (
+                  <div
+                    style={{
+                      marginBottom: 10,
+                      padding: '8px 10px',
+                      background: 'var(--bg3)',
+                      border: '1px dashed var(--border)',
+                      borderRadius: 4,
+                      fontFamily: 'IBM Plex Mono,monospace',
+                      fontSize: 11,
+                      color: 'var(--dim)',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    No messages yet — pick a quick question below (including the full initial review) or type your own.
+                  </div>
+                )}
                 {messagesCompare.map((m, i) => {
                   const isLastUser = m.role === 'user' && messagesCompare.slice(i + 1).every(x => x.role !== 'user')
                   return (
@@ -535,9 +581,44 @@ export function CompareFightView() {
                 Quick questions:
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginBottom: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => startInitialCompareAnalysis()}
+                  disabled={aiLoading || !talentDiff}
+                  title={
+                    talentDiff
+                      ? 'Sends the full default compare prompt (Part 1 + Part 2, wipes, SimC if enabled) — this tile is shorthand only.'
+                      : 'Available once talent data has loaded'
+                  }
+                  style={{
+                    fontFamily: 'IBM Plex Mono,monospace',
+                    fontSize: 11,
+                    padding: '7px 10px',
+                    background: 'var(--bg3)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 3,
+                    color: 'var(--muted)',
+                    cursor: aiLoading || !talentDiff ? 'not-allowed' : 'pointer',
+                    textAlign: 'left',
+                    lineHeight: 1.4,
+                  }}
+                  onMouseEnter={e => {
+                    if (!aiLoading && talentDiff) {
+                      ;(e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'
+                      ;(e.target as HTMLButtonElement).style.color = 'var(--gold)'
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    ;(e.target as HTMLButtonElement).style.borderColor = 'var(--border)'
+                    ;(e.target as HTMLButtonElement).style.color = 'var(--muted)'
+                  }}
+                >
+                  {COMPARE_INITIAL_QUICK_LABEL}
+                </button>
                 {PRESET_QUESTIONS.map((q, i) => (
                   <button
                     key={i}
+                    type="button"
                     onClick={() => sendCompareQuestion(q)}
                     disabled={aiLoading}
                     style={{

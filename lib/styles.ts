@@ -21,7 +21,18 @@ export const s: Record<string, CSSProperties> = {
   alertOk:  { fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, padding: '9px 12px', borderRadius: 4, marginTop: 8, lineHeight: 1.7, background: '#102a18', color: 'var(--green)', border: '1px solid #1a4a28' },
 }
 
+/** Compare quick grid — short label only; click sends the full Part 1/2 default (via `startInitialCompareAnalysis`). */
+export const COMPARE_INITIAL_QUICK_LABEL = 'Top 5 + deep dive (full default review)'
+
+/** Solo quick grid — short label; click sends `buildInitialSoloUserPrompt` (full Part 1/2 default). */
+export const SOLO_INITIAL_QUICK_LABEL = 'Top 5 + deep dive (full default review)'
+
+/** Evidence-first preset (compare + solo). */
+export const PRESET_SHOW_YOUR_WORK =
+  'Evidence-first: (1) Observations only, each with a timestamp or cast-by-cast quote from the data. (2) Hypotheses where evidence is thin — label each low confidence. (3) At most 3 actionable verdicts; each must reuse evidence from (1). Do not claim rotation mistakes from cast counts or same-spell spacing alone without buff/proc/stack/movement context. Use ### headers.'
+
 export const PRESET_QUESTIONS = [
+  PRESET_SHOW_YOUR_WORK,
   'Where is my rotation different and why does it matter?',
   "What's wrong with my opener?",
   'Am I using my procs efficiently? Where am I wasting procs?',
@@ -35,6 +46,7 @@ export const PRESET_QUESTIONS = [
 ]
 
 export const PRESET_QUESTIONS_SOLO = [
+  PRESET_SHOW_YOUR_WORK,
   'What do my crit rates on my hardest-hitting or most-cast spells suggest about this pull versus RNG?',
   'Where is the spacing between repeat casts of the same spell sloppy, and what should I do in those gaps?',
   'Given my total damage taken in this log, what mistakes or missing defensives stand out?',

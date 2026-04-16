@@ -20,6 +20,8 @@ export type AppSessionSnapshot = {
   specId: number | null
   /** JSON array of { nodeID, rank } from WCL CombatantInfo — used on /talent-preview for accurate hero/class/spec. */
   p1TalentTreeJson: string
+  /** When true, compare load immediately runs the initial Claude request. Default false (user clicks Run initial analysis). */
+  autoRunCompareAiAfterLoad?: boolean
 }
 
 const defaultSnapshot: AppSessionSnapshot = {
@@ -31,6 +33,7 @@ const defaultSnapshot: AppSessionSnapshot = {
   compareWclUrl: '',
   specId: null,
   p1TalentTreeJson: '',
+  autoRunCompareAiAfterLoad: false,
 }
 
 type Ctx = {

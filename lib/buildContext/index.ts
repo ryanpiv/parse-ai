@@ -6,6 +6,7 @@ import {
 } from './formatters'
 import { getClassGuideSupplement } from '../knowledge/embeddedGuides'
 import { getSimcAplSupplement } from '../knowledge/embeddedSimc'
+import { coachingEvidenceRulesBlock } from './evidenceRules'
 
 interface KillStatus {
   isKill1: boolean
@@ -34,11 +35,12 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: Bu
   ctx += `  Use the spell ID map below to get the correct IDs\n`
   ctx += `- Use your deep knowledge of ${s1} rotation, priorities, and cooldown alignment to interpret the raw cast and buff data below\n`
   ctx += `- Identify proc usage patterns, cooldown alignment, combo execution, and wasted opportunities from the cast-by-cast data\n\n`
+  ctx += coachingEvidenceRulesBlock()
 
   const guideExtra = getClassGuideSupplement(talentDiff?.specId)
   if (guideExtra) ctx += guideExtra
 
-  const simcExtra = getSimcAplSupplement(talentDiff?.specId, simcGrounded, n1)
+  const simcExtra = getSimcAplSupplement(talentDiff?.specId, simcGrounded, n1, 'compare')
   if (simcExtra) ctx += simcExtra
 
   if (!isKill1 || !isKill2) {
@@ -135,6 +137,7 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: Bu
   ctx += `2. WHY it matters mechanically (how it affects damage, proc generation, burst windows)\n`
   ctx += `3. WHEN to make the decision differently (the specific game state conditions)\n`
   ctx += `4. HOW to fix it practically (what to look for and change)\n`
+  ctx += `Always obey === COACHING EVIDENCE (ALL SPECS) === above: cite cast-by-cast or buff state before any “misuse” verdict.\n`
   ctx += `Always link spell names using [Spell Name](https://www.wowhead.com/spell=ID) format.\n`
   ctx += `Use ### headers. Be specific — no generic advice.\n`
 
@@ -159,20 +162,21 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
   ctx += `- Ground every recommendation in specific data from this log\n`
   ctx += `- ALWAYS link spell names: [Spell Name](https://www.wowhead.com/spell=SPELL_ID) using the spell ID map\n`
   if (simcGrounded) {
-    ctx += `- SimulationCraft APL is included below: use it as a *reference priority list* when fight length, talents, and targets match typical sim assumptions; when they do not, prioritize what the log actually shows\n`
+    ctx += `- SimulationCraft is on: follow the expert framing in the SIMULATIONCRAFT section below; this combat log is authoritative when sim assumptions clearly do not match the fight\n`
   }
   ctx += `\n`
+  ctx += coachingEvidenceRulesBlock()
 
   const guideExtra = getClassGuideSupplement(talentDiff?.specId)
   if (guideExtra) ctx += guideExtra
 
-  const simcExtra = getSimcAplSupplement(talentDiff?.specId, simcGrounded, n1)
+  const simcExtra = getSimcAplSupplement(talentDiff?.specId, simcGrounded, n1, 'solo')
   if (simcExtra) ctx += simcExtra
 
   if (!isKill1) {
     ctx += `=== FIGHT COMPLETION STATUS ===\n`
     ctx += `${n1}: WIPE — fight ended early, late-phase data is unavailable\n`
-    ctx += `Focus on opener, early rotation (0–60s), and patterns visible in the truncated data.\n\n`
+    ctx += `Prioritize patterns visible in the **truncated** segment (early pull and any mid-fight window present in the data). Do not critique pacing that assumes a full kill. Default APLs assume a full fight length — when SimC is included below, treat it as **less prescriptive** on wipes; ground every judgment in timestamps and buff state from the available window.\n\n`
   }
 
   ctx += `=== SPELL ID MAP ===\n`
@@ -284,6 +288,7 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
   ctx += `2. WHY it matters — throughput, burst windows, survivability, or encounter alignment (no second player)\n`
   ctx += `3. HOW to practice — concrete cues (e.g. “after X buff, press Y within Z seconds”); optional weakaura/UI ideas if helpful\n`
   ctx += `4. ONE next-pull focus — the single highest-leverage habit to drill first\n`
+  ctx += `Always obey === COACHING EVIDENCE (ALL SPECS) === above before any “misuse” or “spam” verdict.\n`
   ctx += `Use ### headers. Be specific — no generic advice.\n`
 
   return ctx

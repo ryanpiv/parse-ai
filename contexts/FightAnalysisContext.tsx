@@ -25,6 +25,7 @@ import {
 import type { AnalyzedFightData } from '../lib/fightAnalysis'
 import { genVerifier, genChallenge } from '../lib/pkce'
 import { buildRichContext, buildRichContextPlayerOne } from '../lib/buildContext'
+import { buildInitialCompareUserPrompt } from '../lib/buildContext/initialComparePrompt'
 import { simcAplAvailableForSpec } from '../lib/knowledge/embeddedSimc'
 import { fetchTalents } from '../lib/talents'
 import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
@@ -106,6 +107,11 @@ type FightAnalysisCtx = {
   /** Which roster id is loaded (solo report); used to highlight the active chip while the roster stays open. */
   soloRosterSelectedPlayerId: number | null
   confirmSoloReportPlayer: (sourceToken: string) => Promise<void>
+  /** Persisted in app session. When false (default), compare load leaves chat empty until the user runs analysis. */
+  autoRunCompareAiAfterLoad: boolean
+  setAutoRunCompareAiAfterLoad: (v: boolean) => void
+  /** Sends the same initial compare prompt that auto-run would have used (current SimC toggle applies). */
+  startInitialCompareAnalysis: () => void
 }
 
 const FightAnalysisContext = createContext<FightAnalysisCtx | null>(null)
@@ -113,6 +119,13 @@ const FightAnalysisContext = createContext<FightAnalysisCtx | null>(null)
 export function FightAnalysisProvider({ children }: { children: ReactNode }) {
   const analyzeCache = useAnalyzePageCache()
   const { hydrated, session, patchSession } = useAppSession()
+
+  const setAutoRunCompareAiAfterLoad = useCallback(
+    (v: boolean) => {
+      patchSession({ autoRunCompareAiAfterLoad: v })
+    },
+    [patchSession]
+  )
 
   const [compareUrl, setCompareUrl] = useState('')
   const [status, setStatus] = useState<{ type: string; msg: string } | null>(null)
@@ -370,6 +383,30 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     },
     [aiLoading, p1data, inputAnalyze, messagesAnalyze, runAI]
   )
+
+  const startInitialCompareAnalysis = useCallback(() => {
+    if (aiLoading || !p1data || !p2data || soloFromReport || !talentDiff) return
+    const useSimc = simcCompareEnabled && simcAplAvailableForSpec(talentDiff.specId)
+    const userPrompt = buildInitialCompareUserPrompt({
+      name1: talentDiff.name1,
+      name2: talentDiff.name2,
+      spec1: p1data.spec,
+      isKill1: fightKill1,
+      isKill2: fightKill2,
+      simcGrounded: useSimc,
+    })
+    void runAI(userPrompt, [], undefined, 'compare')
+  }, [
+    aiLoading,
+    p1data,
+    p2data,
+    soloFromReport,
+    talentDiff,
+    fightKill1,
+    fightKill2,
+    simcCompareEnabled,
+    runAI,
+  ])
 
   const downloadDataCompare = useCallback(() => {
     if (!p1data || !p2data || soloFromReport) return
@@ -887,20 +924,28 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         isKill2,
         simcGroundedAnalysis: useSimc,
       })
-      const simcUserLine = useSimc
-        ? `\n\n**Analysis mode:** I enabled **SimulationCraft default APL** comparison — use it with the log to show where my play diverges from those sim priorities when the evidence supports it.\n`
-        : ''
-      const userPrompt = `Analyze the fight data and respond in two parts:\n\n**Part 1 — Priority Summary**\nGive me a numbered list of the top 5 most impactful changes ${name1} should make, ordered by DPS impact. For each one, give a one-line description of what to change and why it matters. Keep this section tight — no more than 2 sentences per item.\n\n**Part 2 — Full Analysis**\nGo deep on each of the 5 items above. For each one:\n- What exactly is happening in the data (with specific numbers and timestamps)\n- The mechanical reason WHY it costs DPS\n- Exactly WHEN and HOW to make the decision differently\n\n${!isKill1 || !isKill2 ? `NOTE: ${[!isKill1 && `${name1}'s fight is a wipe`, !isKill2 && `${name2}'s fight is a wipe`].filter(Boolean).join(', ')}. Account for this — the fight ended early so late-phase cooldown usage and fight-end DPS patterns are not available. Focus on opener, early rotation, and mid-fight decisions.\n\n` : ''}Link every spell name to Wowhead using this format: [Spell Name](https://www.wowhead.com/spell=SPELL_ID)\nUse the spell IDs from the data. Both players are ${spec1} spec.${simcUserLine}`
-      const initialThread: ChatMsg[] = [{ role: 'user', content: userPrompt }]
-      setMessagesCompare(initialThread)
-      setAiLoading(true)
-      try {
-        const reply = await callAI(initialThread, ctx)
-        setMessagesCompare([...initialThread, { role: 'assistant', content: reply }].slice(-20))
-      } catch (e: any) {
-        setMessagesCompare([...initialThread, { role: 'assistant', content: 'Error: ' + e.message }])
+      const userPrompt = buildInitialCompareUserPrompt({
+        name1,
+        name2,
+        spec1,
+        isKill1,
+        isKill2,
+        simcGrounded: useSimc,
+      })
+      if (session.autoRunCompareAiAfterLoad === true) {
+        const initialThread: ChatMsg[] = [{ role: 'user', content: userPrompt }]
+        setMessagesCompare(initialThread)
+        setAiLoading(true)
+        try {
+          const reply = await callAI(initialThread, ctx)
+          setMessagesCompare([...initialThread, { role: 'assistant', content: reply }].slice(-20))
+        } catch (e: any) {
+          setMessagesCompare([...initialThread, { role: 'assistant', content: 'Error: ' + e.message }])
+        }
+        setAiLoading(false)
+      } else {
+        setMessagesCompare([])
       }
-      setAiLoading(false)
     } catch (e: any) {
       setStatus({ type: 'err', msg: 'Error: ' + e.message })
       console.error(e)
@@ -908,7 +953,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       setLoading(false)
       setLoadStep('')
     }
-  }, [compareUrl, patchSession, simcCompareEnabled])
+  }, [compareUrl, patchSession, simcCompareEnabled, session.autoRunCompareAiAfterLoad])
 
   const value = useMemo<FightAnalysisCtx>(
     () => ({
@@ -951,6 +996,9 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       soloPlayerChoices,
       soloRosterSelectedPlayerId,
       confirmSoloReportPlayer,
+      autoRunCompareAiAfterLoad: session.autoRunCompareAiAfterLoad === true,
+      setAutoRunCompareAiAfterLoad,
+      startInitialCompareAnalysis,
     }),
     [
       compareUrl,
@@ -985,6 +1033,9 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       soloPlayerChoices,
       soloRosterSelectedPlayerId,
       confirmSoloReportPlayer,
+      session.autoRunCompareAiAfterLoad,
+      setAutoRunCompareAiAfterLoad,
+      startInitialCompareAnalysis,
     ]
   )
 
