@@ -157,7 +157,11 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
   ctx += `- You are reviewing ONE player (${n1}, ${s1}) — there is no second player in this session\n`
   ctx += `- Only reference spells that appear in the data below — never invent spell names\n`
   ctx += `- Ground every recommendation in specific data from this log\n`
-  ctx += `- ALWAYS link spell names: [Spell Name](https://www.wowhead.com/spell=SPELL_ID) using the spell ID map\n\n`
+  ctx += `- ALWAYS link spell names: [Spell Name](https://www.wowhead.com/spell=SPELL_ID) using the spell ID map\n`
+  if (simcGrounded) {
+    ctx += `- SimulationCraft APL is included below: use it as a *reference priority list* when fight length, talents, and targets match typical sim assumptions; when they do not, prioritize what the log actually shows\n`
+  }
+  ctx += `\n`
 
   const guideExtra = getClassGuideSupplement(talentDiff?.specId)
   if (guideExtra) ctx += guideExtra
@@ -199,6 +203,13 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
 
   ctx += `FIGHT: ${p1.boss}\nPlayer: ${n1} (${s1})\n\n`
 
+  ctx += `=== DAMAGE TAKEN (report aggregate) ===\n`
+  if (p1.takenTotal != null && Number.isFinite(p1.takenTotal)) {
+    ctx += `${n1}: ${Math.round(p1.takenTotal).toLocaleString()} total damage taken (fight-wide table — use for survival / avoidable damage discussion when relevant)\n\n`
+  } else {
+    ctx += `${n1}: Not available from this pull’s summary tables\n\n`
+  }
+
   ctx += `=== OVERALL ===\n${fmtOverall(p1)}\n`
 
   ctx += `=== OPENER (first 20s) ===\n${n1}: ${p1.opener.map((c: any) => `${c.name}@${c.at}s`).join(' → ')}\n\n`
@@ -209,11 +220,56 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
   })
   ctx += '\n'
 
+  const critRates: Record<string, number> = p1.critRates || {}
+  const spellMap: Record<string, { count: number; name: string }> = p1.spellMap || {}
+  ctx += `=== CRIT RATE BY SPELL (log sample — low cast count = noisy %) ===\n`
+  const critLines = Object.entries(spellMap)
+    .filter(([, v]) => v.count >= 5)
+    .map(([id, v]) => ({ id, name: v.name, count: v.count, crit: critRates[id] }))
+    .filter((x) => x.crit != null)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 18)
+  if (critLines.length) {
+    critLines.forEach((x) => {
+      ctx += `  ${x.name} (${x.id}): ${x.crit}% crit over ${x.count} casts\n`
+    })
+  } else {
+    ctx += `  (no spells with ≥5 casts and computed crit rate)\n`
+  }
+  ctx += '\n'
+
+  const spacing: Record<number, { avgGap: number; minGap: number; maxGap: number }> = p1.spacing || {}
+  ctx += `=== CAST CADENCE (seconds between casts of same spell) ===\n`
+  const spacingLines = Object.entries(spellMap)
+    .map(([id, v]) => {
+      const sp = spacing[Number(id)]
+      return sp ? { id, name: v.name, count: v.count, ...sp } : null
+    })
+    .filter(Boolean) as Array<{ id: string; name: string; count: number; avgGap: number; minGap: number; maxGap: number }>
+  spacingLines.sort((a, b) => b.count - a.count)
+  const spacingTop = spacingLines.slice(0, 15)
+  if (spacingTop.length) {
+    spacingTop.forEach((x) => {
+      ctx += `  ${x.name}: avg ${x.avgGap}s · min ${x.minGap}s · max ${x.maxGap}s (${x.count} casts)\n`
+    })
+  } else {
+    ctx += `  (no repeat casts with spacing computed)\n`
+  }
+  ctx += '\n'
+
+  const npcDeaths: number[] = Array.isArray(p1.npcDeaths) ? p1.npcDeaths : []
+  ctx += `=== ENEMY DEATHS (fight timeline — align CDs / cleave) ===\n`
+  if (npcDeaths.length) {
+    ctx += `Count: ${npcDeaths.length} — times from pull (s): ${npcDeaths.slice(0, 25).map((t) => t.toFixed(1)).join(', ')}${npcDeaths.length > 25 ? ' …' : ''}\n\n`
+  } else {
+    ctx += `No enemy death timestamps in this extract\n\n`
+  }
+
   ctx += `=== DOWNTIME ===\n${n1}: ${p1.downtime.pct}% (${p1.downtime.sec}s) — gaps: ${p1.downtime.wins.map((w: any) => w.g + 's').join(', ') || 'none'}\n\n`
 
   ctx += `=== BUFF UPTIMES ===\n${fmtBuffUptimes(n1, p1.uptimes, p1.nameMap)}\n`
 
-  ctx += `=== CAST-BY-CAST ===\n${fmtCastDetails(n1, p1.annotated)}\n`
+  ctx += `=== CAST-BY-CAST ===\n${fmtCastDetails(n1, p1.annotated, 90)}\n`
 
   ctx += `=== POTION ===\n${fmtPotion(n1, p1.annotated)}\n`
 
@@ -221,7 +277,14 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
   p1.spellRows.filter((r: any) => r.ppm1 > 0.3).slice(0, 10).forEach((r: any) => {
     ctx += `${r.name}:\n  ${n1}: [${r.ts1.slice(0, 15).join(', ')}]\n`
   })
-  ctx += '\nUse ### headers. Be specific — no generic advice.\n'
+  ctx += '\n'
+
+  ctx += `=== HOW TO ANSWER (SOLO) ===\n`
+  ctx += `1. WHAT the log shows — cite spells, timestamps, crit %, spacing, or death timeline when relevant\n`
+  ctx += `2. WHY it matters — throughput, burst windows, survivability, or encounter alignment (no second player)\n`
+  ctx += `3. HOW to practice — concrete cues (e.g. “after X buff, press Y within Z seconds”); optional weakaura/UI ideas if helpful\n`
+  ctx += `4. ONE next-pull focus — the single highest-leverage habit to drill first\n`
+  ctx += `Use ### headers. Be specific — no generic advice.\n`
 
   return ctx
 }

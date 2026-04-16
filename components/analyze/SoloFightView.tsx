@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { simcAplAvailableForSpec } from '../../lib/knowledge/embeddedSimc'
-import { SpellUsageChart, CastTimelineChart, ProcEfficiencyChart, CooldownTimelineChart, ChartCard } from '../Charts'
+import {
+  SpellUsageChart,
+  CastTimelineChart,
+  ProcEfficiencyChart,
+  CooldownTimelineChart,
+  ChartCard,
+  CritRateChart,
+  hasCritRateChartData,
+} from '../Charts'
 import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
@@ -55,6 +63,11 @@ export function SoloFightView() {
       .slice(0, 22)
   }, [p1data])
 
+  const soloSpellRows = useMemo(
+    () => spellRows.filter(r => r.count1 > 0).sort((a, b) => b.count1 - a.count1),
+    [spellRows]
+  )
+
   return (
     <>
         {!p1data && (
@@ -82,49 +95,92 @@ export function SoloFightView() {
               >
                 <div
                   style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'stretch',
+                    gap: '14px 28px',
                     background: 'var(--bg3)',
                     border: `1px solid ${fightKill1 ? 'var(--border)' : 'rgba(212,64,64,0.3)'}`,
                     borderRadius: 4,
-                    padding: '10px 13px',
-                    maxWidth: 480,
+                    padding: '12px 16px',
+                    width: '100%',
                   }}
                 >
-                  <div
-                    style={{
-                      fontFamily: 'Rajdhani,sans-serif',
-                      fontSize: 10,
-                      fontWeight: 600,
-                      letterSpacing: '.8px',
-                      textTransform: 'uppercase',
-                      color: 'var(--gold2)',
-                      marginBottom: 4,
-                    }}
-                  >
-                    {p1data.name}
-                    {!fightKill1 && <span style={{ marginLeft: 8, color: 'var(--red)', fontSize: 9 }}>WIPE</span>}
+                  <div style={{ minWidth: 140, flex: '1 1 160px' }}>
+                    <div
+                      style={{
+                        fontFamily: 'Rajdhani,sans-serif',
+                        fontSize: 10,
+                        fontWeight: 600,
+                        letterSpacing: '.8px',
+                        textTransform: 'uppercase',
+                        color: 'var(--gold2)',
+                        marginBottom: 4,
+                      }}
+                    >
+                      {p1data.name}
+                      {!fightKill1 && <span style={{ marginLeft: 8, color: 'var(--red)', fontSize: 9 }}>WIPE</span>}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'Rajdhani,sans-serif',
+                        fontSize: 22,
+                        fontWeight: 700,
+                        color: 'var(--gold2)',
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {p1data.dps?.toLocaleString() || '?'}{' '}
+                      <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--dim)' }}>dps</span>
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'IBM Plex Mono,monospace',
+                        fontSize: 10,
+                        color: 'var(--dim)',
+                        marginTop: 4,
+                      }}
+                    >
+                      {p1data.spec}
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      fontFamily: 'Rajdhani,sans-serif',
-                      fontSize: 22,
-                      fontWeight: 700,
-                      color: 'var(--gold2)',
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {p1data.dps?.toLocaleString() || '?'}{' '}
-                    <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--dim)' }}>dps</span>
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: 'IBM Plex Mono,monospace',
-                      fontSize: 11,
-                      color: 'var(--dim)',
-                      marginTop: 3,
-                    }}
-                  >
-                    {dur1Fmt} · {p1data.downtime.cpm}/min · {p1data.downtime.pct}% downtime · {p1data.spec}
-                  </div>
+                  {[
+                    { label: 'Duration', value: dur1Fmt },
+                    { label: 'Casts / min', value: `${p1data.downtime.cpm}` },
+                    { label: 'Downtime', value: `${p1data.downtime.pct}%` },
+                    {
+                      label: 'Damage taken',
+                      value:
+                        p1data.takenTotal != null && Number.isFinite(p1data.takenTotal)
+                          ? Math.round(p1data.takenTotal).toLocaleString()
+                          : '—',
+                    },
+                  ].map(({ label, value }) => (
+                    <div
+                      key={label}
+                      style={{
+                        minWidth: 100,
+                        flex: '0 1 auto',
+                        borderLeft: '1px solid var(--border)',
+                        paddingLeft: 16,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: 'Rajdhani,sans-serif',
+                          fontSize: 9,
+                          fontWeight: 600,
+                          letterSpacing: '.7px',
+                          textTransform: 'uppercase',
+                          color: 'var(--dim)',
+                          marginBottom: 3,
+                        }}
+                      >
+                        {label}
+                      </div>
+                      <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 13, color: 'var(--muted)' }}>{value}</div>
+                    </div>
+                  ))}
                 </div>
 
                 <div
@@ -144,7 +200,7 @@ export function SoloFightView() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                     <thead>
                       <tr>
-                        {['Spell', 'Casts', 'First cast'].map((h, i) => (
+                        {['Spell', 'Casts', 'Casts/min', 'Crit %', 'Avg gap (s)', 'First cast'].map((h, i) => (
                           <th
                             key={h}
                             style={{
@@ -165,9 +221,10 @@ export function SoloFightView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {spellRows
-                        .filter(r => r.count1 > 0)
-                        .map((r, i) => (
+                      {soloSpellRows.map((r, i) => {
+                        const crit = p1data.critRates?.[r.id]
+                        const gap = p1data.spacing?.[Number(r.id)]?.avgGap
+                        return (
                           <tr
                             key={i}
                             onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg3)')}
@@ -215,12 +272,47 @@ export function SoloFightView() {
                                 fontFamily: 'IBM Plex Mono,monospace',
                                 textAlign: 'right',
                                 fontSize: 11,
+                                color: 'var(--muted)',
+                              }}
+                            >
+                              {r.ppm1 > 0 ? r.ppm1.toFixed(2) : '—'}
+                            </td>
+                            <td
+                              style={{
+                                padding: '5px 8px',
+                                borderBottom: '1px solid var(--bg4)',
+                                fontFamily: 'IBM Plex Mono,monospace',
+                                textAlign: 'right',
+                                fontSize: 11,
+                              }}
+                            >
+                              {crit != null ? `${crit}%` : '—'}
+                            </td>
+                            <td
+                              style={{
+                                padding: '5px 8px',
+                                borderBottom: '1px solid var(--bg4)',
+                                fontFamily: 'IBM Plex Mono,monospace',
+                                textAlign: 'right',
+                                fontSize: 11,
+                              }}
+                            >
+                              {gap != null && Number.isFinite(gap) ? gap.toFixed(1) : '—'}
+                            </td>
+                            <td
+                              style={{
+                                padding: '5px 8px',
+                                borderBottom: '1px solid var(--bg4)',
+                                fontFamily: 'IBM Plex Mono,monospace',
+                                textAlign: 'right',
+                                fontSize: 11,
                               }}
                             >
                               {r.first1 != null ? `${r.first1}s` : '—'}
                             </td>
                           </tr>
-                        ))}
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -236,10 +328,15 @@ export function SoloFightView() {
                   </>
                 }
               >
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                  <ChartCard title="Spell usage — casts/min" height={240}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }}>
+                  <ChartCard title="Spell usage — casts/min" height={260}>
                     <SpellUsageChart spellRows={spellRows} name1={p1data.name} name2={p2data.name} solo />
                   </ChartCard>
+                  {hasCritRateChartData(p1data) && (
+                    <ChartCard title="Crit % — top spells by cast count" height={220}>
+                      <CritRateChart p1data={p1data} />
+                    </ChartCard>
+                  )}
                   <ChartCard title="Cast rate over time (30s windows)" height={240}>
                     <CastTimelineChart p1data={p1data} p2data={p2data} solo />
                   </ChartCard>

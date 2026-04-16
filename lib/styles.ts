@@ -35,12 +35,12 @@ export const PRESET_QUESTIONS = [
 ]
 
 export const PRESET_QUESTIONS_SOLO = [
-  "What's wrong with my opener?",
-  'Am I using my procs efficiently? Where am I wasting procs?',
-  'How should I be aligning my cooldowns for maximum burst?',
-  'When should I hold cooldowns for adds vs use them immediately?',
-  'Am I using my defensive or utility cooldowns at the right times?',
-  'How can I improve my combo or priority execution?',
-  'What is causing my downtime and how do I fix it?',
-  'Give me a priority list of exactly what to fix first.',
+  'What do my crit rates on my hardest-hitting or most-cast spells suggest about this pull versus RNG?',
+  'Where is the spacing between repeat casts of the same spell sloppy, and what should I do in those gaps?',
+  'Given my total damage taken in this log, what mistakes or missing defensives stand out?',
+  'How should I line up my major cooldowns with this encounter’s timeline (add spawns / deaths in the log)?',
+  "What's wrong with my opener on this pull?",
+  'Am I wasting procs or letting buffs fall off without spending them?',
+  'What is driving my downtime and what is one concrete way to press more globals?',
+  'What one habit should I drill on the next pull before worrying about anything else?',
 ]
