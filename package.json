@@ -10,7 +10,9 @@
     "test:watch": "jest --watch",
     "embed-simc": "node scripts/embed-simc.mjs",
     "scrape-wowhead-frost": "node scripts/wowhead/scrape-frost-mage.mjs",
+    "scrape-wowhead-unholy": "node scripts/wowhead/scrape-unholy-dk.mjs",
     "scrape-icy-veins-frost": "node scripts/icy-veins/scrape-frost-mage.mjs",
+    "scrape-icy-veins-unholy": "node scripts/icy-veins/scrape-unholy-dk.mjs",
     "discover-icy-veins-urls": "node scripts/icy-veins/discover-guide-urls.mjs"
   },
   "dependencies": {

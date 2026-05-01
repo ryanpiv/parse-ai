@@ -2,7 +2,8 @@
 name: icy-veins-guide-data
 description: >-
   Fetches and refreshes Icy Veins WoW guide snapshots for parse-ai (structured plain text + Midnight talent hashes).
-  Use when updating knowledge/icy-veins scrapes, running npm run scrape-icy-veins-frost, or extending discovery from the class hub.
+  Use when updating knowledge/icy-veins scrapes, running npm run scrape-icy-veins-frost or scrape-icy-veins-unholy,
+  or extending discovery from the class hub.
 disable-model-invocation: true
 ---
 
@@ -12,24 +13,29 @@ disable-model-invocation: true
 
 For each **spec**, use the **dedicated guide page** for that topic — not the generic “spec hub” landing page.
 
-Example (Frost Mage PvE DPS):
+Example — **Frost Mage** PvE DPS:
 
-- **Talents only:** [Builds and Talents](https://www.icy-veins.com/wow/frost-mage-pve-dps-spec-builds-talents)
-- **Rotation only:** [Rotation, Cooldowns, and Abilities](https://www.icy-veins.com/wow/frost-mage-pve-dps-rotation-cooldowns-abilities)
+- **Talents:** [Builds and Talents](https://www.icy-veins.com/wow/frost-mage-pve-dps-spec-builds-talents)
+- **Rotation:** [Rotation, Cooldowns, and Abilities](https://www.icy-veins.com/wow/frost-mage-pve-dps-rotation-cooldowns-abilities)
 
-The scraper (`scripts/icy-veins/scrape-frost-mage.mjs`) fetches **those two URLs only** for the Frost pilot. Do not mix talent content from the overview/DPS guide page into the talents snapshot.
+Example — **Unholy Death Knight** PvE DPS:
+
+- **Talents:** [Builds and Talents](https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-spec-builds-talents)
+- **Rotation:** [Rotation, Cooldowns, and Abilities](https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-rotation-cooldowns-abilities)
+
+Per-spec scrapers (`scrape-frost-mage.mjs`, `scrape-unholy-dk.mjs`) fetch **only** those two URLs for that spec — not the generic spec hub landing page.
 
 ## Layout
 
-- **Scraper scripts:** `scripts/icy-veins/` — `scrape-frost-mage.mjs`, `extractIcyVeinsChrome.mjs`, `discover-guide-urls.mjs`
-- **Snapshots (committed):** `knowledge/icy-veins/scraped/mage-frost/*.json` plus `_index.json` (includes **`canonicalPages`** for talents + rotation URLs and per-page `snapshotMetaOnly` for quick freshness checks)
+- **Scraper scripts:** `scripts/icy-veins/` — `scrape-frost-mage.mjs`, `scrape-unholy-dk.mjs`, `extractIcyVeinsChrome.mjs`, `discover-guide-urls.mjs`
+- **Snapshots (committed):** `knowledge/icy-veins/scraped/mage-frost/*.json`, `knowledge/icy-veins/scraped/death-knight-unholy/*.json` (each with `_index.json`, **`canonicalPages`**, `snapshotMetaOnly` per page)
 - **Hub link manifest:** `knowledge/icy-veins/class-guides-hub-links.json` (from `npm run discover-icy-veins-urls`)
 
 Wowhead bundles live in `lib/knowledge/embeddedWowhead.ts`; Icy Veins is **not** wired into presets by default — label explicitly if you add an embed module.
 
 ## Refresh workflow
 
-1. From repo root: `npm run scrape-icy-veins-frost`.
+1. From repo root: `npm run scrape-icy-veins-frost` and/or `npm run scrape-icy-veins-unholy`.
 2. Confirm each page `snapshot.fetch.ok` is true in the written JSON (and optionally compare `snapshot.icyVeinsArticle.dateModified` / headline patch text to the live site).
 3. Commit updated files under `knowledge/icy-veins/`.
 
@@ -61,5 +67,6 @@ Committed JSON is **structured plain text**, not raw `.page_content` HTML blobs.
 
 ## Adding another spec
 
-1. Duplicate `PAGES` in `scrape-frost-mage.mjs` (or generalize) with that spec’s **spec-builds-talents** and **rotation-cooldowns-abilities** URLs from the IV breadcrumb trail.
-2. Keep the same JSON field names so downstream tooling stays stable.
+1. Duplicate `scrape-frost-mage.mjs` → `scrape-<spec>.mjs`: set `TALENTS_URL` / `ROTATION_URL` from the IV breadcrumb trail (`*-spec-builds-talents` and `*-rotation-cooldowns-abilities`), `outDir`, `classSlug`, `specSlug`, and `canonicalPages`.
+2. Add `npm run scrape-icy-veins-<name>` in `package.json`.
+3. Keep the same JSON field names so downstream tooling stays stable.

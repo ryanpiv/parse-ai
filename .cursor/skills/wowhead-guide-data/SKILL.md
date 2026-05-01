@@ -2,7 +2,7 @@
 name: wowhead-guide-data
 description: >-
   Fetches, refreshes, and freshness-checks Wowhead retail class guide data for parse-ai.
-  Use when updating knowledge/wowhead scrapes, running npm run scrape-wowhead-frost,
+  Use when updating knowledge/wowhead scrapes, running npm run scrape-wowhead-frost or scrape-wowhead-unholy,
   troubleshooting CloudFront 403, or aligning scraped JSON with SimC/embed flows.
 disable-model-invocation: true
 ---
@@ -11,13 +11,13 @@ disable-model-invocation: true
 
 ## Layout
 
-- **Scraper scripts:** `scripts/wowhead/` — `scrape-frost-mage.mjs`, `extractGuideMarkup.mjs`, `parseTalentBbCode.mjs`, `extractWowheadChrome.mjs`, `talentExportHeader.mjs`
-- **Snapshots (committed):** `knowledge/wowhead/scraped/mage-frost/*.json`
+- **Scraper scripts:** `scripts/wowhead/` — `scrape-frost-mage.mjs`, `scrape-unholy-dk.mjs`, `extractGuideMarkup.mjs`, `parseTalentBbCode.mjs`, `extractWowheadChrome.mjs`, `talentExportHeader.mjs`
+- **Snapshots (committed):** `knowledge/wowhead/scraped/mage-frost/*.json`, `knowledge/wowhead/scraped/death-knight-unholy/*.json`
 - **AI bundle:** `lib/knowledge/embeddedWowhead.ts` imports those JSON files into Claude context when the user uses the **SimC + Wowhead** preset (`PRESET_CASTS_VS_SIMC_WOWHEAD` in `lib/styles.ts`)
 
 ## Refresh workflow
 
-1. From repo root: `npm run scrape-wowhead-frost` (runs `scripts/wowhead/scrape-frost-mage.mjs`).
+1. From repo root: `npm run scrape-wowhead-frost` and/or `npm run scrape-wowhead-unholy` (runs `scripts/wowhead/scrape-frost-mage.mjs` / `scrape-unholy-dk.mjs`).
 2. Confirm HTTP 200 in each JSON `snapshot.fetch` — if `blockedByCdn` is true, retry from another network or save HTML in a browser and debug extraction offline.
 3. Commit updated JSON under `knowledge/wowhead/scraped/`.
 4. Run `npm run build` — `embeddedWowhead.ts` must compile with JSON imports.
@@ -36,7 +36,7 @@ disable-model-invocation: true
 
 ## Adding another spec
 
-1. Duplicate URL list pattern in a new scrape script (or generalize `PAGES` + output dir).
-2. Ensure BBCode extraction finds `[copy]` and hero headers (`wow-hero-talent-spellslinger` / `frostfire`).
+1. Duplicate URL list pattern in a new scrape script (see `scrape-unholy-dk.mjs`: `wowSpecId` ChrSpecialization id, `classSlug` / `specSlug`, output under `knowledge/wowhead/scraped/<folder>/`).
+2. Ensure BBCode extraction finds `[copy]` and hero headers where applicable.
 3. Drop JSON under `knowledge/wowhead/scraped/<path>/`.
 4. Extend `lib/knowledge/embeddedWowhead.ts`: import JSON, add spec id to `SPEC_IDS_WITH_DATA`, implement branching in `getWowheadReferenceSupplement`.

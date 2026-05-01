@@ -1,0 +1,349 @@
+{
+  "sourceUrl": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-rotation-cooldowns-abilities",
+  "pageKey": "rotation-cooldowns-abilities",
+  "pageType": "rotation-cooldowns-abilities",
+  "snapshot": {
+    "scrapedAt": "2026-05-01T09:18:13.538Z",
+    "sourcePageUrl": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-rotation-cooldowns-abilities",
+    "fetch": {
+      "httpStatus": 200,
+      "ok": true,
+      "blockedOrEmpty": false
+    },
+    "icyVeinsArticle": {
+      "headline": "Unholy Death Knight DPS Rotation, Cooldowns, and Abilities - 12.0.5",
+      "dateModified": "2026-04-21T17:44:00+00:00",
+      "datePublished": "2012-03-12T18:00:00+00:00",
+      "authorName": "Bicepspump",
+      "description": "Optimize your rotation and cooldowns to maximize your damage and DPS as an Unholy Death Knight in WoW 12.0.5."
+    },
+    "howToStayCurrent": {
+      "refreshProcedure": "Re-run `npm run scrape-icy-veins-unholy` when guides change; commit JSON under knowledge/icy-veins/scraped/death-knight-unholy/."
+    }
+  },
+  "specData": {
+    "specName": "Unholy",
+    "className": "Death Knight"
+  },
+  "relatedGuideUrls": {
+    "canonicalBuildsAndTalents": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-spec-builds-talents",
+    "canonicalRotationCooldowns": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-rotation-cooldowns-abilities"
+  },
+  "introPlain": "1. Unholy Death Knight Rotation Welcome to our Rotation page for Unholy Death Knights. Here, we will go over everything you will need to know to optimally play your spec for Raiding and Mythic+ scenarios.",
+  "imageBlockPanels": [
+    {
+      "panelId": "rotation_tool_block_0",
+      "tabLabel": "Unholy Death Knight Explained",
+      "panelKind": "rotation_tab",
+      "bodyPlain": "Unholy Death Knight Explained Unholy Death Knight relies on a dual-resource system with Runes and Runic Power. Runes passively recharge over time and are spent on abilities such as Festering Strike[85948] , Scourge Strike[55090] and Putrefy[1247378] . Spending Runes generates Runic Power that we spend on abilities such as Death Coil[47541] and Epidemic[207317] . Furthermore, we maintain Plagues on our enemies via Outbreak[77575] and Putrefy[1247378] (with Blightburst[1254552] ). The rotation boils down to the following: Manage stacks of Lesser Ghoul[1254252] that we build and consume via Festering Strike[85948] and Scourge Strike[55090] Manage your Festering Scythe[455397] buff by using Festering Strike[85948] -> Festering Scythe[455397] Manage your Plagues by re-applying them with Outbreak[77575] or Putrefy[1247378] (with Blightburst[1254552] ) Manage your resources by spending Runic Power on Death Coil[47541] (Single Target) and Epidemic[207317] (AoE) to avoid going above 100. Use your higher-cd skills Putrefy[1247378] and Soul Reaper[343294] as much as possible during Dark Transformation[63560] . Send your Cooldowns as much as possible, always aligning them."
+    },
+    {
+      "panelId": "rotation_tool_block_1",
+      "tabLabel": "Single-Target Rotation",
+      "panelKind": "rotation_tab",
+      "bodyPlain": "2.1. Single-Target Opener for Unholy Death Knights The opener is a set sequence of abilities you use as you engage an enemy. Memorising it helps initiate your rotation in the most optimal way possible. Use Outbreak[77575] . Use 2x Festering Strike[85948] . Use Army of the Dead[42650] + Dark Transformation[63560] + Trinket + Racial + Potion Use Putrefy[1247378] . Use Putrefy[1247378] . Use Soul Reaper[343294] . Use Putrefy[1247378] . Use Putrefy[1247378] . Use Soul Reaper[343294] 5 seconds before Dark Transformation[63560] ends. When it comes to timing your trinkets, you can just macro them with Army of the Dead[42650] in all your openers. If you are lucky enough for receive Power Infusion[10060] , ask for it when you cast Army of the Dead[42650] . The timing of Soul Reaper[343294] (with Blightfall talented) in the opener is to overlap the plague damage debuff for when you consume Blightfall after Dark Transformation[63560] ends. 2.2. Single-Target Rotation Priority for Unholy Death Knights The below list represents your rotation priority excluding your actual Cooldowns. Cooldown usage is discussed separately but you can generally assume that you always want to press your Cooldowns as much as possible! Use Putrefy[1247378] when your Virulent Plague[191587] and Dread Plague[1240996] fall off your target. Try to have a charge ready to use right when the plagues fall off. Use Outbreak[77575] if you have no Putrefy charges. Use Outbreak[77575] to maintain your plagues on the target. Use Festering Scythe[455397] if its buff has fallen off. Use Soul Reaper[343294] if the enemy is below 35% health and your Dark Transformation[63560] buff is active, or you have triggered the Reaping[377514] effect from Dark Transformation[63560] . Use Death Coil[47541] when you have a Sudden Doom[49530] proc or 80+ Runic Power. Use Putrefy[1247378] if Dark Transformation[63560] is active. Use Putrefy[1247378] if the target is above 35% health and your Dark Transformation[63560] buff is active. If your target is below 35%, use Soul Reaper[343294] to trigger your Putrefy[1247378] instead. Use Festering Strike[85948] if you have less than 3 stacks of Lesser Ghoul[1254252] . Use Scourge Strike[55090] if you have at least 1 stack of Lesser Ghoul[1254252] . Use Death Coil[47541] . Now, we will take this priority list and put it into a wordier description! Maintain your Plagues on the target by leveraging Outbreak[77575] or Putrefy[1247378] . Your plagues do not only do damage but are also the source of your important Sudden Doom[49530] and Forbidden Knowledge[1256566] procs so keeping them up is crucial. With Blightburst[1254552] you want to ideally refresh the Plagues with Putrefy[1247378] every time so you avoid wasting GCDs on Outbreak[77575] . Maintain your Plagues on the target by leveraging Outbreak[77575] . Your plagues do not only do damage but are also the source of your important Sudden Doom[49530] procs so keeping them up is crucial. Cast Soul Reaper[343294] . Either when the target is below 35% health and your Dark Transformation[63560] buff is active, or you have received the free use from Dark Transformation[63560] with Reaping[377514] . Cast Soul Reaper[343294] whenever you can. Either when the target is below 35% health or you have received the free use from Dark Transformation[63560] with Reaping[377514] . With Blightfall , you want to overlap the Plague damage taken debuff you get from this ability with the end of your Dark Transformation[63560] . Hold Soul Reaper[343294] until there is 5 seconds left of the window so that you can then use Blightfall right after the window ends and benefit from the debuff! In execute, use the free Soul Reaper[343294] ASAP in Dark Transformation so you get a new use after 15 seconds to overlap the end when you use Blightfall. Use Death Coil[47541] to avoid capping Runic Power or to spend your procs of Sudden Doom[49530] . Sudden Doom[49530] is a powerful proc, and you do not want to waste any. If you have Harbinger of Doom[276023] talented, you can allow yourself to stack up two charges before you spend them. However, most of the time, you simply use them as soon as possible to avoid any potential waste. We also do not want to overcap Runic Power (generating Runic Power when we are at 100), so we use Death Coil[47541] to avoid this. Use Festering Strike[85948] to build up stacks of Lesser Ghoul[1254252] on yourself. We want to aim for between 4 and 6 stacks at all times to give ourself some flexbility, either when we are forced out of melee range or if you we need to prioritise Scourge Strike[55090] due to Trollbane's Icy Fury[444097] . Use Festering Strike[85948] to build up stacks of Lesser Ghoul[1254252] on yourself. We want to aim for between 4 and 6 stacks at all times to give ourself some flexbility when we are forced out of melee range. We also use Festering Scythe[455397] as a high priority if its buff has fallen off. Your normal rotation will usally take care of this but it is still important to track Use Scourge Strike[55090] to consume your stacks of Lesser Ghoul[1254252] . This is used in sync with Festering Strike[85948] to keep your stack count at a healthy level. You go up to 4-6 and then use Scourge Strike to drop down to 3 again. Use Death Coil[47541] as your filler spell when you have nothing else to do! When you want to deal AoE damage in your Single Target build, you really do not change much. If the adds are pulled on top of your current target, you simply use Scourge Strike[55090] to spread your diseases to them. If we engage a new pack, you start by applying your Plagues with Outbreak[77575] or Putrefy[1247378] with Blightburst[1254552] . Your Scourge Strike cleaves by default so the main decision comes when using Death Coil[47541] vs Epidemic[207317] . In general, you swap to Epidemic at 3+ targets (6+ targets during Forbidden Knowledge[1242158] ) but sometimes stay with Death Coil if you want to do priority damage."
+    },
+    {
+      "panelId": "rotation_tool_block_2",
+      "tabLabel": "Multi-Target Rotation",
+      "panelKind": "rotation_tab",
+      "bodyPlain": "Multi-Target Rotation The Multi-Target Rotation for Unholy Death Knights share a significant amount of priorities compared to Single Target. The main difference is that we use Epidemic[207317] instead of Death Coil[47541] when we fight 3+ targets (6+ during Forbidden Knowledge[1242158] ) and that we do not delay Soul Reaper[343294] for Blightfall in the opener (when Blightfall is talented). 2.3. Multi-Target Opener for Unholy Death Knights Use Outbreak[77575] . Use 2x Festering Strike[85948] . Use Army of the Dead[42650] + Dark Transformation[63560] + Trinket + Racial + Potion Use Soul Reaper[343294] . Use Putrefy[1247378] Use Putrefy[1247378] . When it comes to timing your trinkets, you can just macro them with Army of the Dead[42650] in all your openers. If you are lucky enough for receive Power Infusion[10060] , ask for it when you cast Army of the Dead[42650] . 2.4. Multi-Target Rotation Priority for Unholy Death Knights The below list represents your rotation priority excluding your actual Cooldowns. Cooldown usage is discussed separately but you can generally assume that you always want to press your Cooldowns as much as possible! Use Putrefy[1247378] when your Virulent Plague[191587] and Dread Plague[1240996] fall off your target. Try to have a charge ready to use right when the plagues fall off. Use Outbreak[77575] if you have no Putrefy charges. Use Outbreak[77575] to maintain your plagues on the target. Use Festering Scythe[455397] if its buff has fallen off. Use Soul Reaper[343294] if any enemy is below 35% health and the Dark Transformation[63560] buff is active, or you have triggered the Reaping[377514] effect from Dark Transformation[63560] . Use Epidemic[207317] when you have 80+ Runic Power or a Sudden Doom[49530] proc. Use Death Coil[47541] when fighting less than 3 targets (6 targets during Forbidden Knowledge[1242158] ). Use Putrefy[1247378] if your Dark Transformation[63560] is active. Use Putrefy[1247378] if all targets are above 35% health and Dark Transformation[63560] is active. If any target is below 35%, use Soul Reaper[343294] to trigger your Putrefy[1247378] instead (still during Dark Transformation). Use Festering Strike[85948] if you have less than 3 stacks of Lesser Ghoul[1254252] . Use Scourge Strike[55090] if you have at least 1 stack of Lesser Ghoul[1254252] . Use Epidemic[207317] . Use Death Coil[47541] when fighting less than 3 targets (6 targets during Forbidden Knowledge[1242158] ). Now, we will take this priority list and put it into a wordier description! Maintain your Plagues on the target by leveraging Outbreak[77575] or Putrefy[1247378] . Your plagues do not only do damage but are also the source of your important Sudden Doom[49530] procs so keeping them up is crucial. With Blightburst[1254552] you want to ideally refresh the Plagues with Putrefy[1247378] every time so you avoid wasting GCDs on Outbreak[77575] . If adds gets brought into the current pack mid-fight, your Scourge Strike[55090] s will automatically spread your Plagues to the new targets. Maintain your Plagues on the target by leveraging Outbreak[77575] . Your plagues do not only do damage but are also the source of your important Sudden Doom[49530] procs so keeping them up is crucial. If adds gets brought into the current pack mid-fight, your Scourge Strike[55090] s will automatically spread your Plagues to the new targets. Cast Soul Reaper[343294] . Either when any target is below 35% health and the Dark Transformation[63560] buff is active, or you have received the free use from Dark Transformation[63560] with Reaping[377514] . It is a good idea to \"snipe\" low-health mobs to automatically send your Putrefy[1247378] s, reducing the number of GCD you need to spend on the ability. Use Epidemic[207317] to avoid capping Runic Power or to spend your procs of Sudden Doom[49530] . Sudden Doom[49530] is a powerful proc, and you do not want to waste any. If you have Harbinger of Doom[276023] talented, you can allow yourself to stack up two charges before you spend them. However, most of the time, you simply use them as soon as possible to avoid any potential waste. We also do not want to overcap Runic Power (generating Runic Power when we are at 100), so we use Epidemic[207317] to avoid this. We use Death Coil[47541] when fighting less than 3 targets (6 targets during Forbidden Knowledge[1242158] ) as it will deal more damge. Use Festering Strike[85948] to build up stacks of Lesser Ghoul[1254252] on yourself. We want to aim for between 4 and 6 stacks at all times to give ourself some flexbility, either when we are forced out of melee range or if you we need to prioritise Scourge Strike[55090] due to Trollbane's Icy Fury[444097] . Use Festering Strike[85948] to build up stacks of Lesser Ghoul[1254252] on yourself. We want to aim for between 4 and 6 stacks at all times to give ourself some flexbility, either when we are forced out of melee range or if you we need to prioritise Scourge Strike[55090] due to Trollbane's Icy Fury[444097] . We also use Festering Scythe[455397] as a high priority if its buff has fallen off. Your normal rotation will usally take care of this but it is still important to track, especially when new mobs are brought into a pack without the debuff already on them. Use Scourge Strike[55090] to consume your stacks of Lesser Ghoul[1254252] . This is used in sync with Festering Strike[85948] to keep your stack count at a healthy level. You go up to 4-6 and then use Scourge Strike to drop down to 3 again. Use Death Coil[47541] as your filler spell when you have nothing else to do! We use Death Coil[47541] over Epidemic[207317] when fighting less than 3 targets (6 targets during Forbidden Knowledge[1242158] ) as it will deal more damge."
+    },
+    {
+      "panelId": "rotation_tool_block_3",
+      "tabLabel": "Additional Concepts",
+      "panelKind": "rotation_tab",
+      "bodyPlain": "Additional Concepts This section digs slightly deeper in rotational aspects that you need to consider. Rotation during Summon Gargoyle[1242147] When Summon Gargoyle[49206] cooldown is active, our priority changes. Any Runic Power we spend buffs the minion we summon, and the idea is to leverage this as much as possible. Using Death Coil[47541] , therefore, ends up being much higher on our priority list! Essentially, you use Death Coil[47541] as soon as you can, either by going above 30 Runic Power or getting a proc of Sudden Doom[49530] (and being above 15 Runic Power). 2.5. Vampiric Strike Fishing When playing with the San'layn Hero Talents, the maintenance of the Essence of the Blood Queen[433925] buff is an important aspect to master. We quickly stack this buff 7 times during our Dark Transformation[63560] windows (due to unlimited Vampiric Strike[433901] s) and then aim to extend it to our next Dark Transformation window (where we can easily maintain it again). Dark Transformation itself lasts around 20-35 seconds so we only really need to gain a single proc inbetween uses to bridge the 10-25 seconds gap! The importance here is to spend all your Runic power to maximise the chance of getting a proc if you are about to drop the buff! Important to note here is that Death and Decay[43265] is not worth using in Single Target, even with Blood-Soaked Ground[434033] , Desecrate[1234559] or Cycle of Death . The talent is not strong enough to justify pressing Death and Decay, even to get the extension."
+    },
+    {
+      "panelId": "area_c1",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "3.1. Cooldown Timings For raids, we always combine our cooldowns as much as possible. This works out nicely as they all align on a 45-second cycle. A cooldown plan for a 4-minute boss fight would look like the following: 00:00 — Army of the Dead[42650] + Dark Transformation[63560] 00:45 — Dark Transformation[63560] 01:30 — Army of the Dead[42650] + Dark Transformation[63560] 02:15 — Dark Transformation[63560] 03:00 — Army of the Dead[42650] + Dark Transformation[63560] 03:45 — Dark Transformation[63560] Due to everything aligning perfectly like this, it is crucial that you use your cooldowns as soon as they come up. Any delay means that your 1.5 -minute burst window will be delayed, potentially making you miss out on a ton of value. In Mythic+, the name of the game is cooldown efficiency. It is so easy to lose out on a ton of value by holding your cooldowns \"for that one big pack that comes soon.\" As a general rule, use your cooldowns as much as possible, Especially when you are using Dark Transformation[63560] on its own. It is by far the easiest way to improve your DPS in Mythic+!"
+    },
+    {
+      "panelId": "area_c2",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "3.2. Dark Transformation Dark Transformation[63560] transforms your ghoul for 15 seconds, causing its Claw ability to cleave all enemies near your pet. If you talent into Reaping[377514] , you get a free cast of Soul Reaper[343294] regardless of the target's HP as well! Furthermore, Dark Transformation[63560] significantly buffs your minions via the Commander of the Dead[390259] talent! You should use this ability on cooldown. Aligning it with Army of the Dead[42650] every second time. Furthermore, it is a good idea to enter your Dark Transformation[63560] window with high stacks of Lesser Ghoul[1254252] (6-8) so that you can spend more time summoning pets for big burst, and less time building stacks with Festering Strike[85948] ."
+    },
+    {
+      "panelId": "area_c3",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "3.3. Putrefy Putrefy[1247378] summons and scarifies a Lesser Ghoul[275430] to strike the target and then explode with AoE damage. It gains additional effects through talents, mainly with Blightburst[1254552] making it also apply your Plagues if they are not already up and the summoning of a Magus of the Dead[390196] with Reanimation[210128] . Using Putrefy[1247378] optimally is a relatively difficult game of optimisation. The primary aspect to consider here is the large buff to the ability that you get via Commander of the Dead[390259] . Due to this, we want to concentrate our uses within our Dark Transformation[63560] windows. What this means gameplay-wise, is that you want to aggressively use your charges during Dark Transformation[63560] . Do not use the charges (even at 3 stacks) in the window after your Dark Transformation ended, or before the next window. You will start each window with a Soul Reaper[343294] to consume two stacks, and then follow with manual presses to consume your stacks throughout the rest of the window. TC Why is my Putrefy damage so low? This tends to be due to a low proc rate of your Forbidden Knowledge[1256566] talent which is due to low Dread Plague[1240996] and Festering Scythe[455397] uptime. Furthermore, if your pets are not on assist, the random procs you get won't actually function properly."
+    },
+    {
+      "panelId": "area_c4",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "3.4. Blightfall Blightfall is an interesting ability with strong synergy with your Plagues. Once you use Dark Transformation[63560] , your Outbreak[77575] turns into Blightfall . This new ability consumes all your plagues on your target and any target it around, dealing 100% of the remaining damage in one big burst. The goal of Blightfall is relatively simple, stack up your DoTs to as high of a duration as possible and then consume them, while having as many buffs active as possible. In practice, this generally means that you use Blightfall just after Dark Transformation[63560] ends. In Single Target, you time it with a Soul Reaper[343294] used about 5 seconds before Dark Transformation ends to make sure you get the Plague damage debuff as well. You gain a charge of Putrefy[1247378] from consuming your Plagues so simply follow up with Putrefy[1247378] every time, reapplying your Plagues."
+    },
+    {
+      "panelId": "area_c5",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "3.5. Death and Decay Death and Decay[43265] is generally not worth using for its damage. There is synergy with San'layn with both Blood-Soaked Ground[434033] and Desecrate[1234559] but neither of these talents are strong enough to make Death and Decay worthwhile to press. Cycle of Death does create a strong feedback loop of Putrefy[1247378] and Death and Decay[43265] . If running this talent, it is worthwhile to use Death and Decay in AoE scenarios (3+ targets) for the Putrefy cooldown reduction. Otherwise you primarily use it for the slow in conjunction with Grip of the Dead[273952] . You can stack it on top of itself, meaning you will be using double Death and Decay after your Putrefy[1247378] usage in the opener in Mythic+ to get lots of charges back-to-back. Desecrate[1234559] increases its damage but only by an average of 40% when you do the math."
+    },
+    {
+      "panelId": "area_c11",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "3.6. Army of the Dead Army of the Dead[42650] summons several ghouls to fight at your side for 15 seconds. It also summons a Magus of the Dead[390196] when talented. Finally, it transforms Death Coil[47541] into Necrotic Coil[1242174] and Epidemic[207317] into Graveyard[383269] for 30 seconds via the Forbidden Knowledge[1242158] Apex Talent. It is a major cooldown that will end up being a significant part of our overall damage in any situation. Raise Abomination[288853] additionally summon an Abomination for 30 seconds with this Cooldown. The Abomination has an AoE Disease cloud that increases the damage enemies take from your minions by 20%. Summon Gargoyle[49206] additionally summons a Gargoyle for 25 seconds with this Cooldown. The Gargoyle attacks your target with an attack that ramps in damage based off the amount of Runic Power you have spent. Incentivises spending Runic Power as a priority when the pet is out."
+    },
+    {
+      "panelId": "area_d1",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "5.1. Runes and Runic Power Death Knights use a dual resource system of runes and Runic Power. While it is quite straightforward in how it works, we will explain it here for the sake of completion. 5.1.1. Runes You have a total of 6 Runes, which are available by default. Some of your abilities have Rune costs, and whenever you use an ability that consumes one or more Runes, those Runes will immediately begin recharging. The exact amount of time it takes a Rune to recharge depends on how much Haste you have. Whenever a Rune is consumed, you gain 10 Runic Power (more on that below). At most, 3 of your runes can be charging up at the same time. It is therefore optimal to keep at least 3 runes on cooldown to maximise the recharge rate over the course of the fight. 5.1.2. Runic Power Runic Power is a resource that resembles Rage, in the sense that it decays when out of combat, but does not decay during combat. As mentioned above, consuming Runes generates 10 Runic Power per Rune spent, and this is the primary means of generating Runic Power, although some abilities also help with this. You can have a maximum of 100 Runic Power. Choosing whether or not you should prioritise Runes or Runic Power is a tricky decision as an Unholy Death Knight. We overcap on our resources and often need to pick one or the other. In general, you want to avoid overcapping on Runes (having more than 3) in Single Target and avoid overcapping Runic Power (going above 100) in AoE. 5.2. Keeping Track of your Resources Since Death Knights have multiple resources that they need to track, it is very helpful to customize your UI to easily track your resources. Being able to easily focus on your rotation and resources can help you maximize your damage and positioning."
+    },
+    {
+      "panelId": "area_d12",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "5.3. Apex Talents Unholy Death Knight gets access to Forbidden Knowledge[1242158] Apex Talents as you level up from 80 to 90 in Midnight. The first rank provides a 30 seconds buff once you cast Army of the Dead[42650] , transforming your Death Coil[47541] into Necrotic Coil[1242174] and your Epidemic[207317] into Graveyard[383269] . These new abilities are powerful version of the baseline ones, notably adding an AoE component to Death Coil[47541] . The impact to the rotation is that Necrotic Coil[1242174] is used at up to 4 targets in AoE ( Death Coil[47541] is only used at up to 2). Rank 2 and 3 ( Forbidden Knowledge[1256565] ) gives Mastery when Putrefy[1247378] is cast and adds a stack of Lesser Ghoul[1254252] . Slightly less Festering Strike[85948] s are needed in the rotation but not much else. Rank 4 ( Forbidden Knowledge[1256566] ) increases the damage of Necrotic Coil[1242174] and Graveyard[383269] for each Magus of the Dead[390196] active, synergising well with Magus of the Dead[390196] and Reanimation[210128] . Furthermore, Dread Plague[1240996] has a 20% chance to trigger Putrefy[1247378] at 60% effectiveness, significantly increasing the number of Putrefy[1247378] triggered in the rotation overall. It is crucial to maintain good Dread Plague[1240996] and Festering Scythe[455397] uptime to get the most of this talent. Furthermore, your pets must be on assist for it to function properly."
+    },
+    {
+      "panelId": "area_d2",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "5.4. Runic Corruption Runic Corruption[51462] has a chance of proccing whenever we spend Runic Power. It can also proc when we consume Sudden Doom[49530] and Dark Succor[178819] . The proc will always return a total of 0.9 Runes, regardless of haste. The proc also stacks on itself, adding any new duration to the previous remaining one. All this means is that you do not need to pay attention to this process. TC Do I Need to Play Around Procs of Runic Corruption? No. The procs stack on top of each other. Any remaining duration is simply added to the new one if you get another proc."
+    },
+    {
+      "panelId": "area_d3",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "5.5. Plagues Virulent Plague[191587] is a Shadow damage DoT that is applied to targets using Outbreak[77575] or Putrefy[1247378] with Blightburst[1254552] . It is our AoE plague. Dread Plague[1240996] is a single-target only DoT (can only be applied to one target) that is applied in the same way as Virulent Plague[191587] . This is also the source of our Sudden Doom[49530] procs."
+    },
+    {
+      "panelId": "area_d31",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "5.6. Anti-Magic Shell Usage Anti-Magic Shell[48707] absorbs 100% of all magic damage taken, up to 30% of your maximum health, for 5 seconds and grants you Runic Power based on the amount of damage that it absorbs. While this ability has amazing survivability benefits, allowing you to often taken practically no damage from various raid-damaging mechanics, it also has great benefits for your DPS. Indeed, the amount of Runic Power you gain if you absorb a lot of magic damage is far from negligible. Therefore, you should always try to make use of Anti-Magic Shell to boost your Runic Power generation throughout the fight. The best way to do it is to know when a raid-damaging attack is coming, and to have Anti Magic Shell up for that time. Then, simply enjoy the extra Runic Power (and do not forget to spend it). That said, for progression content, we fully recommend first and foremost saving Anti-Magic Shell[48707] to mitigate magic damage, before you consider how to use it to increase your DPS."
+    },
+    {
+      "panelId": "area_d4",
+      "tabLabel": null,
+      "panelKind": "other",
+      "bodyPlain": "5.7. Summon Gargoyle Death Coil Priority We have previously discussed the rotation during Summon Gargoyle[49206] , highlighting the high priority on spending Runic Power to buff the cooldown. Putting Death Coil[47541] at the top of the priority during the entire duration of Summon Gargoyle[49206] is not the optimal way to play, however! The value of using a Death Coil[47541] is directly proportional to the number of Summon Gargoyle[49206] casts that will be buffed by said coil. The first couple of Death Coil[47541] s are incredibly valuable since they buff all the casts of the CD. Compare that to the final Death Coil[47541] that might only buff a single cast. Furthermore, the buffing here is additive , meaning that each coil essentially just adds a flat amount. The optimization that comes into play here is the priority of buffing the Gargoyle vs prioritising other spells. In general, the further you are in the Cooldown, the lower your Death Coil priority should be."
+    }
+  ],
+  "headingSections": [
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "specspec-specclass-rotation",
+      "titlePlain": "Unholy Death Knight Rotation",
+      "bodyPlain": "Welcome to our Rotation page for Unholy Death Knights. Here, we will go over everything you will need to know to optimally play your spec for Raiding and Mythic+ scenarios.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "specspec-specclass-rotation-1",
+      "titlePlain": "Unholy Death Knight Rotation",
+      "bodyPlain": "The buttons below can be used to select between curated loadouts from our Talents page. The icon below means it is the recommended choice . Rider of the Apocalypse Raid Rider of the Apocalypse Mythic+ San'layn Raid San'layn Mythic+ Blightfall Active Talents Passive Talents Blightfall Putrid Echoes[377580] Reaping[377514] Festering Scythe[455397] Blightburst[1254552] Unholy Death Knight Explained Single-Target Rotation Multi-Target Rotation Additional Concepts Unholy Death Knight Explained Unholy Death Knight relies on a dual-resource system with Runes and Runic Power. Runes passively recharge over time and are spent on abilities such as Festering Strike[85948] , Scourge Strike[55090] and Putrefy[1247378] . Spending Runes generates Runic Power that we spend on abilities such as Death Coil[47541] and Epidemic[207317] . Furthermore, we maintain Plagues on our enemies via Outbreak[77575] and Putrefy[1247378] (with Blightburst[1254552] ). The rotation boils down to the following: Manage stacks of Lesser Ghoul[1254252] that we build and consume via Festering Strike[85948] and Scourge Strike[55090] Manage your Festering Scythe[455397] buff by using Festering Strike[85948] -> Festering Scythe[455397] Manage your Plagues by re-applying them with Outbreak[77575] or Putrefy[1247378] (with Blightburst[1254552] ) Manage your resources by spending Runic Power on Death Coil[47541] (Single Target) and Epidemic[207317] (AoE) to avoid going above 100. Use your higher-cd skills Putrefy[1247378] and Soul Reaper[343294] as much as possible during Dark Transformation[63560] . Send your Cooldowns as much as possible, always aligning them.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "single-target-opener-for-unholy-death-knights",
+      "titlePlain": "Single-Target Opener for Unholy Death Knights",
+      "bodyPlain": "The opener is a set sequence of abilities you use as you engage an enemy. Memorising it helps initiate your rotation in the most optimal way possible. Use Outbreak[77575] . Use 2x Festering Strike[85948] . Use Army of the Dead[42650] + Dark Transformation[63560] + Trinket + Racial + Potion Use Putrefy[1247378] . Use Putrefy[1247378] . Use Soul Reaper[343294] . Use Putrefy[1247378] . Use Putrefy[1247378] . Use Soul Reaper[343294] 5 seconds before Dark Transformation[63560] ends. When it comes to timing your trinkets, you can just macro them with Army of the Dead[42650] in all your openers. If you are lucky enough for receive Power Infusion[10060] , ask for it when you cast Army of the Dead[42650] . The timing of Soul Reaper[343294] (with Blightfall talented) in the opener is to overlap the plague damage debuff for when you consume Blightfall after Dark Transformation[63560] ends.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "single-target-rotation-priority-for-unholy-death-knights",
+      "titlePlain": "Single-Target Rotation Priority for Unholy Death Knights",
+      "bodyPlain": "The below list represents your rotation priority excluding your actual Cooldowns. Cooldown usage is discussed separately but you can generally assume that you always want to press your Cooldowns as much as possible! Use Putrefy[1247378] when your Virulent Plague[191587] and Dread Plague[1240996] fall off your target. Try to have a charge ready to use right when the plagues fall off. Use Outbreak[77575] if you have no Putrefy charges. Use Outbreak[77575] to maintain your plagues on the target. Use Festering Scythe[455397] if its buff has fallen off. Use Soul Reaper[343294] if the enemy is below 35% health and your Dark Transformation[63560] buff is active, or you have triggered the Reaping[377514] effect from Dark Transformation[63560] . Use Death Coil[47541] when you have a Sudden Doom[49530] proc or 80+ Runic Power. Use Putrefy[1247378] if Dark Transformation[63560] is active. Use Putrefy[1247378] if the target is above 35% health and your Dark Transformation[63560] buff is active. If your target is below 35%, use Soul Reaper[343294] to trigger your Putrefy[1247378] instead. Use Festering Strike[85948] if you have less than 3 stacks of Lesser Ghoul[1254252] . Use Scourge Strike[55090] if you have at least 1 stack of Lesser Ghoul[1254252] . Use Death Coil[47541] . Now, we will take this priority list and put it into a wordier description! Maintain your Plagues on the target by leveraging Outbreak[77575] or Putrefy[1247378] . Your plagues do not only do damage but are also the source of your important Sudden Doom[49530] and Forbidden Knowledge[1256566] procs so keeping them up is crucial. With Blightburst[1254552] you want to ideally refresh the Plagues with Putrefy[1247378] every time so you avoid wasting GCDs on Outbreak[77575] . Maintain your Plagues on the target by leveraging Outbreak[77575] . Your plagues do not only do damage but are also the source of your important Sudden Doom[49530] procs so keeping them up is crucial. Cast Soul Reaper[343294] . Either when the target is below 35% health and your Dark Transformation[63560] buff is active, or you have received the free use from Dark Transformation[63560] with Reaping[377514] . Cast Soul Reaper[343294] whenever you can. Either when the target is below 35% health or you have received the free use from Dark Transformation[63560] with Reaping[377514] . With Blightfall , you want to overlap the Plague damage taken debuff you get from this ability with the end of your Dark Transformation[63560] . Hold Soul Reaper[343294] until there is 5 seconds left of the window so that you can then use Blightfall right after the window ends and benefit from the debuff! In execute, use the free Soul Reaper[343294] ASAP in Dark Transformation so you get a new use after 15 seconds to overlap the end when you use Blightfall. Use Death Coil[47541] to avoid capping Runic Power or to spend your procs of Sudden Doom[49530] . Sudden Doom[49530] is a powerful proc, and you do not want to waste any. If you have Harbinger of Doom[276023] talented, you can allow yourself to stack up two charges before you spend them. However, most of the time, you simply use them as soon as possible to avoid any potential waste. We also do not want to overcap Runic Power (generating Runic Power when we are at 100), so we use Death Coil[47541] to avoid this. Use Festering Strike[85948] to build up stacks of Lesser Ghoul[1254252] on yourself. We want to aim for between 4 and 6 stacks at all times to give ourself some flexbility, either when we are forced out of melee range or if you we need to prioritise Scourge Strike[55090] due to Trollbane's Icy Fury[444097] . Use Festering Strike[85948] to build up stacks of Lesser Ghoul[1254252] on yourself. We want to aim for between 4 and 6 stacks at all times to give ourself some flexbility when we are forced out of melee range. We also use Festering Scythe[455397] as a high priority if its buff has fallen off. Your normal rotation will usally take care of this but it is still important to track Use Scourge Strike[55090] to consume your stacks of Lesser Ghoul[1254252] . This is used in sync with Festering Strike[85948] to keep your stack count at a healthy level. You go up to 4-6 and then use Scourge Strike to drop down to 3 again. Use Death Coil[47541] as your filler spell when you have nothing else to do! When you want to deal AoE damage in your Single Target build, you really do not change much. If the adds are pulled on top of your current target, you simply use Scourge Strike[55090] to spread your diseases to them. If we engage a new pack, you start by applying your Plagues with Outbreak[77575] or Putrefy[1247378] with Blightburst[1254552] . Your Scourge Strike cleaves by default so the main decision comes when using Death Coil[47541] vs Epidemic[207317] . In general, you swap to Epidemic at 3+ targets (6+ targets during Forbidden Knowledge[1242158] ) but sometimes stay with Death Coil if you want to do priority damage. Multi-Target Rotation The Multi-Target Rotation for Unholy Death Knights share a significant amount of priorities compared to Single Target. The main difference is that we use Epidemic[207317] instead of Death Coil[47541] when we fight 3+ targets (6+ during Forbidden Knowledge[1242158] ) and that we do not delay Soul Reaper[343294] for Blightfall in the opener (when Blightfall is talented).",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "multi-target-opener-for-unholy-death-knights",
+      "titlePlain": "Multi-Target Opener for Unholy Death Knights",
+      "bodyPlain": "Use Outbreak[77575] . Use 2x Festering Strike[85948] . Use Army of the Dead[42650] + Dark Transformation[63560] + Trinket + Racial + Potion Use Soul Reaper[343294] . Use Putrefy[1247378] Use Putrefy[1247378] . When it comes to timing your trinkets, you can just macro them with Army of the Dead[42650] in all your openers. If you are lucky enough for receive Power Infusion[10060] , ask for it when you cast Army of the Dead[42650] .",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "multi-target-rotation-priority-for-unholy-death-knights",
+      "titlePlain": "Multi-Target Rotation Priority for Unholy Death Knights",
+      "bodyPlain": "The below list represents your rotation priority excluding your actual Cooldowns. Cooldown usage is discussed separately but you can generally assume that you always want to press your Cooldowns as much as possible! Use Putrefy[1247378] when your Virulent Plague[191587] and Dread Plague[1240996] fall off your target. Try to have a charge ready to use right when the plagues fall off. Use Outbreak[77575] if you have no Putrefy charges. Use Outbreak[77575] to maintain your plagues on the target. Use Festering Scythe[455397] if its buff has fallen off. Use Soul Reaper[343294] if any enemy is below 35% health and the Dark Transformation[63560] buff is active, or you have triggered the Reaping[377514] effect from Dark Transformation[63560] . Use Epidemic[207317] when you have 80+ Runic Power or a Sudden Doom[49530] proc. Use Death Coil[47541] when fighting less than 3 targets (6 targets during Forbidden Knowledge[1242158] ). Use Putrefy[1247378] if your Dark Transformation[63560] is active. Use Putrefy[1247378] if all targets are above 35% health and Dark Transformation[63560] is active. If any target is below 35%, use Soul Reaper[343294] to trigger your Putrefy[1247378] instead (still during Dark Transformation). Use Festering Strike[85948] if you have less than 3 stacks of Lesser Ghoul[1254252] . Use Scourge Strike[55090] if you have at least 1 stack of Lesser Ghoul[1254252] . Use Epidemic[207317] . Use Death Coil[47541] when fighting less than 3 targets (6 targets during Forbidden Knowledge[1242158] ). Now, we will take this priority list and put it into a wordier description! Maintain your Plagues on the target by leveraging Outbreak[77575] or Putrefy[1247378] . Your plagues do not only do damage but are also the source of your important Sudden Doom[49530] procs so keeping them up is crucial. With Blightburst[1254552] you want to ideally refresh the Plagues with Putrefy[1247378] every time so you avoid wasting GCDs on Outbreak[77575] . If adds gets brought into the current pack mid-fight, your Scourge Strike[55090] s will automatically spread your Plagues to the new targets. Maintain your Plagues on the target by leveraging Outbreak[77575] . Your plagues do not only do damage but are also the source of your important Sudden Doom[49530] procs so keeping them up is crucial. If adds gets brought into the current pack mid-fight, your Scourge Strike[55090] s will automatically spread your Plagues to the new targets. Cast Soul Reaper[343294] . Either when any target is below 35% health and the Dark Transformation[63560] buff is active, or you have received the free use from Dark Transformation[63560] with Reaping[377514] . It is a good idea to \"snipe\" low-health mobs to automatically send your Putrefy[1247378] s, reducing the number of GCD you need to spend on the ability. Use Epidemic[207317] to avoid capping Runic Power or to spend your procs of Sudden Doom[49530] . Sudden Doom[49530] is a powerful proc, and you do not want to waste any. If you have Harbinger of Doom[276023] talented, you can allow yourself to stack up two charges before you spend them. However, most of the time, you simply use them as soon as possible to avoid any potential waste. We also do not want to overcap Runic Power (generating Runic Power when we are at 100), so we use Epidemic[207317] to avoid this. We use Death Coil[47541] when fighting less than 3 targets (6 targets during Forbidden Knowledge[1242158] ) as it will deal more damge. Use Festering Strike[85948] to build up stacks of Lesser Ghoul[1254252] on yourself. We want to aim for between 4 and 6 stacks at all times to give ourself some flexbility, either when we are forced out of melee range or if you we need to prioritise Scourge Strike[55090] due to Trollbane's Icy Fury[444097] . Use Festering Strike[85948] to build up stacks of Lesser Ghoul[1254252] on yourself. We want to aim for between 4 and 6 stacks at all times to give ourself some flexbility, either when we are forced out of melee range or if you we need to prioritise Scourge Strike[55090] due to Trollbane's Icy Fury[444097] . We also use Festering Scythe[455397] as a high priority if its buff has fallen off. Your normal rotation will usally take care of this but it is still important to track, especially when new mobs are brought into a pack without the debuff already on them. Use Scourge Strike[55090] to consume your stacks of Lesser Ghoul[1254252] . This is used in sync with Festering Strike[85948] to keep your stack count at a healthy level. You go up to 4-6 and then use Scourge Strike to drop down to 3 again. Use Death Coil[47541] as your filler spell when you have nothing else to do! We use Death Coil[47541] over Epidemic[207317] when fighting less than 3 targets (6 targets during Forbidden Knowledge[1242158] ) as it will deal more damge. Additional Concepts This section digs slightly deeper in rotational aspects that you need to consider. Rotation during Summon Gargoyle[1242147] When Summon Gargoyle[49206] cooldown is active, our priority changes. Any Runic Power we spend buffs the minion we summon, and the idea is to leverage this as much as possible. Using Death Coil[47541] , therefore, ends up being much higher on our priority list! Essentially, you use Death Coil[47541] as soon as you can, either by going above 30 Runic Power or getting a proc of Sudden Doom[49530] (and being above 15 Runic Power).",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "vampiric-strike-fishing",
+      "titlePlain": "Vampiric Strike Fishing",
+      "bodyPlain": "When playing with the San'layn Hero Talents, the maintenance of the Essence of the Blood Queen[433925] buff is an important aspect to master. We quickly stack this buff 7 times during our Dark Transformation[63560] windows (due to unlimited Vampiric Strike[433901] s) and then aim to extend it to our next Dark Transformation window (where we can easily maintain it again). Dark Transformation itself lasts around 20-35 seconds so we only really need to gain a single proc inbetween uses to bridge the 10-25 seconds gap! The importance here is to spend all your Runic power to maximise the chance of getting a proc if you are about to drop the buff! Important to note here is that Death and Decay[43265] is not worth using in Single Target, even with Blood-Soaked Ground[434033] , Desecrate[1234559] or Cycle of Death . The talent is not strong enough to justify pressing Death and Decay, even to get the extension.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "season-1-tier-set",
+      "titlePlain": "Season 1 Tier Set",
+      "bodyPlain": "Our Season 1 tier set increases our Virulent Plague[191587] and Dread Plague[1240996] damage by 25%. Furthermore, Putrefy[1247378] deals 20% increased damage and reduces the cost of your next Scourge Strike[55090] to 0 Runes. No rotational impact from the tier set, you just do your rotation like normal.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "cooldown-usage-for-specspec-specclass",
+      "titlePlain": "Cooldown Usage for Unholy Death Knight",
+      "bodyPlain": "Cooldown Timings Dark Transformation Putrefy Blightfall Death and Decay Army of the Dead",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "cooldown-timings",
+      "titlePlain": "Cooldown Timings",
+      "bodyPlain": "For raids, we always combine our cooldowns as much as possible. This works out nicely as they all align on a 45-second cycle. A cooldown plan for a 4-minute boss fight would look like the following: 00:00 — Army of the Dead[42650] + Dark Transformation[63560] 00:45 — Dark Transformation[63560] 01:30 — Army of the Dead[42650] + Dark Transformation[63560] 02:15 — Dark Transformation[63560] 03:00 — Army of the Dead[42650] + Dark Transformation[63560] 03:45 — Dark Transformation[63560] Due to everything aligning perfectly like this, it is crucial that you use your cooldowns as soon as they come up. Any delay means that your 1.5 -minute burst window will be delayed, potentially making you miss out on a ton of value. In Mythic+, the name of the game is cooldown efficiency. It is so easy to lose out on a ton of value by holding your cooldowns \"for that one big pack that comes soon.\" As a general rule, use your cooldowns as much as possible, Especially when you are using Dark Transformation[63560] on its own. It is by far the easiest way to improve your DPS in Mythic+!",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "dark-transformation",
+      "titlePlain": "Dark Transformation",
+      "bodyPlain": "Dark Transformation[63560] transforms your ghoul for 15 seconds, causing its Claw ability to cleave all enemies near your pet. If you talent into Reaping[377514] , you get a free cast of Soul Reaper[343294] regardless of the target's HP as well! Furthermore, Dark Transformation[63560] significantly buffs your minions via the Commander of the Dead[390259] talent! You should use this ability on cooldown. Aligning it with Army of the Dead[42650] every second time. Furthermore, it is a good idea to enter your Dark Transformation[63560] window with high stacks of Lesser Ghoul[1254252] (6-8) so that you can spend more time summoning pets for big burst, and less time building stacks with Festering Strike[85948] .",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "putrefy",
+      "titlePlain": "Putrefy",
+      "bodyPlain": "Putrefy[1247378] summons and scarifies a Lesser Ghoul[275430] to strike the target and then explode with AoE damage. It gains additional effects through talents, mainly with Blightburst[1254552] making it also apply your Plagues if they are not already up and the summoning of a Magus of the Dead[390196] with Reanimation[210128] . Using Putrefy[1247378] optimally is a relatively difficult game of optimisation. The primary aspect to consider here is the large buff to the ability that you get via Commander of the Dead[390259] . Due to this, we want to concentrate our uses within our Dark Transformation[63560] windows. What this means gameplay-wise, is that you want to aggressively use your charges during Dark Transformation[63560] . Do not use the charges (even at 3 stacks) in the window after your Dark Transformation ended, or before the next window. You will start each window with a Soul Reaper[343294] to consume two stacks, and then follow with manual presses to consume your stacks throughout the rest of the window. TC Why is my Putrefy damage so low? This tends to be due to a low proc rate of your Forbidden Knowledge[1256566] talent which is due to low Dread Plague[1240996] and Festering Scythe[455397] uptime. Furthermore, if your pets are not on assist, the random procs you get won't actually function properly.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "blightfall",
+      "titlePlain": "Blightfall",
+      "bodyPlain": "Blightfall is an interesting ability with strong synergy with your Plagues. Once you use Dark Transformation[63560] , your Outbreak[77575] turns into Blightfall . This new ability consumes all your plagues on your target and any target it around, dealing 100% of the remaining damage in one big burst. The goal of Blightfall is relatively simple, stack up your DoTs to as high of a duration as possible and then consume them, while having as many buffs active as possible. In practice, this generally means that you use Blightfall just after Dark Transformation[63560] ends. In Single Target, you time it with a Soul Reaper[343294] used about 5 seconds before Dark Transformation ends to make sure you get the Plague damage debuff as well. You gain a charge of Putrefy[1247378] from consuming your Plagues so simply follow up with Putrefy[1247378] every time, reapplying your Plagues.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "death-and-decay",
+      "titlePlain": "Death and Decay",
+      "bodyPlain": "Death and Decay[43265] is generally not worth using for its damage. There is synergy with San'layn with both Blood-Soaked Ground[434033] and Desecrate[1234559] but neither of these talents are strong enough to make Death and Decay worthwhile to press. Cycle of Death does create a strong feedback loop of Putrefy[1247378] and Death and Decay[43265] . If running this talent, it is worthwhile to use Death and Decay in AoE scenarios (3+ targets) for the Putrefy cooldown reduction. Otherwise you primarily use it for the slow in conjunction with Grip of the Dead[273952] . You can stack it on top of itself, meaning you will be using double Death and Decay after your Putrefy[1247378] usage in the opener in Mythic+ to get lots of charges back-to-back. Desecrate[1234559] increases its damage but only by an average of 40% when you do the math.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "army-of-the-dead",
+      "titlePlain": "Army of the Dead",
+      "bodyPlain": "Army of the Dead[42650] summons several ghouls to fight at your side for 15 seconds. It also summons a Magus of the Dead[390196] when talented. Finally, it transforms Death Coil[47541] into Necrotic Coil[1242174] and Epidemic[207317] into Graveyard[383269] for 30 seconds via the Forbidden Knowledge[1242158] Apex Talent. It is a major cooldown that will end up being a significant part of our overall damage in any situation. Raise Abomination[288853] additionally summon an Abomination for 30 seconds with this Cooldown. The Abomination has an AoE Disease cloud that increases the damage enemies take from your minions by 20%. Summon Gargoyle[49206] additionally summons a Gargoyle for 25 seconds with this Cooldown. The Gargoyle attacks your target with an attack that ramps in damage based off the amount of Runic Power you have spent. Incentivises spending Runic Power as a priority when the pet is out.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "combat-assistant-for-specspec-specclasss",
+      "titlePlain": "Combat Assistant for Unholy Death Knights",
+      "bodyPlain": "Patch 11.1.7 in The War Within introduced the Combat Assistant functionality for all specs in the game. This comes in the form of two tools that you can use to assist your rotation. The Assisted Highlight feature will light up the spell that you are supposed to use next, helping you determine what button you need to press. The Single-Button Assistant will provide you with a single button that automatically pressed the appropriate spell. The Single-Button Assistant has a GCD penalty of 0.2 seconds every time you press it, artificially slowing down your rotation . This penalty means that you will always do less DPS when using the Single-Button Assistant compared to what you could have done with a perfectly executed rotation. So how good is the rotation I can get from these assistants? If we assume that you handle your cooldown usage perfectly, the Assisted Highlight is roughly 5% less DPS. With the Single-Button Assistant, the number is about 15% Do bear in mind that this is compared to absolutely optimal play. A player with less experience with the rotation might see a significantly smaller loss, or even a gain when using the assistants.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "specspec-specclass-gameplay-mechanics",
+      "titlePlain": "Unholy Death Knight Gameplay Mechanics",
+      "bodyPlain": "This section deep dives into the mechanics of Unholy Death Knight, covering both the resources we use as well as some advanced topics that can be useful when trying to understand the rotation in more depth.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "unholy-death-knight-mechanics",
+      "titlePlain": "Unholy Death Knight Mechanics",
+      "bodyPlain": "Runes and Runic Power Apex Talents Runic Corruption Plagues Anti-Magic Shell Summon Gargoyle Death Coil Priority",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "runes-and-runic-power",
+      "titlePlain": "Runes and Runic Power",
+      "bodyPlain": "Death Knights use a dual resource system of runes and Runic Power. While it is quite straightforward in how it works, we will explain it here for the sake of completion.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "4",
+      "headingLevel": 4,
+      "id": "runes",
+      "titlePlain": "Runes",
+      "bodyPlain": "You have a total of 6 Runes, which are available by default. Some of your abilities have Rune costs, and whenever you use an ability that consumes one or more Runes, those Runes will immediately begin recharging. The exact amount of time it takes a Rune to recharge depends on how much Haste you have. Whenever a Rune is consumed, you gain 10 Runic Power (more on that below). At most, 3 of your runes can be charging up at the same time. It is therefore optimal to keep at least 3 runes on cooldown to maximise the recharge rate over the course of the fight.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "4",
+      "headingLevel": 4,
+      "id": "runic-power",
+      "titlePlain": "Runic Power",
+      "bodyPlain": "Runic Power is a resource that resembles Rage, in the sense that it decays when out of combat, but does not decay during combat. As mentioned above, consuming Runes generates 10 Runic Power per Rune spent, and this is the primary means of generating Runic Power, although some abilities also help with this. You can have a maximum of 100 Runic Power. Choosing whether or not you should prioritise Runes or Runic Power is a tricky decision as an Unholy Death Knight. We overcap on our resources and often need to pick one or the other. In general, you want to avoid overcapping on Runes (having more than 3) in Single Target and avoid overcapping Runic Power (going above 100) in AoE.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "keeping-track-of-your-resources",
+      "titlePlain": "Keeping Track of your Resources",
+      "bodyPlain": "Since Death Knights have multiple resources that they need to track, it is very helpful to customize your UI to easily track your resources. Being able to easily focus on your rotation and resources can help you maximize your damage and positioning.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "apex-talents",
+      "titlePlain": "Apex Talents",
+      "bodyPlain": "Unholy Death Knight gets access to Forbidden Knowledge[1242158] Apex Talents as you level up from 80 to 90 in Midnight. The first rank provides a 30 seconds buff once you cast Army of the Dead[42650] , transforming your Death Coil[47541] into Necrotic Coil[1242174] and your Epidemic[207317] into Graveyard[383269] . These new abilities are powerful version of the baseline ones, notably adding an AoE component to Death Coil[47541] . The impact to the rotation is that Necrotic Coil[1242174] is used at up to 4 targets in AoE ( Death Coil[47541] is only used at up to 2). Rank 2 and 3 ( Forbidden Knowledge[1256565] ) gives Mastery when Putrefy[1247378] is cast and adds a stack of Lesser Ghoul[1254252] . Slightly less Festering Strike[85948] s are needed in the rotation but not much else. Rank 4 ( Forbidden Knowledge[1256566] ) increases the damage of Necrotic Coil[1242174] and Graveyard[383269] for each Magus of the Dead[390196] active, synergising well with Magus of the Dead[390196] and Reanimation[210128] . Furthermore, Dread Plague[1240996] has a 20% chance to trigger Putrefy[1247378] at 60% effectiveness, significantly increasing the number of Putrefy[1247378] triggered in the rotation overall. It is crucial to maintain good Dread Plague[1240996] and Festering Scythe[455397] uptime to get the most of this talent. Furthermore, your pets must be on assist for it to function properly.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "runic-corruption",
+      "titlePlain": "Runic Corruption",
+      "bodyPlain": "Runic Corruption[51462] has a chance of proccing whenever we spend Runic Power. It can also proc when we consume Sudden Doom[49530] and Dark Succor[178819] . The proc will always return a total of 0.9 Runes, regardless of haste. The proc also stacks on itself, adding any new duration to the previous remaining one. All this means is that you do not need to pay attention to this process. TC Do I Need to Play Around Procs of Runic Corruption? No. The procs stack on top of each other. Any remaining duration is simply added to the new one if you get another proc.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "plagues",
+      "titlePlain": "Plagues",
+      "bodyPlain": "Virulent Plague[191587] is a Shadow damage DoT that is applied to targets using Outbreak[77575] or Putrefy[1247378] with Blightburst[1254552] . It is our AoE plague. Dread Plague[1240996] is a single-target only DoT (can only be applied to one target) that is applied in the same way as Virulent Plague[191587] . This is also the source of our Sudden Doom[49530] procs.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "anti-magic-shell-usage",
+      "titlePlain": "Anti-Magic Shell Usage",
+      "bodyPlain": "Anti-Magic Shell[48707] absorbs 100% of all magic damage taken, up to 30% of your maximum health, for 5 seconds and grants you Runic Power based on the amount of damage that it absorbs. While this ability has amazing survivability benefits, allowing you to often taken practically no damage from various raid-damaging mechanics, it also has great benefits for your DPS. Indeed, the amount of Runic Power you gain if you absorb a lot of magic damage is far from negligible. Therefore, you should always try to make use of Anti-Magic Shell to boost your Runic Power generation throughout the fight. The best way to do it is to know when a raid-damaging attack is coming, and to have Anti Magic Shell up for that time. Then, simply enjoy the extra Runic Power (and do not forget to spend it). That said, for progression content, we fully recommend first and foremost saving Anti-Magic Shell[48707] to mitigate magic damage, before you consider how to use it to increase your DPS.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "summon-gargoyle-death-coil-priority",
+      "titlePlain": "Summon Gargoyle Death Coil Priority",
+      "bodyPlain": "We have previously discussed the rotation during Summon Gargoyle[49206] , highlighting the high priority on spending Runic Power to buff the cooldown. Putting Death Coil[47541] at the top of the priority during the entire duration of Summon Gargoyle[49206] is not the optimal way to play, however! The value of using a Death Coil[47541] is directly proportional to the number of Summon Gargoyle[49206] casts that will be buffed by said coil. The first couple of Death Coil[47541] s are incredibly valuable since they buff all the casts of the CD. Compare that to the final Death Coil[47541] that might only buff a single cast. Furthermore, the buffing here is additive , meaning that each coil essentially just adds a flat amount. The optimization that comes into play here is the priority of buffing the Gargoyle vs prioritising other spells. In general, the further you are in the Cooldown, the lower your Death Coil priority should be. 6.",
+      "truncated": false
+    }
+  ]
+}

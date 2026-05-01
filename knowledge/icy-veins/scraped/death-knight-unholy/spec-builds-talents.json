@@ -1,0 +1,121 @@
+{
+  "sourceUrl": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-spec-builds-talents",
+  "pageKey": "spec-builds-talents",
+  "pageType": "spec-builds-talents",
+  "snapshot": {
+    "scrapedAt": "2026-05-01T09:18:13.538Z",
+    "sourcePageUrl": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-spec-builds-talents",
+    "fetch": {
+      "httpStatus": 200,
+      "ok": true,
+      "blockedOrEmpty": false
+    },
+    "icyVeinsArticle": {
+      "headline": "Unholy Death Knight DPS Spec, Builds, and Talents - 12.0.5",
+      "dateModified": "2026-04-28T22:33:00+00:00",
+      "datePublished": "2012-03-12T11:03:00+00:00",
+      "authorName": "Bicepspump",
+      "description": "Find out the best talent builds for Raid, Mythic+ and PvP for Unholy Death Knight in WoW 12.0.5."
+    },
+    "howToStayCurrent": {
+      "refreshProcedure": "Re-run `npm run scrape-icy-veins-unholy` when guides change; commit JSON under knowledge/icy-veins/scraped/death-knight-unholy/.",
+      "talentEmbeds": "Midnight `#AB-…` strings power IV’s embedded calculator on the talents page; verify against in-game import before treating as a raw Blizzard export."
+    }
+  },
+  "specData": {
+    "specName": "Unholy",
+    "className": "Death Knight"
+  },
+  "relatedGuideUrls": {
+    "canonicalBuildsAndTalents": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-spec-builds-talents",
+    "canonicalRotationCooldowns": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-rotation-cooldowns-abilities"
+  },
+  "introPlain": "1. Best Midnight Talents for Unholy Death Knight Welcome to the talent guide for the Unholy Death Knight. Here we will discuss all matters associated with your talent choices, providing the best available builds as well as details regarding alternative picks and potential talent swaps. Unholy Death Knight can choose from two slightly different styles when it comes to talents; plagues or minions. Minion builds synergise well with Rider of the Apocalypse and pick talents such as Reanimation[210128] and Menacing Magus[455135] . Plague builds generally run San'layn with the Blightfall talent to really harvest the DoT power. The recommended build for both Raid and Mythic+ focus on minions, running Rider of the Apocalypse and Reanimation[210128] in both cases.",
+  "recommendedTalentBuilds": [
+    {
+      "areaId": "area_1",
+      "tabLabel": "Raid Build",
+      "headingId": "best-raid-talents-for-specspec-specclass",
+      "titlePlain": "Best Raid Talents for Unholy Death Knight",
+      "notesPlain": "2.1. Our recommended raid build is the Rider of the Apocalypse minion build. This focuses heavily on minion damage with both Reanimation[210128] , Grave Mastery[1238900] as well as the minions we summon via Rider. It is easy to play and deals a good amount of burst damage. San'layn does quite well in cleave and AoE but lags too far behind in Single Target to be a viable option in Raid. For Rider of the Apocalypse , A Feast of Souls[444072] and Fury of the Horsemen[444069] are within 0.5% DPS in pure Single Target. Fury wins in Single Target but Feast will quickly gain value in AoE, swap to it in cleave and AoE fights. To gain some better AoE burst with the build, pick up Menacing Magus[455135] instead of Morbidity[377592] . This loses a few percent of damage in single target, but adds a significant amount of cleave. If you want even more cleave, pick up Cycle of Death as well instead of Infected Claws[207272] . You are then running the full Mythic+ build. Outside of AoE considerations, your main choice is whether or not you run Blightburst[1254552] . It provides a nice quality-of-life with infite Plague duration on Single Target and easy target-swapping without wasting GCDs on Outbreak[77575] . We generally recommend running this talent, you can swap it for Ghoulish Frenzy[377587] if you do not like it. Be sure to make use of the 'Copy Export String' button to import the best build directly into your game!",
+      "midnightEmbedHash": "#8D-fBhGGSWTZrqwSf2EoiGgywpKqkU01h6hgcC-RSfdTOjPPwqMuUCbAS8CCYAFEELgQuB-AAAA-OSMEoYIAISRDzC-",
+      "targetElementId": "midnight-skill-builder-1"
+    },
+    {
+      "areaId": "area_2",
+      "tabLabel": "Mythic+ Build",
+      "headingId": "best-mythic-talents-for-specspec-specclass",
+      "titlePlain": "Best Mythic+ talents for Unholy Death Knight",
+      "notesPlain": "2.2. Mythic+ put significantly more emphasis on AoE damage. We therefore sacrifice some Single Target DPS to gain AoE. However, we do not go all out, keeping talents that are still valuable for Single Target to give us a good balance. This ends up being a slight variation of our best single-target Rider build, with Menacing Magus[455135] and Cycle of Death being picked up instead of Morbidity[377592] and Infected Claws[207272] . San'layn is a viable option but generally has too low Single Target DPS to be good enough in Mythic+. For a more expansive Mythic+ centric discussion regarding talents, please have a look at our dedicated Mythic+ page: Best Unholy Death Knight Mythic+ Talents for Midnight",
+      "midnightEmbedHash": "#8D-fBhGGSWTZrqwSf2EoigywpKqkU01higcCsA-RSfdTOjPPwquUCbAS8CCYAFEELy2IQA-AAAA-OSMEoYIEISRDzC-",
+      "targetElementId": "midnight-skill-builder-2"
+    },
+    {
+      "areaId": "area_3",
+      "tabLabel": "Delves Build",
+      "headingId": "best-delves-talents-for-specspec-specclass",
+      "titlePlain": "Best Delves Talents for Unholy Death Knight",
+      "notesPlain": "2.3. The gameplay of delves cater well to our Dungeon build that brings a good balance between Single Target and AoE! You can read more about Delves on our dedicated page: Delves",
+      "midnightEmbedHash": "#8D-fBhGGSWTZrqwSf2EoigywpKqkU01higcCsA-RSfdTOjPPwquUCbAS8CCYAFEELy2IQA-AAAA-OSMEoYIEISRDzC-",
+      "targetElementId": "midnight-skill-builder-3"
+    }
+  ],
+  "proseSections": [
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "best-linkcurrentexpansion-talents-for-specspec-specclass",
+      "titlePlain": "Best Midnight Talents for Unholy Death Knight",
+      "bodyPlain": "Welcome to the talent guide for the Unholy Death Knight. Here we will discuss all matters associated with your talent choices, providing the best available builds as well as details regarding alternative picks and potential talent swaps. Unholy Death Knight can choose from two slightly different styles when it comes to talents; plagues or minions. Minion builds synergise well with Rider of the Apocalypse and pick talents such as Reanimation[210128] and Menacing Magus[455135] . Plague builds generally run San'layn with the Blightfall talent to really harvest the DoT power. The recommended build for both Raid and Mythic+ focus on minions, running Rider of the Apocalypse and Reanimation[210128] in both cases.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "apex",
+      "titlePlain": "Apex Talent: Forbidden Knowledge",
+      "bodyPlain": "Unholy Death Knight gets access to Forbidden Knowledge[1242158] Apex Talents as you level up from 80 to 90 in Midnight. The first rank provides a 30 seconds buff once you cast Army of the Dead[42650] , transforming your Death Coil[47541] into Necrotic Coil[1242174] and your Epidemic[207317] into Graveyard[383269] . These new abilities are powerful version of the baseline ones, notably adding an AoE component to Death Coil[47541] . The impact to the rotation is that Necrotic Coil[1242174] is used at up to 4 targets in AoE ( Death Coil[47541] is only used at up to 2). Rank 2 and 3 ( Forbidden Knowledge[1256565] ) gives Mastery when Putrefy[1247378] is cast and adds a stack of Lesser Ghoul[1254252] . Slightly less Festering Strike[85948] s are needed in the rotation but not much else. Rank 4 ( Forbidden Knowledge[1256566] ) increases the damage of Necrotic Coil[1242174] and Graveyard[383269] for each Magus of the Dead[390196] active, synergising well with Magus of the Dead[390196] and Reanimation[210128] . Furthermore, Dread Plague[1240996] has a 20% chance to trigger Putrefy[1247378] at 60% effectiveness, significantly increasing the number of Putrefy[1247378] triggered in the rotation overall. It is crucial to maintain good Dread Plague[1240996] and Festering Scythe[455397] uptime to get the most of this talent. Furthermore, your pets must be on assist for it to function properly.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "hero-talents",
+      "titlePlain": "Hero Talents",
+      "bodyPlain": "Available at level 71, Hero talents are mutually exclusive trees you can choose to slightly alter gameplay. Unholy Death Knight can choose between Rider of the Apocalypse and San'layn .",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "wowrideroftheapocalypseht",
+      "titlePlain": "Rider of the Apocalypse",
+      "bodyPlain": "The Rider of the Apocalypse Hero Talents focus on minion damage, summoning Horsemen to deal heavy damage to your enemies. You have minor rotational updates with Trollbane's Chains of Ice, where you want to burst them ASAP and you want to stay in Mograine's Death and Decay[43265] to get 5% damage boost. Otherwise, the main benefit comes from Death Charge[444010] which is an amazing mobility ability for Death Knights!",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "wowsanlaynht",
+      "titlePlain": "San'layn",
+      "bodyPlain": "The San'layn Hero Talents focus more on Plague damage and direct damage via Vampiric Strike[433901] and Death Coil[47541] and Epidemic[207317] boosts. Furthermore, it has an interesting quadratic scaling component via the Blood Beast[434237] ability and can run Blightfall which is a fun an interesting talent to play around. The main rotational difference is the introduction of Vampiric Strike[433901] that we get to press lots in our Dark Transformation[63560] window. We also try and proc it in-between our Dark Transformation windows to maintain the Essence of the Blood Queen[433925] buff.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "rotation",
+      "titlePlain": "Rotation",
+      "bodyPlain": "Talents can and usually do change your rotation or add new abilities to your priority. For a more detailed breakdown of how your rotation will look with optimal talents, check out our rotation page, which is linked below. Unholy DK Rotation and Cooldowns",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "pvp-talents-war-mode",
+      "titlePlain": "PvP Talents (War Mode)",
+      "bodyPlain": "PvP Talents are specific talents usable in PvP content. We can leverage these in open-world PvP to get some nice buffs. PvP talents enabled in the outdoor world. 15% more experience and quest awards gained while leveling. With the benefits of enabling War Mode for leveling and PvE content, it is recommended enabling the feature to maximize your leveling and rewards at maximum level. However, you will make yourself available for open-world PvP, and the possibility of being \"ganked\" while leveling or doing World Quests exists. Below, we will rank the PvP talents best used for leveling and doing solo or small group PvE content. Life and Death[288855] heals you for 10% of the amount your target afflicted by Dread Plague[1240996] receives. Not relevant for PvE really. Dark Simulacrum[77606] places a debuff on your enemy, activating when they cast a spell that uses mana. It allows you to use that same spell for some time. Not useful in PvE content. Necrotic Wounds[356520] - your Putrefy[1247378] now applies a Necrotic Wound to the target, absorbing 8% of all healing received for the next 15 seconds (max 3 stacks). Not useful in PvE content. Zombify[210128] - Costs 30 Runic Power and reanimates a nearby corpse into a zombie. The zombie will slowly walk towards you target, exploding and stunning all enemies in an area if it reaches the target. Somewhat useful stun in PvE content. Stitchmaster[1281529] heals you for 5% of your Lesser Ghoul[275430] s max health when they die (about 2.5% of your health). Death Strike[49998] sacrifices all active ghouls when pressed. A nice additional sustain in AoE with a DPS drawback as you might lose lesser ghoul uptime. Strangulate[47476] silences your target for 4 seconds. Inferior to just running Asphyxiate[221562] (it replaces the talent) and a pretty useless PvE talent. Doomburst[356512] causes your Death Coil[47541] s to deal 25% of your plague damage an additional time and slow the target by 45% for 3 seconds. Useful PvE talent is it is a DPS increase. Rot and Wither[202727] adds an absorption shield to any target hit by Death and Decay[43265] for 100% of the damage amount. Useless pretty much. Bloodforged Armor[410301] provides 4 seconds of 25% physical damage reduction whenever you press Death Strike[49998] . Solid defensive gain! Spellwarden[410320] lowers the cooldown of Anti-Magic Shell[48707] by 10 seconds and allows you to use it on allies. It's just a nice defensive gain because it allows more AMS usage. Doomburst[356512] is a solid choice due to its nice DPS gain. No other talent does much for us in PvE, and are primarily PvP choices. For a second and third option, we don't have much to choose from. Bloodforged Armor[410301] is generally best due to providing a good defensive gain, and Spellwarden[410320] is a small defensive gain! 7.",
+      "truncated": false
+    }
+  ]
+}

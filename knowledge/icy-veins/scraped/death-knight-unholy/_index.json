@@ -1,0 +1,47 @@
+{
+  "source": "icy-veins",
+  "scrapedAt": "2026-05-01T09:18:13.538Z",
+  "game": "wow-retail",
+  "classSlug": "death-knight",
+  "specSlug": "unholy",
+  "canonicalPages": {
+    "talents": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-spec-builds-talents",
+    "rotation": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-rotation-cooldowns-abilities"
+  },
+  "pages": {
+    "spec-builds-talents": {
+      "sourceUrl": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-spec-builds-talents",
+      "snapshotMetaOnly": {
+        "fetch": {
+          "httpStatus": 200,
+          "ok": true,
+          "blockedOrEmpty": false
+        },
+        "icyVeinsArticle": {
+          "headline": "Unholy Death Knight DPS Spec, Builds, and Talents - 12.0.5",
+          "dateModified": "2026-04-28T22:33:00+00:00",
+          "datePublished": "2012-03-12T11:03:00+00:00",
+          "authorName": "Bicepspump",
+          "description": "Find out the best talent builds for Raid, Mythic+ and PvP for Unholy Death Knight in WoW 12.0.5."
+        }
+      }
+    },
+    "rotation-cooldowns-abilities": {
+      "sourceUrl": "https://www.icy-veins.com/wow/unholy-death-knight-pve-dps-rotation-cooldowns-abilities",
+      "snapshotMetaOnly": {
+        "fetch": {
+          "httpStatus": 200,
+          "ok": true,
+          "blockedOrEmpty": false
+        },
+        "icyVeinsArticle": {
+          "headline": "Unholy Death Knight DPS Rotation, Cooldowns, and Abilities - 12.0.5",
+          "dateModified": "2026-04-21T17:44:00+00:00",
+          "datePublished": "2012-03-12T18:00:00+00:00",
+          "authorName": "Bicepspump",
+          "description": "Optimize your rotation and cooldowns to maximize your damage and DPS as an Unholy Death Knight in WoW 12.0.5."
+        }
+      }
+    }
+  }
+}
