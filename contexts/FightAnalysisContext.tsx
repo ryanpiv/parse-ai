@@ -27,6 +27,8 @@ import { genVerifier, genChallenge } from '../lib/pkce'
 import { buildRichContext, buildRichContextPlayerOne } from '../lib/buildContext'
 import { buildInitialCompareUserPrompt } from '../lib/buildContext/initialComparePrompt'
 import { simcAplAvailableForSpec } from '../lib/knowledge/embeddedSimc'
+import { wowheadReferenceAvailableForSpec } from '../lib/knowledge/embeddedWowhead'
+import { PRESET_CASTS_VS_SIMC_WOWHEAD } from '../lib/styles'
 import { fetchTalents } from '../lib/talents'
 import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
 
@@ -368,9 +370,30 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       const msg = q ?? inputCompare.trim()
       if (!msg) return
       setInputCompare('')
-      void runAI(msg, messagesCompare, undefined, 'compare')
+      const forceAplAndGuides = msg === PRESET_CASTS_VS_SIMC_WOWHEAD
+      const ctxOverride =
+        forceAplAndGuides && talentDiff
+          ? buildRichContext(p1data, p2data, talentDiff, {
+              isKill1: fightKill1,
+              isKill2: fightKill2,
+              simcGroundedAnalysis: simcAplAvailableForSpec(talentDiff.specId),
+              wowheadGroundedAnalysis: wowheadReferenceAvailableForSpec(talentDiff.specId),
+            })
+          : undefined
+      void runAI(msg, messagesCompare, ctxOverride, 'compare')
     },
-    [aiLoading, p1data, p2data, soloFromReport, inputCompare, messagesCompare, runAI]
+    [
+      aiLoading,
+      p1data,
+      p2data,
+      soloFromReport,
+      inputCompare,
+      messagesCompare,
+      runAI,
+      talentDiff,
+      fightKill1,
+      fightKill2,
+    ]
   )
 
   const sendAnalyzeQuestion = useCallback(
@@ -379,9 +402,18 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       const msg = q ?? inputAnalyze.trim()
       if (!msg) return
       setInputAnalyze('')
-      void runAI(msg, messagesAnalyze, undefined, 'analyze')
+      const forceAplAndGuides = msg === PRESET_CASTS_VS_SIMC_WOWHEAD
+      const ctxOverride =
+        forceAplAndGuides && talentDiff
+          ? buildRichContextPlayerOne(p1data, talentDiff, {
+              isKill1: fightKill1,
+              simcGroundedAnalysis: simcAplAvailableForSpec(talentDiff.specId),
+              wowheadGroundedAnalysis: wowheadReferenceAvailableForSpec(talentDiff.specId),
+            })
+          : undefined
+      void runAI(msg, messagesAnalyze, ctxOverride, 'analyze')
     },
-    [aiLoading, p1data, inputAnalyze, messagesAnalyze, runAI]
+    [aiLoading, p1data, inputAnalyze, messagesAnalyze, runAI, talentDiff, fightKill1]
   )
 
   const startInitialCompareAnalysis = useCallback(() => {

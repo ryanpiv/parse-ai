@@ -31,7 +31,12 @@ export const SOLO_INITIAL_QUICK_LABEL = 'Top 5 + deep dive (full default review)
 export const PRESET_SHOW_YOUR_WORK =
   'Evidence-first: (1) Observations only, each with a timestamp or cast-by-cast quote from the data. (2) Hypotheses where evidence is thin — label each low confidence. (3) At most 3 actionable verdicts; each must reuse evidence from (1). Do not claim rotation mistakes from cast counts or same-spell spacing alone without buff/proc/stack/movement context. Use ### headers.'
 
+/** Compare casts to bundled SimulationCraft APL + Wowhead rotation/talent excerpts (Frost Mage when scraped data exists; SimC for all supported SimC specs). */
+export const PRESET_CASTS_VS_SIMC_WOWHEAD =
+  'Compare my casts in this fight to SimulationCraft default APL and Wowhead rotation / talent guide data. Cite log timestamps; say when SimC, Wowhead, or my talents disagree; do not treat either reference as a perfect encounter script.'
+
 export const PRESET_QUESTIONS = [
+  PRESET_CASTS_VS_SIMC_WOWHEAD,
   PRESET_SHOW_YOUR_WORK,
   'Where is my rotation different and why does it matter?',
   "What's wrong with my opener?",
@@ -46,6 +51,7 @@ export const PRESET_QUESTIONS = [
 ]
 
 export const PRESET_QUESTIONS_SOLO = [
+  PRESET_CASTS_VS_SIMC_WOWHEAD,
   PRESET_SHOW_YOUR_WORK,
   'What do my crit rates on my hardest-hitting or most-cast spells suggest about this pull versus RNG?',
   'Where is the spacing between repeat casts of the same spell sloppy, and what should I do in those gaps?',

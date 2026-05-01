@@ -60,11 +60,21 @@ const TEST_TREE_NODES: TreeNodeInfo[] = [
 const TEST_BODY = [1,1,0,0, 0, 1,1,1, 0,0,0,0,0,1, 1, 0,1]
 const TEST_STRING = buildTalentString(1, 64, TEST_BODY)
 
+/** Wowhead talent-builds BBCode sample (Frost); header does not match ChrSpecialization id 64 — encoding/layout may differ from assumptions in decodeTalentString.ts. */
+const WOWHEAD_FROST_CAE_SAMPLE =
+  'CAEAAAAAAAAAAAAAAAAAAAAAAYGGLzMzswMzEzMzMzMzMziZmZMjZAAAgZmZWWmZaDAAAAAAsBw22YmZGMbDjZYDAAgZ2AmJjBMDGA'
+
 describe('parseTalentStringHeader', () => {
   it('extracts version and specId from the header', () => {
     const header = parseTalentStringHeader(TEST_STRING)
     expect(header.version).toBe(1)
     expect(header.specId).toBe(64)
+  })
+
+  it('documents observed Wowhead CAE header bits for a Frost mage snapshot string', () => {
+    const header = parseTalentStringHeader(WOWHEAD_FROST_CAE_SAMPLE)
+    expect(header.version).toBe(8)
+    expect(header.specId).toBe(256)
   })
 
   it('throws on empty string', () => {

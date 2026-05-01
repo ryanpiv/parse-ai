@@ -22,3 +22,6 @@ npm-debug.log*
 *.tsbuildinfo
 # Claude
 .claude/
+
+# Local Wowhead probe downloads (curl/debug)
+.tmp-*.html

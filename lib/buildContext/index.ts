@@ -6,6 +6,7 @@ import {
 } from './formatters'
 import { getClassGuideSupplement } from '../knowledge/embeddedGuides'
 import { getSimcAplSupplement } from '../knowledge/embeddedSimc'
+import { getWowheadReferenceSupplement } from '../knowledge/embeddedWowhead'
 import { coachingEvidenceRulesBlock } from './evidenceRules'
 
 interface KillStatus {
@@ -14,8 +15,10 @@ interface KillStatus {
 }
 
 export type BuildRichContextOptions = KillStatus & {
-  /** When true, include SimC default APL + opt-in framing (Frost Mage / spec 64 only for now). */
+  /** When true, include SimC default APL + opt-in framing for supported specs. */
   simcGroundedAnalysis?: boolean
+  /** When true, include bundled Wowhead scraped excerpts (supported specs only, e.g. Frost Mage 64). */
+  wowheadGroundedAnalysis?: boolean
 }
 
 export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: BuildRichContextOptions): string {
@@ -24,6 +27,7 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: Bu
   const isKill1 = options?.isKill1 ?? true
   const isKill2 = options?.isKill2 ?? true
   const simcGrounded = options?.simcGroundedAnalysis === true
+  const wowheadGrounded = options?.wowheadGroundedAnalysis === true
 
   let ctx = `You are an expert World of Warcraft raiding coach with deep knowledge of ${s1} mechanics in The War Within / Midnight Season 1.\n\n`
   ctx += `CRITICAL RULES:\n`
@@ -42,6 +46,9 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: Bu
 
   const simcExtra = getSimcAplSupplement(talentDiff?.specId, simcGrounded, n1, 'compare')
   if (simcExtra) ctx += simcExtra
+
+  const wowExtra = getWowheadReferenceSupplement(talentDiff?.specId, wowheadGrounded, n1, 'compare')
+  if (wowExtra) ctx += wowExtra
 
   if (!isKill1 || !isKill2) {
     ctx += `=== FIGHT COMPLETION STATUS ===\n`
@@ -147,6 +154,7 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: Bu
 export type BuildPlayerOneContextOptions = {
   isKill1: boolean
   simcGroundedAnalysis?: boolean
+  wowheadGroundedAnalysis?: boolean
 }
 
 /** Rich context for player 1 only (solo coaching, no vs-partner data). */
@@ -154,6 +162,7 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
   const { name: n1, spec: s1 } = p1
   const isKill1 = options.isKill1
   const simcGrounded = options.simcGroundedAnalysis === true
+  const wowheadGrounded = options.wowheadGroundedAnalysis === true
 
   let ctx = `You are an expert World of Warcraft raiding coach with deep knowledge of ${s1} mechanics in The War Within / Midnight Season 1.\n\n`
   ctx += `CRITICAL RULES:\n`
@@ -164,6 +173,9 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
   if (simcGrounded) {
     ctx += `- SimulationCraft is on: follow the expert framing in the SIMULATIONCRAFT section below; this combat log is authoritative when sim assumptions clearly do not match the fight\n`
   }
+  if (wowheadGrounded) {
+    ctx += `- Wowhead guide excerpts are on: treat them as author-written priorities from scraped BBCode; reconcile with this log and talents\n`
+  }
   ctx += `\n`
   ctx += coachingEvidenceRulesBlock()
 
@@ -172,6 +184,9 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
 
   const simcExtra = getSimcAplSupplement(talentDiff?.specId, simcGrounded, n1, 'solo')
   if (simcExtra) ctx += simcExtra
+
+  const wowExtra = getWowheadReferenceSupplement(talentDiff?.specId, wowheadGrounded, n1, 'solo')
+  if (wowExtra) ctx += wowExtra
 
   if (!isKill1) {
     ctx += `=== FIGHT COMPLETION STATUS ===\n`
