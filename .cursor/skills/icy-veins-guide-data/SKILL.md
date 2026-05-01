@@ -22,7 +22,7 @@ The scraper (`scripts/icy-veins/scrape-frost-mage.mjs`) fetches **those two URLs
 ## Layout
 
 - **Scraper scripts:** `scripts/icy-veins/` — `scrape-frost-mage.mjs`, `extractIcyVeinsChrome.mjs`, `discover-guide-urls.mjs`
-- **Snapshots (committed):** `knowledge/icy-veins/scraped/mage-frost/*.json` plus `_index.json`
+- **Snapshots (committed):** `knowledge/icy-veins/scraped/mage-frost/*.json` plus `_index.json` (includes **`canonicalPages`** for talents + rotation URLs and per-page `snapshotMetaOnly` for quick freshness checks)
 - **Hub link manifest:** `knowledge/icy-veins/class-guides-hub-links.json` (from `npm run discover-icy-veins-urls`)
 
 Wowhead bundles live in `lib/knowledge/embeddedWowhead.ts`; Icy Veins is **not** wired into presets by default — label explicitly if you add an embed module.
@@ -30,7 +30,7 @@ Wowhead bundles live in `lib/knowledge/embeddedWowhead.ts`; Icy Veins is **not**
 ## Refresh workflow
 
 1. From repo root: `npm run scrape-icy-veins-frost`.
-2. Confirm each page `snapshot.fetch.ok` is true in the written JSON.
+2. Confirm each page `snapshot.fetch.ok` is true in the written JSON (and optionally compare `snapshot.icyVeinsArticle.dateModified` / headline patch text to the live site).
 3. Commit updated files under `knowledge/icy-veins/`.
 
 Optional: `npm run discover-icy-veins-urls` to refresh the deduped path list from `https://www.icy-veins.com/wow/class-guides`.
@@ -44,13 +44,15 @@ Committed JSON is **structured plain text**, not raw `.page_content` HTML blobs.
 - **`introPlain`** — prose before the first tab/image widget.
 - **`recommendedTalentBuilds`** — one row per build tab: full tab label, title, notes with `SpellName[spellId]`, and **`midnightEmbedHash`** for IV’s embedded calculator.
 - **`proseSections`** — remaining headings (Apex, Hero Talents, PvP, etc.) after stripping the talent **image_block** widget (no duplicate calculator HTML).
-- **`relatedGuideUrls`** — links to the sibling rotation page (from breadcrumb TOC).
+- **`relatedGuideUrls`** — `canonicalBuildsAndTalents` and `canonicalRotationCooldowns` (from breadcrumb TOC, both pages).
+- **`specData`**, **`pageKey`**, **`pageType`** — small metadata.
+- **`snapshot.howToStayCurrent.talentEmbeds`** — present on the **talents** JSON only (Midnight embed note); rotation snapshot omits that line.
 
 ### Rotation page (`rotation-cooldowns-abilities.json`)
 
 - **`introPlain`** — short intro before tab widgets.
-- **`imageBlockPanels`** — each `image_block_content` panel: `rotation_tool_block_*` rotation tabs (with tab labels), `area_*` mechanics/cooldown tabs, plain body text with spells resolved to `Name[spellId]`.
-- **`headingSections`** — outline sections with bounded body length (large tab bodies truncated with `… [truncated]`).
+- **`imageBlockPanels`** — each `image_block_content` panel: **`panelId`**, **`tabLabel`** (rotation tabs only), **`panelKind`** (`rotation_tab` \| `topic_tab` \| `other`), **`bodyPlain`** with spells as `Name[spellId]`.
+- **`headingSections`** — outline sections with bounded body length (very long bodies truncated with `… [truncated]`).
 
 ## Compliance
 
