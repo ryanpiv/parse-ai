@@ -21,25 +21,38 @@ export const s: Record<string, CSSProperties> = {
   alertOk:  { fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, padding: '9px 12px', borderRadius: 4, marginTop: 8, lineHeight: 1.7, background: '#102a18', color: 'var(--green)', border: '1px solid #1a4a28' },
 }
 
-/** Compare quick grid — short label only; click sends the full Part 1/2 default (via `startInitialCompareAnalysis`). */
-export const COMPARE_INITIAL_QUICK_LABEL = 'Top 5 + deep dive (full default review)'
+/** Compare / solo quick grid — Part 1 + Part 2 review; tile is shorthand only. */
+export const COMPARE_INITIAL_QUICK_LABEL =
+  'Full review: top 5 problems + log-backed why'
 
-/** Solo quick grid — short label; click sends `buildInitialSoloUserPrompt` (full Part 1/2 default). */
-export const SOLO_INITIAL_QUICK_LABEL = 'Top 5 + deep dive (full default review)'
+export const SOLO_INITIAL_QUICK_LABEL =
+  'Full review: top 5 problems + log-backed why'
 
-/** Evidence-first preset (compare + solo). */
+/** Evidence-first preset (compare + solo) — full message sent on click. */
 export const PRESET_SHOW_YOUR_WORK =
   'Evidence-first: (1) Observations only, each with a timestamp or cast-by-cast quote from the data. (2) Hypotheses where evidence is thin — label each low confidence. (3) At most 3 actionable verdicts; each must reuse evidence from (1). Do not claim rotation mistakes from cast counts or same-spell spacing alone without buff/proc/stack/movement context. Use ### headers.'
+
+/** Short tile for evidence-first preset (differs from full prompt). */
+export const PRESET_SHOW_YOUR_WORK_LABEL = 'Evidence first: cite the log, then verdicts'
 
 /** Compare casts to bundled SimulationCraft APL + Wowhead rotation/talent excerpts (Frost Mage when scraped data exists; SimC for all supported SimC specs). */
 export const PRESET_CASTS_VS_SIMC_WOWHEAD =
   'Compare my casts in this fight to SimulationCraft default APL and Wowhead rotation / talent guide data. Cite log timestamps; say when SimC, Wowhead, or my talents disagree; do not treat either reference as a perfect encounter script.'
 
-export const PRESET_QUESTIONS = [
-  PRESET_CASTS_VS_SIMC_WOWHEAD,
-  PRESET_SHOW_YOUR_WORK,
+/** Short tile — sends a question; second grid control is the SimC context toggle, not this. */
+export const PRESET_CASTS_VS_SIMC_WOWHEAD_LABEL = 'Ask: log casts vs SimC + Wowhead'
+
+export type PresetPromptItem = string | { label: string; prompt: string }
+
+export function resolvePresetPrompt(p: PresetPromptItem): { label: string; prompt: string } {
+  return typeof p === 'string' ? { label: p, prompt: p } : p
+}
+
+export const PRESET_QUESTIONS: PresetPromptItem[] = [
+  'How is my opener?',
+  { label: PRESET_CASTS_VS_SIMC_WOWHEAD_LABEL, prompt: PRESET_CASTS_VS_SIMC_WOWHEAD },
+  { label: PRESET_SHOW_YOUR_WORK_LABEL, prompt: PRESET_SHOW_YOUR_WORK },
   'Where is my rotation different and why does it matter?',
-  "What's wrong with my opener?",
   'Am I using my procs efficiently? Where am I wasting procs?',
   'How should I be aligning my cooldowns for maximum burst?',
   'When should I hold cooldowns for adds vs use them immediately?',
@@ -50,15 +63,15 @@ export const PRESET_QUESTIONS = [
   'Give me a priority list of exactly what to fix first.',
 ]
 
-export const PRESET_QUESTIONS_SOLO = [
-  PRESET_CASTS_VS_SIMC_WOWHEAD,
-  PRESET_SHOW_YOUR_WORK,
-  'What do my crit rates on my hardest-hitting or most-cast spells suggest about this pull versus RNG?',
-  'Where is the spacing between repeat casts of the same spell sloppy, and what should I do in those gaps?',
+export const PRESET_QUESTIONS_SOLO: PresetPromptItem[] = [
+  'How is my opener this pull?',
+  { label: PRESET_CASTS_VS_SIMC_WOWHEAD_LABEL, prompt: PRESET_CASTS_VS_SIMC_WOWHEAD },
+  { label: PRESET_SHOW_YOUR_WORK_LABEL, prompt: PRESET_SHOW_YOUR_WORK },
+  'Using crit %, cast spacing, damage taken, downtime, and add death times from this extract, what are the 2–3 strongest play signals in this pull — and what is probably just variance?',
+  'Where am I mistiming globals around movement, add spawns, or burst windows (use npc deaths and timelines, not same-spell spacing alone)?',
   'Given my total damage taken in this log, what mistakes or missing defensives stand out?',
   'How should I line up my major cooldowns with this encounter’s timeline (add spawns / deaths in the log)?',
-  "What's wrong with my opener on this pull?",
   'Am I wasting procs or letting buffs fall off without spending them?',
   'What is driving my downtime and what is one concrete way to press more globals?',
-  'What one habit should I drill on the next pull before worrying about anything else?',
+  'What one thing should I improve that would be most impactful for this pull?',
 ]

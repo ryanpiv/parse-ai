@@ -14,7 +14,7 @@ import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
 import { buildInitialSoloUserPrompt } from '../../lib/buildContext/initialComparePrompt'
-import { s, PRESET_QUESTIONS_SOLO, SOLO_INITIAL_QUICK_LABEL } from '../../lib/styles'
+import { s, PRESET_QUESTIONS_SOLO, SOLO_INITIAL_QUICK_LABEL, resolvePresetPrompt } from '../../lib/styles'
 
 export function SoloFightView() {
   const fa = useFightAnalysis()
@@ -400,39 +400,6 @@ export function SoloFightView() {
                   ) : undefined
                 }
               >
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 10,
-                    marginBottom: 12,
-                    cursor: simcAplAvailableForSpec(talentDiff?.specId) ? 'pointer' : 'not-allowed',
-                    fontFamily: 'IBM Plex Mono,monospace',
-                    fontSize: 11,
-                    color: 'var(--muted)',
-                    lineHeight: 1.45,
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={simcCompareEnabled && simcAplAvailableForSpec(talentDiff?.specId)}
-                    disabled={!simcAplAvailableForSpec(talentDiff?.specId)}
-                    onChange={e => setSimcCompareEnabled(e.target.checked)}
-                    style={{ marginTop: 2, flexShrink: 0 }}
-                  />
-                  <span>
-                    <strong style={{ color: 'var(--text)' }}>Compare to SimulationCraft</strong>
-                    {' — '}
-                    include SimulationCraft&apos;s default APL for this spec as optional guidance when assumptions match
-                    this pull; it is not a 1:1 benchmark to every boss (opt-in).
-                    {!simcAplAvailableForSpec(talentDiff?.specId) && (
-                      <span style={{ color: 'var(--dim)' }}>
-                        {' '}
-                        (Mage & Death Knight only—all three specs each.)
-                      </span>
-                    )}
-                  </span>
-                </label>
                 <div
                   ref={chatRef}
                   style={{
@@ -559,7 +526,7 @@ export function SoloFightView() {
                       )
                     }}
                     disabled={aiLoading}
-                    title="Sends the full default solo prompt (Part 1 + Part 2, wipe note, SimC line if enabled) — tile is shorthand only."
+                    title="Sends the full default solo prompt (Part 1 + Part 2, wipe note). Adds SimulationCraft APL to context only when “Compare to SimulationCraft APL” is on (gold border) for a supported spec — shorthand label only."
                     style={{
                       fontFamily: 'IBM Plex Mono,monospace',
                       fontSize: 11,
@@ -585,38 +552,86 @@ export function SoloFightView() {
                   >
                     {SOLO_INITIAL_QUICK_LABEL}
                   </button>
-                  {PRESET_QUESTIONS_SOLO.map((q, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => sendAnalyzeQuestion(q)}
-                      disabled={aiLoading}
-                      style={{
-                        fontFamily: 'IBM Plex Mono,monospace',
-                        fontSize: 11,
-                        padding: '7px 10px',
-                        background: 'var(--bg3)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 3,
-                        color: 'var(--muted)',
-                        cursor: aiLoading ? 'not-allowed' : 'pointer',
-                        textAlign: 'left',
-                        lineHeight: 1.4,
-                      }}
-                      onMouseEnter={e => {
-                        if (!aiLoading) {
+                  {(() => {
+                    const simcForSpec = simcAplAvailableForSpec(talentDiff?.specId)
+                    const simcOn = simcCompareEnabled && simcForSpec
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (simcForSpec) setSimcCompareEnabled(!simcCompareEnabled)
+                        }}
+                        disabled={aiLoading}
+                        title={
+                          simcForSpec
+                            ? 'Click to include SimulationCraft’s default APL in Claude’s system context (gold border = on). Does not send a message. Use “Ask: log casts vs SimC + Wowhead” to request a cast-by-cast comparison.'
+                            : 'SimulationCraft APL context is only wired for Mage and Death Knight (all three specs each).'
+                        }
+                        style={{
+                          fontFamily: 'IBM Plex Mono,monospace',
+                          fontSize: 11,
+                          padding: '7px 10px',
+                          background: 'var(--bg3)',
+                          border: `1px solid ${simcOn ? 'var(--golddim)' : 'var(--border)'}`,
+                          borderRadius: 3,
+                          color: simcOn ? 'var(--gold)' : 'var(--muted)',
+                          cursor: aiLoading ? 'not-allowed' : simcForSpec ? 'pointer' : 'not-allowed',
+                          opacity: simcForSpec ? 1 : 0.65,
+                          textAlign: 'left',
+                          lineHeight: 1.4,
+                        }}
+                        onMouseEnter={e => {
+                          if (aiLoading || !simcForSpec) return
                           ;(e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'
                           ;(e.target as HTMLButtonElement).style.color = 'var(--gold)'
-                        }
-                      }}
-                      onMouseLeave={e => {
-                        ;(e.target as HTMLButtonElement).style.borderColor = 'var(--border)'
-                        ;(e.target as HTMLButtonElement).style.color = 'var(--muted)'
-                      }}
-                    >
-                      {q}
-                    </button>
-                  ))}
+                        }}
+                        onMouseLeave={e => {
+                          const el = e.target as HTMLButtonElement
+                          el.style.borderColor = simcOn ? 'var(--golddim)' : 'var(--border)'
+                          el.style.color = simcOn ? 'var(--gold)' : 'var(--muted)'
+                        }}
+                      >
+                        {simcForSpec
+                          ? 'Compare to SimulationCraft APL'
+                          : 'Compare to SimulationCraft APL (unavailable)'}
+                      </button>
+                    )
+                  })()}
+                  {PRESET_QUESTIONS_SOLO.map((p, i) => {
+                    const { label, prompt } = resolvePresetPrompt(p)
+                    return (
+                      <button
+                        key={`${i}-${label}`}
+                        type="button"
+                        onClick={() => sendAnalyzeQuestion(prompt)}
+                        disabled={aiLoading}
+                        style={{
+                          fontFamily: 'IBM Plex Mono,monospace',
+                          fontSize: 11,
+                          padding: '7px 10px',
+                          background: 'var(--bg3)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 3,
+                          color: 'var(--muted)',
+                          cursor: aiLoading ? 'not-allowed' : 'pointer',
+                          textAlign: 'left',
+                          lineHeight: 1.4,
+                        }}
+                        onMouseEnter={e => {
+                          if (!aiLoading) {
+                            ;(e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'
+                            ;(e.target as HTMLButtonElement).style.color = 'var(--gold)'
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          ;(e.target as HTMLButtonElement).style.borderColor = 'var(--border)'
+                          ;(e.target as HTMLButtonElement).style.color = 'var(--muted)'
+                        }}
+                      >
+                        {label}
+                      </button>
+                    )
+                  })}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <input
