@@ -1,0 +1,243 @@
+{
+  "sourceUrl": "https://www.icy-veins.com/wow/frost-mage-pve-dps-rotation-cooldowns-abilities",
+  "pageKey": "rotation-cooldowns-abilities",
+  "pageType": "rotation-cooldowns-abilities",
+  "snapshot": {
+    "scrapedAt": "2026-05-01T09:07:32.270Z",
+    "sourcePageUrl": "https://www.icy-veins.com/wow/frost-mage-pve-dps-rotation-cooldowns-abilities",
+    "fetch": {
+      "httpStatus": 200,
+      "ok": true,
+      "blockedOrEmpty": false
+    },
+    "icyVeinsArticle": {
+      "headline": "Frost Mage DPS Rotation, Cooldowns, and Abilities - 12.0.5",
+      "dateModified": "2026-04-20T20:55:00+00:00",
+      "datePublished": "2012-02-01T19:18:00+00:00",
+      "authorName": "Kuni",
+      "description": "Optimize your rotation and cooldowns to maximize your damage and DPS as a Frost Mage in WoW 12.0.5."
+    },
+    "howToStayCurrent": {
+      "refreshProcedure": "Re-run `npm run scrape-icy-veins-frost` when guides change; commit JSON under knowledge/icy-veins/scraped/."
+    }
+  },
+  "specData": {
+    "specName": "Frost",
+    "className": "Mage"
+  },
+  "relatedGuideUrls": {
+    "canonicalBuildsAndTalents": "https://www.icy-veins.com/wow/frost-mage-pve-dps-spec-builds-talents",
+    "canonicalRotationCooldowns": "https://www.icy-veins.com/wow/frost-mage-pve-dps-rotation-cooldowns-abilities"
+  },
+  "introPlain": "1. Frost Mage Rotation for Midnight Welcome to our Rotation page for Frost Mages. On this page, you will find everything you need to know about actually playing the spec in Raiding and Mythic+ scenarios. Each of the sections below explain the Rotation for Frost Mage in different content types and describes the theory behind how these rotations. Click the boxes to switch to the desired damage type.",
+  "imageBlockPanels": [
+    {
+      "panelId": "rotation_tool_block_0",
+      "tabLabel": "Basics of Frost Mage",
+      "panelKind": "rotation_tab",
+      "bodyPlain": "At its most basic, the premise of Frost Mage is to spam Frostbolt[116] to stack Freezing or until you gain a proc. Fingers of Frost[112965] allows you to cast Ice Lance[30455] and gain the benefits of a full stack of Freezing. Brain Freeze[190447] resets the cooldown of Flurry[44614] . Adding talents to the mix, Comet Storm[1247777] adds a second use after each Ray of Frost[205021] that consumes Freezing stacks on any targets hit in addition to hitting hard itself. Cone of Frost[1247090] changes your Cone of Cold[120] (or Ice Nova[157997] if talented for it instead) to add multiple stacks of Freezing in an AoE. Thermal Void[1247729] changes how you play around with Ice Lance[30455] slightly. 2.1. Proc Management Use Fingers of Frost[112965] and Brain Freeze[190447] as they come. Fingers of Frost[112965] makes your Ice Lance[30455] deal damage as if it consumed the maximum amount of Freezing off any given target, including a target with none on it at all. Brain Freeze[190447] can, if talented into Thermal Void[1247729] , double the amount of your next Ice Lance[30455] 's (within 8 seconds) Freezing stack consumption. This does work with Fingers of Frost[112965] as well, allowing you to Shatter[1246769] up to 12 stacks worth of damage without consuming any Freezing. 2.2. Maximizing Cleave Ultimately, Frost Mage is primarily about abusing your casts in a way that is suitable to the situation. There are an enormous amount of possibilities, synergies, and overlaps that will provide an advantageous result. It is important, therefore, that you, as a player, think carefully about how you can use your spells in a way that makes sense. Try to avoid using your major abilities haphazardly or without thinking, as this will invariably result in you losing a lot of damage. When your Frozen Orb[84714] is about to come off cooldown, for example, start thinking about the ways you are going to cleave with it or if the boss is going to be moved. Check your boss's timers to see how you can line it up for a phase with increased damage dealt or AoE. A lot of this might seem like common sense, but you would be surprised how uncommon that is!"
+    },
+    {
+      "panelId": "rotation_tool_block_1",
+      "tabLabel": "Frostfire Single Target Rotation",
+      "panelKind": "rotation_tab",
+      "bodyPlain": "Single-Target Opener Pre-cast Blizzard[190356] at 2 seconds on the countdown. Cast Flurry[44614] to start the cooldown. Activate Time Warp[80353] if popping on pull. Cast Frostbolt[116] . Cast Flurry[44614] again. Cast Ray of Frost[205021] . Cast Frozen Orb[84714] . Follow your normal priority, as indicated below. 2.3. Single-Target Priority Cast Flurry[44614] . Cast Flurry[44614] if Thermal Void[1247729] is not already active and you have Brain Freeze[190447] . Cast Frozen Orb[84714] . Cast Glacial Spike[199786] when available. Cast Comet Storm[1247777] . Cast Ice Lance[30455] at 10 or more stacks of Freezing, or if Fingers of Frost[112965] is active. Cast Flurry[44614] if you have a charge available but no Brain Freeze[190447] . Cast Ray of Frost[205021] . Cast Frostfire Bolt[431044] . This works out to functionally \"get everything on cooldown\" and try to incidentally optimize around Thermal Void[1247729] in an entirely passive way. The gameplay loop is very simple once you get a feel for it. Frost likes to continue to single target even on 2 target cleave, the AoE rotation does not take over until 3 or more."
+    },
+    {
+      "panelId": "rotation_tool_block_2",
+      "tabLabel": "Frostfire AoE Rotation",
+      "panelKind": "rotation_tab",
+      "bodyPlain": "AoE Opener Pre-cast Blizzard[190356] at 2 seconds on the countdown. Cast Flurry[44614] to start the cooldown. Activate Time Warp[80353] if popping on pull. Cast Frostbolt[116] . Cast Flurry[44614] again. Cast Ray of Frost[205021] . Cast Frozen Orb[84714] . Cast Comet Storm[1247777] . Follow your normal priority, as indicated below. 2.4. AoE Priority Cast Blizzard[190356] if Freezing Rain[270233] is active. Cast Flurry[44614] with Brain Freeze[190447] . Cast Flurry[44614] with Brain Freeze[190447] if Thermal Void[1247729] is not already active. Cast Frozen Orb[84714] . Cast Glacial Spike[199786] . Cast Comet Storm[1247777] . Cast Blizzard[190356] . Cast Ice Lance[30455] if Fingers of Frost[112965] is active or you have 10 or more Freezing on the target. Cast Flurry[44614] if you have a charge available but no Brain Freeze[190447] . Cast Frostfire Bolt[431044] if you have Frostfire Empowerment[431176] active. Cast Ray of Frost[205021] . Cast Frostfire Bolt[431044] . Cone of Frost[1247090] is currently undertuned, and not worth casting for Frostfire . You should instead try to proc Frostfire Empowerment[431176] using the rest of the kit."
+    },
+    {
+      "panelId": "rotation_tool_block_3",
+      "tabLabel": "Spellslinger Single Target Rotation",
+      "panelKind": "rotation_tab",
+      "bodyPlain": "2.5. Single-Target Opener Pre-cast Frostbolt[116] . Cast Ray of Frost[205021] . Cast Ice Lance[30455] . Follow your normal priority, as indicated below. Single-Target Priority Cast Comet Storm[1247777] . Cast Flurry[44614] with Brain Freeze[190447] . Cast Flurry[44614] with Brain Freeze[190447] if Thermal Void[1247729] is not already active. Cast Frozen Orb[84714] . Cast Ice Lance[30455] if you have Fingers of Frost[112965] . Cast Glacial Spike[199786] when available. Cast Ice Lance[30455] whenever you are at or above 6 Freezing on target. Cast Ray of Frost[205021] . Cast Flurry[44614] . Cast Frostbolt[116] . This works out to functionally \"get everything on cooldown\". Thermal Void[1247729] is something you ignore when deciding to Ice Lance[30455] , and simply hope that it consumes more than 6 stacks. The gameplay loop is very simple once you get a feel for it. Frost likes to continue to single target even on 2 target cleave, the AoE rotation does not take over until 3 or more."
+    },
+    {
+      "panelId": "rotation_tool_block_4",
+      "tabLabel": "Spellslinger AoE Rotation",
+      "panelKind": "rotation_tab",
+      "bodyPlain": "AoE Opener Cast Blizzard[190356] . Cast Flurry[44614] . Cast Frozen Orb[84714] . Cast Ray of Frost[205021] . Follow your normal priority, as indicated below. 2.6. AoE Priority Cast Comet Storm[1247777] . Cast Blizzard[190356] if Freezing Rain[270233] is active. Cast Flurry[44614] with Brain Freeze[190447] . Cast Flurry[44614] with Brain Freeze[190447] if Thermal Void[1247729] is not already active. Cast Frozen Orb[84714] . Cast Ice Lance[30455] if you have Fingers of Frost[112965] . Cast Glacial Spike[199786] when available. Cast Ice Lance[30455] whenever you are above 6 Freezing on target. Cast Ice Nova[157997] . Cast Cone of Cold[120] . Cast Blizzard[190356] if you are fighting 5 or more enemies. Cast Flurry[44614] . Cast Ray of Frost[205021] . Cast Frostbolt[116] . Non-instant Blizzard[190356] is fairly weak when compared to continuing to generate Splinters, which will reduce the cooldown of Frozen Orb[84714] , which is both a massive AoE increase and the proc for instant cast Blizzard. Hence, it is not cast when it is not instant, outside of Freezing Winds[1216953] being talented."
+    },
+    {
+      "panelId": "area_a",
+      "tabLabel": null,
+      "panelKind": "topic_tab",
+      "bodyPlain": "2.7. Freezing Freezing is a debuff stacked on the target by most of your spells. This can be triggered by Ice Lance[30455] , Comet Storm[1247777] , and Glacial Spike[199786] when talented into Glacial Shatter[1280780] . This will trigger Shatter[1246769] , dealing damage to the target and a lesser amount to targets nearby based on how many stacks were consumed by the spell. Additionally, this AoE component will fire if the target dies, via Winter's End[1247775] , dealing reduced damage in AoE that it would have normally triggered for that many stacks. You will routinely over-cap the stack cap of 20. This is, sadly, unavoidable. FAQ How Many Stacks of Freezing do I Lance at? 6+ on Spellslinger , 10+ on Frostfire ."
+    },
+    {
+      "panelId": "area_b",
+      "tabLabel": null,
+      "panelKind": "topic_tab",
+      "bodyPlain": "2.8. Apex Talent Hand of Frost[1262935] causes any Shatter event to have a 10% chance to fire an extra spell that hits fairly hard, and adds 1 stack of Freezing to the target. Hand of Frost[1262981] takes that, and increases the proc chance based on how many stacks were consumed. Each time the damage spell procs, gain a 1% damage buff for a few seconds. This can stack, and each stack is timed individually, so they will rise and fall gradually as you play. Hand of Frost[1263249] procs 4 of the damage spells over the duration of Ray of Frost[205021] , buffs Ray's damage, and adds a second charge to the spell. For the most part this is an entirely passive talent, but it is fairly strong. The flexibility of having a second charge on Ray of Frost[205021] allows us to pool a charge for important things, such as trinket procs or vulnerability phases."
+    },
+    {
+      "panelId": "area_z",
+      "tabLabel": null,
+      "panelKind": "topic_tab",
+      "bodyPlain": "3.1. Ray of Frost Ray of Frost[205021] is our \"main\" cooldown, available every minute. It causes you to channel for 4 seconds, dealing significant damage to the target, and stacking Freezing every tick. It has two improvement talents directly under it in the talent tree, Frigid Focus[1247055] and Splintering Ray[418733] . Frigid Focus is self explanatory, but Splintering Ray will pick the nearest 5 targets to your Ray target, and deal a portion of the damage each tick to those. While talented into Comet Storm[1247777] , the button transforms into Comet Storm after a cast. FAQ Why is Ray of Frost Such a Low Priority? Since Ray of Frost[205021] generates so many Freezing stacks, it is better to consume as many as required for your Hero Talent before casting it, to maximize value."
+    },
+    {
+      "panelId": "area_y",
+      "tabLabel": null,
+      "panelKind": "topic_tab",
+      "bodyPlain": "3.2. Frozen Orb Frozen Orb[84714] is our secondary cooldown. This deals AoE damage every half second for 15 seconds. On cast, it will fly outwards rapidly until it hits a target, at which point it will slow drastically. After 3 seconds, it will start to slowly track the mob you originally had targeted when you cast it."
+    }
+  ],
+  "headingSections": [
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "specspec-specclass-rotation-for-linkcurrentexpansion",
+      "titlePlain": "Frost Mage Rotation for Midnight",
+      "bodyPlain": "Welcome to our Rotation page for Frost Mages. On this page, you will find everything you need to know about actually playing the spec in Raiding and Mythic+ scenarios. Each of the sections below explain the Rotation for Frost Mage in different content types and describes the theory behind how these rotations. Click the boxes to switch to the desired damage type.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "frost-mage",
+      "titlePlain": "Frost Mage Rotation",
+      "bodyPlain": "The buttons below can be used to select between curated loadouts from our Talents page. The icon below means it is the recommended choice . Frostfire Single Target Frostfire AoE Spellslinger Single Target Spellslinger AoE Active Talents Passive Talents Comet Storm[1247777] Thermal Void[1247729] Ice Nova[157997] Freezing Rain[270233] Freezing Winds[1216953] Cone of Frost[1247090] Basics of Frost Mage Frostfire Single Target Rotation Frostfire AoE Rotation Spellslinger Single Target Rotation Spellslinger AoE Rotation At its most basic, the premise of Frost Mage is to spam Frostbolt[116] to stack Freezing or until you gain a proc. Fingers of Frost[112965] allows you to cast Ice Lance[30455] and gain the benefits of a full stack of Freezing. Brain Freeze[190447] resets the cooldown of Flurry[44614] . Adding talents to the mix, Comet Storm[1247777] adds a second use after each Ray of Frost[205021] that consumes Freezing stacks on any targets hit in addition to hitting hard itself. Cone of Frost[1247090] changes your Cone of Cold[120] (or Ice Nova[157997] if talented for it instead) to add multiple stacks of Freezing in an AoE. Thermal Void[1247729] changes how you play around with Ice Lance[30455] slightly.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "proc-management",
+      "titlePlain": "Proc Management",
+      "bodyPlain": "Use Fingers of Frost[112965] and Brain Freeze[190447] as they come. Fingers of Frost[112965] makes your Ice Lance[30455] deal damage as if it consumed the maximum amount of Freezing off any given target, including a target with none on it at all. Brain Freeze[190447] can, if talented into Thermal Void[1247729] , double the amount of your next Ice Lance[30455] 's (within 8 seconds) Freezing stack consumption. This does work with Fingers of Frost[112965] as well, allowing you to Shatter[1246769] up to 12 stacks worth of damage without consuming any Freezing.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "maximizing-cleave",
+      "titlePlain": "Maximizing Cleave",
+      "bodyPlain": "Ultimately, Frost Mage is primarily about abusing your casts in a way that is suitable to the situation. There are an enormous amount of possibilities, synergies, and overlaps that will provide an advantageous result. It is important, therefore, that you, as a player, think carefully about how you can use your spells in a way that makes sense. Try to avoid using your major abilities haphazardly or without thinking, as this will invariably result in you losing a lot of damage. When your Frozen Orb[84714] is about to come off cooldown, for example, start thinking about the ways you are going to cleave with it or if the boss is going to be moved. Check your boss's timers to see how you can line it up for a phase with increased damage dealt or AoE. A lot of this might seem like common sense, but you would be surprised how uncommon that is! Single-Target Opener Pre-cast Blizzard[190356] at 2 seconds on the countdown. Cast Flurry[44614] to start the cooldown. Activate Time Warp[80353] if popping on pull. Cast Frostbolt[116] . Cast Flurry[44614] again. Cast Ray of Frost[205021] . Cast Frozen Orb[84714] . Follow your normal priority, as indicated below.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "single-target-priority",
+      "titlePlain": "Single-Target Priority",
+      "bodyPlain": "Cast Flurry[44614] . Cast Flurry[44614] if Thermal Void[1247729] is not already active and you have Brain Freeze[190447] . Cast Frozen Orb[84714] . Cast Glacial Spike[199786] when available. Cast Comet Storm[1247777] . Cast Ice Lance[30455] at 10 or more stacks of Freezing, or if Fingers of Frost[112965] is active. Cast Flurry[44614] if you have a charge available but no Brain Freeze[190447] . Cast Ray of Frost[205021] . Cast Frostfire Bolt[431044] . This works out to functionally \"get everything on cooldown\" and try to incidentally optimize around Thermal Void[1247729] in an entirely passive way. The gameplay loop is very simple once you get a feel for it. Frost likes to continue to single target even on 2 target cleave, the AoE rotation does not take over until 3 or more. AoE Opener Pre-cast Blizzard[190356] at 2 seconds on the countdown. Cast Flurry[44614] to start the cooldown. Activate Time Warp[80353] if popping on pull. Cast Frostbolt[116] . Cast Flurry[44614] again. Cast Ray of Frost[205021] . Cast Frozen Orb[84714] . Cast Comet Storm[1247777] . Follow your normal priority, as indicated below.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "aoe-priority",
+      "titlePlain": "AoE Priority",
+      "bodyPlain": "Cast Blizzard[190356] if Freezing Rain[270233] is active. Cast Flurry[44614] with Brain Freeze[190447] . Cast Flurry[44614] with Brain Freeze[190447] if Thermal Void[1247729] is not already active. Cast Frozen Orb[84714] . Cast Glacial Spike[199786] . Cast Comet Storm[1247777] . Cast Blizzard[190356] . Cast Ice Lance[30455] if Fingers of Frost[112965] is active or you have 10 or more Freezing on the target. Cast Flurry[44614] if you have a charge available but no Brain Freeze[190447] . Cast Frostfire Bolt[431044] if you have Frostfire Empowerment[431176] active. Cast Ray of Frost[205021] . Cast Frostfire Bolt[431044] . Cone of Frost[1247090] is currently undertuned, and not worth casting for Frostfire . You should instead try to proc Frostfire Empowerment[431176] using the rest of the kit.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "single-target-opener",
+      "titlePlain": "Single-Target Opener",
+      "bodyPlain": "Pre-cast Frostbolt[116] . Cast Ray of Frost[205021] . Cast Ice Lance[30455] . Follow your normal priority, as indicated below. Single-Target Priority Cast Comet Storm[1247777] . Cast Flurry[44614] with Brain Freeze[190447] . Cast Flurry[44614] with Brain Freeze[190447] if Thermal Void[1247729] is not already active. Cast Frozen Orb[84714] . Cast Ice Lance[30455] if you have Fingers of Frost[112965] . Cast Glacial Spike[199786] when available. Cast Ice Lance[30455] whenever you are at or above 6 Freezing on target. Cast Ray of Frost[205021] . Cast Flurry[44614] . Cast Frostbolt[116] . This works out to functionally \"get everything on cooldown\". Thermal Void[1247729] is something you ignore when deciding to Ice Lance[30455] , and simply hope that it consumes more than 6 stacks. The gameplay loop is very simple once you get a feel for it. Frost likes to continue to single target even on 2 target cleave, the AoE rotation does not take over until 3 or more. AoE Opener Cast Blizzard[190356] . Cast Flurry[44614] . Cast Frozen Orb[84714] . Cast Ray of Frost[205021] . Follow your normal priority, as indicated below.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "aoe-priority-1",
+      "titlePlain": "AoE Priority",
+      "bodyPlain": "Cast Comet Storm[1247777] . Cast Blizzard[190356] if Freezing Rain[270233] is active. Cast Flurry[44614] with Brain Freeze[190447] . Cast Flurry[44614] with Brain Freeze[190447] if Thermal Void[1247729] is not already active. Cast Frozen Orb[84714] . Cast Ice Lance[30455] if you have Fingers of Frost[112965] . Cast Glacial Spike[199786] when available. Cast Ice Lance[30455] whenever you are above 6 Freezing on target. Cast Ice Nova[157997] . Cast Cone of Cold[120] . Cast Blizzard[190356] if you are fighting 5 or more enemies. Cast Flurry[44614] . Cast Ray of Frost[205021] . Cast Frostbolt[116] . Non-instant Blizzard[190356] is fairly weak when compared to continuing to generate Splinters, which will reduce the cooldown of Frozen Orb[84714] , which is both a massive AoE increase and the proc for instant cast Blizzard. Hence, it is not cast when it is not instant, outside of Freezing Winds[1216953] being talented.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "specspec-specclass-gameplay-mechanics",
+      "titlePlain": "Frost Mage Gameplay Mechanics",
+      "bodyPlain": "Freezing and Shattering Apex Talent",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "freezing",
+      "titlePlain": "Freezing",
+      "bodyPlain": "Freezing is a debuff stacked on the target by most of your spells. This can be triggered by Ice Lance[30455] , Comet Storm[1247777] , and Glacial Spike[199786] when talented into Glacial Shatter[1280780] . This will trigger Shatter[1246769] , dealing damage to the target and a lesser amount to targets nearby based on how many stacks were consumed by the spell. Additionally, this AoE component will fire if the target dies, via Winter's End[1247775] , dealing reduced damage in AoE that it would have normally triggered for that many stacks. You will routinely over-cap the stack cap of 20. This is, sadly, unavoidable. FAQ How Many Stacks of Freezing do I Lance at? 6+ on Spellslinger , 10+ on Frostfire .",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "apex-talent",
+      "titlePlain": "Apex Talent",
+      "bodyPlain": "Hand of Frost[1262935] causes any Shatter event to have a 10% chance to fire an extra spell that hits fairly hard, and adds 1 stack of Freezing to the target. Hand of Frost[1262981] takes that, and increases the proc chance based on how many stacks were consumed. Each time the damage spell procs, gain a 1% damage buff for a few seconds. This can stack, and each stack is timed individually, so they will rise and fall gradually as you play. Hand of Frost[1263249] procs 4 of the damage spells over the duration of Ray of Frost[205021] , buffs Ray's damage, and adds a second charge to the spell. For the most part this is an entirely passive talent, but it is fairly strong. The flexibility of having a second charge on Ray of Frost[205021] allows us to pool a charge for important things, such as trinket procs or vulnerability phases.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "specspec-specclass-cooldowns",
+      "titlePlain": "Frost Mage Cooldowns",
+      "bodyPlain": "",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "specspec-specclass-major-cooldowns",
+      "titlePlain": "Frost Mage Major Cooldowns",
+      "bodyPlain": "Ray of Frost[205021] Frozen Orb[84714]",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "ray-of-frost",
+      "titlePlain": "Ray of Frost",
+      "bodyPlain": "Ray of Frost[205021] is our \"main\" cooldown, available every minute. It causes you to channel for 4 seconds, dealing significant damage to the target, and stacking Freezing every tick. It has two improvement talents directly under it in the talent tree, Frigid Focus[1247055] and Splintering Ray[418733] . Frigid Focus is self explanatory, but Splintering Ray will pick the nearest 5 targets to your Ray target, and deal a portion of the damage each tick to those. While talented into Comet Storm[1247777] , the button transforms into Comet Storm after a cast. FAQ Why is Ray of Frost Such a Low Priority? Since Ray of Frost[205021] generates so many Freezing stacks, it is better to consume as many as required for your Hero Talent before casting it, to maximize value.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "frozen-orb",
+      "titlePlain": "Frozen Orb",
+      "bodyPlain": "Frozen Orb[84714] is our secondary cooldown. This deals AoE damage every half second for 15 seconds. On cast, it will fly outwards rapidly until it hits a target, at which point it will slow drastically. After 3 seconds, it will start to slowly track the mob you originally had targeted when you cast it.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "tier-bonuses-for-frost-mage",
+      "titlePlain": "Tier Bonuses for Frost Mage",
+      "bodyPlain": "These are fully passive bonuses, and do not impact your gameplay in any way. Mage Frost 12.0 Class Set 2pc[1264836] — Flurry[44614] damage increased by 10% and Flurry has a 10% chance to grant Fingers of Frost[112965] . Mage Frost 12.0 Class Set 4pc[1264837] — Fingers of Frost[112965] increases Shatter[1246769] 's damage by 15%.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "combat-assistant-for-frost-mage",
+      "titlePlain": "Combat Assistant for Frost Mage",
+      "bodyPlain": "Combat Assistant, the part that tells you what to press, is an approximate 6-10% loss, depending on Hero talent in single target. Spellslinger performs worse with Combat Assistant than Frostfire does. Take another 10% off on AoE. As of writing, this does actually cast Ray of Frost[205021] and Frozen Orb[84714] , so your offensive cooldowns are taken care of. It will not press your defensive cooldowns, so you need to know when to pop defensives or utility spells. One button mode takes a significant hit, by increasing the GCD by 25%, with the worst setups being ~30% worse than playing normally. Combat Assistant",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "macros-and-addons-for-specspec-specclass-rotation",
+      "titlePlain": "Macros and Addons for Frost Mage Rotation",
+      "bodyPlain": "Check out our Macros and Addons page below for some recommended advice to get the most out of your Frost Mage! Frost Mage Addons",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "mythic-tips-and-tricks-for-specspec-specclass",
+      "titlePlain": "Mythic+ Tips and Tricks for Frost Mage",
+      "bodyPlain": "For information about Mythic+ as a Frost Mage, please refer to our Mythic+ page. Frost Mage Mythic+ guide 6.",
+      "truncated": false
+    }
+  ]
+}

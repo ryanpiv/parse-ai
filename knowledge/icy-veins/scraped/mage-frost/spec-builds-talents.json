@@ -1,0 +1,122 @@
+{
+  "sourceUrl": "https://www.icy-veins.com/wow/frost-mage-pve-dps-spec-builds-talents",
+  "pageKey": "spec-builds-talents",
+  "pageType": "spec-builds-talents",
+  "snapshot": {
+    "scrapedAt": "2026-05-01T09:07:32.270Z",
+    "sourcePageUrl": "https://www.icy-veins.com/wow/frost-mage-pve-dps-spec-builds-talents",
+    "fetch": {
+      "httpStatus": 200,
+      "ok": true,
+      "blockedOrEmpty": false
+    },
+    "icyVeinsArticle": {
+      "headline": "Frost Mage DPS Spec, Builds, and Talents - 12.0.5",
+      "dateModified": "2026-04-20T20:55:00+00:00",
+      "datePublished": "2012-02-01T19:18:00+00:00",
+      "authorName": "Kuni",
+      "description": "Find out the best talent builds for Raid, Mythic+ and PvP for Frost Mage in WoW 12.0.5."
+    },
+    "howToStayCurrent": {
+      "refreshProcedure": "Re-run `npm run scrape-icy-veins-frost` when guides change; commit JSON under knowledge/icy-veins/scraped/.",
+      "talentEmbeds": "Midnight `#AB-…` strings power IV’s embedded calculator on the talents page; verify against in-game import before treating as a raw Blizzard export."
+    }
+  },
+  "specData": {
+    "specName": "Frost",
+    "className": "Mage"
+  },
+  "relatedGuideUrls": {
+    "canonicalBuildsAndTalents": "https://www.icy-veins.com/wow/frost-mage-pve-dps-spec-builds-talents",
+    "canonicalRotationCooldowns": "https://www.icy-veins.com/wow/frost-mage-pve-dps-rotation-cooldowns-abilities"
+  },
+  "introPlain": "1. Best Midnight Talents for Frost Mage On this page you can find talent builds for both Hero Talent selections.",
+  "recommendedTalentBuilds": [
+    {
+      "areaId": "area_1",
+      "tabLabel": "Frostfire Single-Target",
+      "headingId": "best-single-target-talents-for-wowfrostfireht-specspec-specclass",
+      "titlePlain": "Best Single-Target Talents for Frostfire Frost Mage",
+      "notesPlain": "2.1. Standard Frostfire Frost. This is best utilized in raid encounters that prioritize single target damage. For a light cleave situation, move Permafrost Lances[455122] to Splitting Ice[56377] . Be sure to make use of the 'Export Talents' button to import the best build directly into your game!",
+      "midnightEmbedHash": "#AB-SVWWXdFXWYa4EFNltFOiikoABp59BGIUcgL-JgKCHWoqw04c1JMVCY8gBG23ILiccaP-AAAA-CIUkooZw4ABDwC-",
+      "targetElementId": "midnight-skill-builder-1"
+    },
+    {
+      "areaId": "area_2",
+      "tabLabel": "Spellslinger Single-Target",
+      "headingId": "best-single-target-talents-for-wowspellslingerht-specspec-specclass",
+      "titlePlain": "Best Single-Target Talents for Spellslinger Frost Mage",
+      "notesPlain": "2.2. Standard Spellslinger Frost. This is best utilized in raid encounters that prioritize single target damage. For a light cleave situation, feel free to swap Rimecaster[1247743] and Piercing Cold[378919] for Splitting Ice[56377] and Fractured Frost[378448] . Be sure to make use of the 'Export Talents' button to import the best build directly into your game!",
+      "midnightEmbedHash": "#AB-SVWWXdFXWYa4EFNhltFOiikoABp59BGIUcA-JgKCHWoqw04c1JMVCY8gBmFROOtHSoK-AAAA-RSOawsYIAQYoAB-",
+      "targetElementId": "midnight-skill-builder-2"
+    },
+    {
+      "areaId": "area_3",
+      "tabLabel": "Spellslinger AoE/Mythic+/Delve",
+      "headingId": "best-aoe-mythic-delve-talents-for-wowspellslingerht-specspec-specclass",
+      "titlePlain": "Best AoE/Mythic+/Delve Talents for Spellslinger Frost Mage",
+      "notesPlain": "2.3. This is our recommended build for heavy AoE raid encounters, dungeons (Mythic+ or not), or Delves . Swapping Splintering Ray[418733] for Frigid Focus[1247055] can be beneficial if you are prioritizing a main target, such as the final boss of a Delve, or a raid boss that needs just a bit more focus. Be sure to make use of the 'Export Talents' button to import the best build directly into your game!",
+      "midnightEmbedHash": "#AB-SVWWXdFXWYa4EFNltFOiikoABp59BGIUcgL-JgKCHWoqw0JMB4gBRAHn2TloVSorRpG-AAAA-RSOaysYIAogwAB-",
+      "targetElementId": "midnight-skill-builder-3"
+    },
+    {
+      "areaId": "area_4",
+      "tabLabel": "Frostfire AoE/Mythic+/Delve",
+      "headingId": "best-aoe-mythic-delve-talents-for-wowfrostfireht-specspec-specclass",
+      "titlePlain": "Best AoE/Mythic+/Delve Talents for Frostfire Frost Mage",
+      "notesPlain": "2.4. This is our recommended build for heavy AoE raid encounters, dungeons (Mythic+ or not), or Delves if you prefer to play Frostfire . Swapping Splintering Ray[418733] for Frigid Focus[1247055] can be beneficial if you are prioritizing a main target, such as the final boss of a Delve, or a raid boss that needs just a bit more focus. Be sure to make use of the 'Export Talents' button to import the best build directly into your game!",
+      "midnightEmbedHash": "#AB-SVWWXdFXWYa4EFNltFOiikoABp59BGIUcgL-JgKCHWoqw040JMB4ghHRAHn2TlIG2WE-AAAA-CIUkooZw4ABDwC-",
+      "targetElementId": "midnight-skill-builder-4"
+    }
+  ],
+  "proseSections": [
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "best-linkcurrentexpansion-talents-for-specspec-specclass",
+      "titlePlain": "Best Midnight Talents for Frost Mage",
+      "bodyPlain": "On this page you can find talent builds for both Hero Talent selections.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "apex",
+      "titlePlain": "Apex Talent: Hand of Frost",
+      "bodyPlain": "Hand of Frost[1262935] causes any Shatter event to have a 10% chance to fire an extra spell that hits fairly hard, and adds 1 stack of Freezing to the target. Hand of Frost[1262981] takes that, and increases the proc chance based on how many stacks were consumed. Each time the damage spell procs, gain a 1% damage buff for a few seconds. This can stack, and each stack is timed individually, so they will rise and fall gradually as you play. Hand of Frost[1263249] procs 4 of the damage spells over the duration of Ray of Frost[205021] , buffs Ray's damage, and adds a second charge to the spell. For the most part this is an entirely passive talent, but it is fairly strong. The flexibility of having a second charge on Ray of Frost[205021] allows us to pool a charge for important things, such as trinket procs or vulnerability phases.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "hero-talents",
+      "titlePlain": "Hero Talents",
+      "bodyPlain": "Frost Mage has access to the Frostfire and Spellslinger Hero Talent trees.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "wowfrostfireht",
+      "titlePlain": "Frostfire",
+      "bodyPlain": "Frostfire is slightly burstier, and all of its damage is fairly front loaded. Generally speaking it is better suited to outdoor content, or content that dies quickly. On the AoE side, having access to Meteor[153561] , with an increased damage to both it and Comet Storm[1247777] , and the exploding Glacial Spike[199786] , it excels at burst AoE.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "3",
+      "headingLevel": 3,
+      "id": "wowspellslingerht",
+      "titlePlain": "Spellslinger",
+      "bodyPlain": "Spellslinger in comparison is more about more rapid, smaller hits from Splinters. Spellslinger remains the only way to reduce the cooldown of Frozen Orb[84714] through Spellfrost Teachings[444986] , giving it a nice niche of more frequent Orb casts. It trades this for not really being able to spec for Comet Storm[1247777] , and losing the burst possible from that talent.",
+      "truncated": false
+    },
+    {
+      "outlineLevel": "2",
+      "headingLevel": 2,
+      "id": "pvp-talents-war-mode",
+      "titlePlain": "PvP Talents (War Mode)",
+      "bodyPlain": "Since Battle for Azeroth, there is the option to enable \"War Mode.\" Enabling War Mode grants the following benefits: PvP talents enabled in the outdoor world. 10% increase in World Quest rewards at max level. 10% more experience gained while leveling. Earn Conquest Points, which can reward gear every week. With the benefits of enabling War Mode for leveling and PvE content, it is recommended enabling the feature to maximize your leveling and rewards at max level. However, doing so will enable PvP combat and the possibility of being attacked by members of the opposite faction while leveling or doing World Quests exists. Concentrated Coolness[198148] is pretty great with no downsides. Frost Bomb[390612] is a great choice. A nice delayed burst AoE hit. Snowdrift[389794] works as a decent short-term stun, but the damage is underwhelming and requires targets to be extremely close to you. There are better options. Ice Wall[352278] is going to get a special mention. Having the ability to force line of sight or wall an enemy player, either in with you or away from you, is a pretty powerful utility. This feels like one of those things you should have with you just in case you are in War Mode. It is deceptively strong for the area denial utility. There are some interesting Honour Talents, but since they are restricted to the open-world and unusable in instances, they generally are not simulated. Thus, the above are simply the thoughts and feelings of the author. 6.",
+      "truncated": false
+    }
+  ]
+}

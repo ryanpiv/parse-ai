@@ -9,7 +9,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "embed-simc": "node scripts/embed-simc.mjs",
-    "scrape-wowhead-frost": "node scripts/wowhead/scrape-frost-mage.mjs"
+    "scrape-wowhead-frost": "node scripts/wowhead/scrape-frost-mage.mjs",
+    "scrape-icy-veins-frost": "node scripts/icy-veins/scrape-frost-mage.mjs",
+    "discover-icy-veins-urls": "node scripts/icy-veins/discover-guide-urls.mjs"
   },
   "dependencies": {
     "chart.js": "^4.4.3",
