@@ -208,4 +208,4 @@ node scripts/test-icons.mjs            # Test Wowhead icon fetching for known Fr
 
 ## Spec Coverage
 
-Currently optimized for **Frost Mage** (class 8, spec 64) — proc tracking (Fingers of Frost, Brain Freeze), Glacial Spike combo detection, and cooldown analysis (Icy Veins, Frozen Orb) are spec-specific in `lib/gameState/constants.ts`. The talent tree system, data pipeline, charts, and AI chat are fully generic and work for any spec.
+**SimulationCraft default APLs** (opt-in on Analyze) are bundled for **all Mage specs** (62 Arcane, 63 Fire, 64 Frost) and **all Death Knight specs** (250 Blood, 251 Frost, 252 Unholy); see `lib/knowledge/embeddedSimc.ts` and `knowledge/simc/`. The talent tree system, data pipeline, charts, and AI chat work for any spec; Wowhead guide snippets are still Frost-only in `lib/knowledge/embeddedGuides.ts`.

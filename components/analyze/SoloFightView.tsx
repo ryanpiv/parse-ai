@@ -423,10 +423,13 @@ export function SoloFightView() {
                   <span>
                     <strong style={{ color: 'var(--text)' }}>Compare to SimulationCraft</strong>
                     {' — '}
-                    include the default Frost Mage APL as optional guidance when assumptions match this pull; it is not a
-                    1:1 benchmark to every boss (opt-in).
+                    include SimulationCraft&apos;s default APL for this spec as optional guidance when assumptions match
+                    this pull; it is not a 1:1 benchmark to every boss (opt-in).
                     {!simcAplAvailableForSpec(talentDiff?.specId) && (
-                      <span style={{ color: 'var(--dim)' }}> (Frost Mage when bundled.)</span>
+                      <span style={{ color: 'var(--dim)' }}>
+                        {' '}
+                        (Mage & Death Knight only—all three specs each.)
+                      </span>
                     )}
                   </span>
                 </label>

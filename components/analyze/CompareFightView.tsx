@@ -436,10 +436,13 @@ export function CompareFightView() {
                 <span>
                   <strong style={{ color: 'var(--text)' }}>Compare to SimulationCraft</strong>
                   {' — '}
-                  include the default Frost Mage APL in context and frame answers against sim priorities (opt-in; default
-                  analysis stays log vs comparison player).
+                  include SimulationCraft&apos;s default APL for this spec in context and frame answers against sim
+                  priorities (opt-in; default analysis stays log vs comparison player).
                   {!simcAplAvailableForSpec(talentDiff?.specId) && (
-                    <span style={{ color: 'var(--dim)' }}> (available when both players are Frost Mage.)</span>
+                    <span style={{ color: 'var(--dim)' }}>
+                      {' '}
+                      (Mage & Death Knight only—all three specs each.)
+                    </span>
                   )}
                 </span>
               </label>
