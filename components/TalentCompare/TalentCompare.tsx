@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { heroTreeShortLabel } from '../../lib/talents/heroLabels'
 import { partitionBlizzardTalentNodes } from '../../lib/talents/partitionBlizzardTree'
 import { TalentTreeSection, type BlizzardNode, type DiffState } from './TalentTree'
@@ -30,9 +30,10 @@ const MAX_TREE_W = 340
 
 function TalentDiffLink({ spellId, name, color }: { spellId: number; name: string; color: 'gold' | 'blue' }) {
   const { show, hide } = useSpellTooltip()
-  const c = color === 'gold'
-    ? { text: 'rgba(201,162,39,1)', border: 'rgba(201,162,39,0.4)' }
-    : { text: 'rgba(90,173,240,1)', border: 'rgba(90,173,240,0.4)' }
+  const c =
+    color === 'gold'
+      ? { text: 'rgba(201,162,39,1)' }
+      : { text: 'rgba(90,173,240,1)' }
   return (
     <a
       href={`https://www.wowhead.com/spell=${spellId}`}
@@ -43,7 +44,6 @@ function TalentDiffLink({ spellId, name, color }: { spellId: number; name: strin
         fontSize: 11,
         color: c.text,
         textDecoration: 'none',
-        borderBottom: `1px dotted ${c.border}`,
         cursor: 'help',
       }}
       onMouseEnter={e => show(spellId, e.currentTarget.getBoundingClientRect(), name)}
@@ -52,6 +52,38 @@ function TalentDiffLink({ spellId, name, color }: { spellId: number; name: strin
       {name}
     </a>
   )
+}
+
+function CircleSep() {
+  return (
+    <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', padding: '0 9px', flexShrink: 0 }}>
+      <span
+        style={{
+          width: 5,
+          height: 5,
+          borderRadius: '50%',
+          background: 'var(--dim,#4a5a6a)',
+          opacity: 0.5,
+        }}
+      />
+    </span>
+  )
+}
+
+/** Talents on one line (wraps); small circles between names. */
+function withSeparators(nodes: BlizzardNode[], color: 'gold' | 'blue'): ReactNode[] {
+  return nodes.flatMap((n, i) => {
+    const piece =
+      n.entries[0]?.spellId ? (
+        <TalentDiffLink key={n.nodeId} spellId={n.entries[0].spellId} name={n.entries[0].name || `Node ${n.nodeId}`} color={color} />
+      ) : (
+        <span key={n.nodeId} style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: color === 'gold' ? 'rgba(201,162,39,0.7)' : 'rgba(90,173,240,0.7)' }}>
+          {n.entries[0]?.name || `Node ${n.nodeId}`}
+        </span>
+      )
+    if (i === 0) return [piece]
+    return [<CircleSep key={`sep-${n.nodeId}`} />, piece]
+  })
 }
 
 function annotateDiff(nodes: BlizzardNode[], sel1: Map<number, number>, sel2: Map<number, number>): BlizzardNode[] {
@@ -113,40 +145,35 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
   return (
     <SpellTooltipProvider>
     <div>
-      {/* Diff summary */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
-        {/* Stats */}
-        <div style={{ display: 'flex', gap: 14, fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ color: 'var(--dim,#4a5a6a)' }}>Shared: <span style={{ color: 'var(--text,#e8edf2)' }}>{both.length}</span></span>
-          <span style={{ color: 'rgba(201,162,39,0.9)' }}>{name1} only: <strong>{p1Only.length}</strong></span>
-          <span style={{ color: 'rgba(90,173,240,0.8)' }}>{name2} only: <strong>{p2Only.length}</strong></span>
+      {/* Diff summary — row 1: shared; row 2: P1 only count + diffs; row 3: P2 only count + diffs */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
+        <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'var(--dim,#4a5a6a)' }}>
+          Shared: <span style={{ color: 'var(--text,#e8edf2)' }}>{both.length}</span>
         </div>
 
-        {/* Inline diff lists */}
-        {(p1Only.length > 0 || p2Only.length > 0) && (
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', flex: 1 }}>
-            {p1Only.length > 0 && (
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 9, fontWeight: 600, letterSpacing: '.5px', textTransform: 'uppercase', color: 'rgba(201,162,39,0.7)', flexShrink: 0 }}>{name1}:</span>
-                {p1Only.map(n => n.entries[0]?.spellId ? (
-                  <TalentDiffLink key={n.nodeId} spellId={n.entries[0].spellId} name={n.entries[0].name || `Node ${n.nodeId}`} color="gold" />
-                ) : (
-                  <span key={n.nodeId} style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'rgba(201,162,39,0.7)' }}>{n.entries[0]?.name || `Node ${n.nodeId}`}</span>
-                ))}
-              </div>
-            )}
-            {p2Only.length > 0 && (
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'Rajdhani,sans-serif', fontSize: 9, fontWeight: 600, letterSpacing: '.5px', textTransform: 'uppercase', color: 'rgba(90,173,240,0.7)', flexShrink: 0 }}>{name2}:</span>
-                {p2Only.map(n => n.entries[0]?.spellId ? (
-                  <TalentDiffLink key={n.nodeId} spellId={n.entries[0].spellId} name={n.entries[0].name || `Node ${n.nodeId}`} color="blue" />
-                ) : (
-                  <span key={n.nodeId} style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'rgba(90,173,240,0.7)' }}>{n.entries[0]?.name || `Node ${n.nodeId}`}</span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 6, columnGap: 0 }}>
+          <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'rgba(201,162,39,0.95)' }}>
+            {name1} only: <strong>{p1Only.length}</strong>
+          </span>
+          {p1Only.length > 0 ? (
+            <>
+              <CircleSep key="p1-sep" />
+              {withSeparators(p1Only, 'gold')}
+            </>
+          ) : null}
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 6, columnGap: 0 }}>
+          <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'rgba(90,173,240,0.95)' }}>
+            {name2} only: <strong>{p2Only.length}</strong>
+          </span>
+          {p2Only.length > 0 ? (
+            <>
+              <CircleSep key="p2-sep" />
+              {withSeparators(p2Only, 'blue')}
+            </>
+          ) : null}
+        </div>
       </div>
 
       {loading && (
@@ -164,9 +191,9 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
         <div
           style={{
             width: '100%',
-            overflowX: 'auto',
-            overflowY: 'visible',
-            padding: '8px 20px 24px',
+            maxHeight: 'min(72vh, 900px)',
+            overflow: 'auto',
+            padding: '8px 20px 32px',
             boxSizing: 'border-box',
             textAlign: 'center',
           }}

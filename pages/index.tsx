@@ -30,18 +30,24 @@ const subActive: CSSProperties = {
 export default function HomePage() {
   const fa = useFightAnalysis()
   const { analysisSubtab, setAnalysisSubtab, p1data, p2data } = fa
+  const logLoaded = Boolean(p1data)
   const compareReady = Boolean(p1data && p2data && !fa.soloFromReport)
 
-  function goSub(next: AnalysisSubtab) {
+  function goSub(next: Exclude<AnalysisSubtab, 'none'>) {
+    if (!logLoaded) return
     if (next === 'compare' && !compareReady) return
     setAnalysisSubtab(next)
   }
+
+  const tabMuted: CSSProperties = { ...subBase, opacity: 0.45, cursor: 'not-allowed' }
+
+  const showComparePane = logLoaded && analysisSubtab === 'compare'
 
   return (
     <>
       <Head>
         <title>
-          {analysisSubtab === 'solo' ? 'Solo' : 'Compare'} · Parse Analyzer
+          {!logLoaded ? 'Parse Analyzer' : analysisSubtab === 'solo' ? 'Solo · Parse Analyzer' : analysisSubtab === 'compare' ? 'Compare · Parse Analyzer' : 'Parse Analyzer'}
         </title>
       </Head>
       <div style={s.wrap}>
@@ -55,78 +61,102 @@ export default function HomePage() {
 
         <div
           style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: 8,
+            position: 'sticky',
+            top: 0,
+            zIndex: 40,
             marginBottom: 14,
+            paddingTop: 4,
             paddingBottom: 12,
+            background: 'var(--bg)',
             borderBottom: '1px solid var(--border)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
           }}
         >
-          <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)', marginRight: 4 }}>
-            View
-          </span>
-          <button
-            type="button"
-            onClick={() => goSub('solo')}
-            style={analysisSubtab === 'solo' ? subActive : subBase}
-            title="Your pull only (player 1 in the compare)"
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: 8,
+            }}
           >
-            Solo
-            <span
-              style={{
-                display: 'block',
-                fontFamily: 'IBM Plex Mono,monospace',
-                fontSize: 9,
-                fontWeight: 400,
-                letterSpacing: 0,
-                textTransform: 'none',
-                color: 'var(--dim)',
-                marginTop: 2,
-              }}
-            >
-              your pull
+            <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)', marginRight: 4 }}>
+              View
             </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => goSub('compare')}
-            disabled={!compareReady}
-            style={
-              !compareReady
-                ? { ...subBase, opacity: 0.45, cursor: 'not-allowed' }
-                : analysisSubtab === 'compare'
-                  ? subActive
-                  : subBase
-            }
-            title={
-              compareReady
-                ? 'You vs comparison player — side-by-side'
-                : fa.soloFromReport
-                  ? 'Compare needs a two-player Warcraft Logs compare URL'
-                  : 'Load a Warcraft Logs compare URL (two players) first'
-            }
-          >
-            Compare
-            <span
-              style={{
-                display: 'block',
-                fontFamily: 'IBM Plex Mono,monospace',
-                fontSize: 9,
-                fontWeight: 400,
-                letterSpacing: 0,
-                textTransform: 'none',
-                color: 'var(--dim)',
-                marginTop: 2,
-              }}
+            <button
+              type="button"
+              disabled={!logLoaded}
+              onClick={() => goSub('solo')}
+              style={
+                !logLoaded
+                  ? tabMuted
+                  : analysisSubtab === 'solo'
+                    ? subActive
+                    : subBase
+              }
+              title={
+                logLoaded ? 'Your pull only (player 1 in the compare)' : 'Load a fight from Warcraft Logs first'
+              }
             >
-              vs other player
-            </span>
-          </button>
+              Solo
+              <span
+                style={{
+                  display: 'block',
+                  fontFamily: 'IBM Plex Mono,monospace',
+                  fontSize: 9,
+                  fontWeight: 400,
+                  letterSpacing: 0,
+                  textTransform: 'none',
+                  color: 'var(--dim)',
+                  marginTop: 2,
+                }}
+              >
+                your pull
+              </span>
+            </button>
+            <button
+              type="button"
+              disabled={!logLoaded || !compareReady}
+              onClick={() => goSub('compare')}
+              style={
+                !logLoaded
+                  ? tabMuted
+                  : !compareReady
+                    ? { ...subBase, opacity: 0.45, cursor: 'not-allowed' }
+                    : analysisSubtab === 'compare'
+                      ? subActive
+                      : subBase
+              }
+              title={
+                !logLoaded
+                  ? 'Load a Warcraft Logs fight first'
+                  : compareReady
+                    ? 'You vs comparison player — side-by-side'
+                    : fa.soloFromReport
+                      ? 'Compare needs a two-player Warcraft Logs compare URL'
+                      : 'Load a Warcraft Logs compare URL (two players) first'
+              }
+            >
+              Compare
+              <span
+                style={{
+                  display: 'block',
+                  fontFamily: 'IBM Plex Mono,monospace',
+                  fontSize: 9,
+                  fontWeight: 400,
+                  letterSpacing: 0,
+                  textTransform: 'none',
+                  color: 'var(--dim)',
+                  marginTop: 2,
+                }}
+              >
+                vs other player
+              </span>
+            </button>
+          </div>
         </div>
 
-        {analysisSubtab === 'solo' ? <SoloFightView /> : <CompareFightView />}
+        {showComparePane ? <CompareFightView /> : <SoloFightView />}
       </div>
       <style>{`@keyframes td{0%,60%,100%{opacity:.3;transform:scale(.8)}30%{opacity:1;transform:scale(1)}} input:focus{border-color:var(--golddim)!important;outline:none;}`}</style>
     </>

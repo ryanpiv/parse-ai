@@ -7,6 +7,7 @@ import {
 import { getClassGuideSupplement } from '../knowledge/embeddedGuides'
 import { getSimcAplSupplement } from '../knowledge/embeddedSimc'
 import { getWowheadReferenceSupplement } from '../knowledge/embeddedWowhead'
+import { getIcyVeinsReferenceSupplement } from '../knowledge/embeddedIcyVeins'
 import { coachingEvidenceRulesBlock } from './evidenceRules'
 
 interface KillStatus {
@@ -19,6 +20,8 @@ export type BuildRichContextOptions = KillStatus & {
   simcGroundedAnalysis?: boolean
   /** When true, include bundled Wowhead scraped excerpts (supported specs only, e.g. Frost Mage 64). */
   wowheadGroundedAnalysis?: boolean
+  /** When true, include bundled Icy Veins scraped rotation excerpts (supported specs only). */
+  icyVeinsGroundedAnalysis?: boolean
 }
 
 export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: BuildRichContextOptions): string {
@@ -28,6 +31,7 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: Bu
   const isKill2 = options?.isKill2 ?? true
   const simcGrounded = options?.simcGroundedAnalysis === true
   const wowheadGrounded = options?.wowheadGroundedAnalysis === true
+  const icyGrounded = options?.icyVeinsGroundedAnalysis === true
 
   let ctx = `You are an expert World of Warcraft raiding coach with deep knowledge of ${s1} mechanics in The War Within / Midnight Season 1.\n\n`
   ctx += `CRITICAL RULES:\n`
@@ -49,6 +53,9 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: Bu
 
   const wowExtra = getWowheadReferenceSupplement(talentDiff?.specId, wowheadGrounded, n1, 'compare')
   if (wowExtra) ctx += wowExtra
+
+  const icyExtra = getIcyVeinsReferenceSupplement(talentDiff?.specId, icyGrounded, 'compare')
+  if (icyExtra) ctx += icyExtra
 
   if (!isKill1 || !isKill2) {
     ctx += `=== FIGHT COMPLETION STATUS ===\n`
@@ -155,6 +162,7 @@ export type BuildPlayerOneContextOptions = {
   isKill1: boolean
   simcGroundedAnalysis?: boolean
   wowheadGroundedAnalysis?: boolean
+  icyVeinsGroundedAnalysis?: boolean
 }
 
 /** Rich context for player 1 only (solo coaching, no vs-partner data). */
@@ -163,6 +171,7 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
   const isKill1 = options.isKill1
   const simcGrounded = options.simcGroundedAnalysis === true
   const wowheadGrounded = options.wowheadGroundedAnalysis === true
+  const icyGrounded = options.icyVeinsGroundedAnalysis === true
 
   let ctx = `You are an expert World of Warcraft raiding coach with deep knowledge of ${s1} mechanics in The War Within / Midnight Season 1.\n\n`
   ctx += `CRITICAL RULES:\n`
@@ -176,6 +185,9 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
   if (wowheadGrounded) {
     ctx += `- Wowhead guide excerpts are on: treat them as author-written priorities from scraped BBCode; reconcile with this log and talents\n`
   }
+  if (icyGrounded) {
+    ctx += `- Icy Veins guide excerpts are on: treat them as scraped rotation text; reconcile with this log and other references when both are present\n`
+  }
   ctx += `\n`
   ctx += coachingEvidenceRulesBlock()
 
@@ -187,6 +199,9 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
 
   const wowExtra = getWowheadReferenceSupplement(talentDiff?.specId, wowheadGrounded, n1, 'solo')
   if (wowExtra) ctx += wowExtra
+
+  const icyExtra = getIcyVeinsReferenceSupplement(talentDiff?.specId, icyGrounded, 'solo')
+  if (icyExtra) ctx += icyExtra
 
   if (!isKill1) {
     ctx += `=== FIGHT COMPLETION STATUS ===\n`

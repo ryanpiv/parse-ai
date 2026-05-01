@@ -14,7 +14,7 @@ import { fetchFightPlayerRows } from '../lib/wclFightPlayers'
 import { parseWclUrl, resolveReportFightQuery } from '../lib/wclReportUrl'
 import { useAppSession } from './AppSessionContext'
 import { useAnalyzePageCache } from './AnalyzePageCacheContext'
-import { gql, callAI } from '../lib/wclClient'
+import { gql, callAIStream } from '../lib/wclClient'
 import {
   collectNames,
   resolveNames,
@@ -28,7 +28,18 @@ import { buildRichContext, buildRichContextPlayerOne } from '../lib/buildContext
 import { buildInitialCompareUserPrompt } from '../lib/buildContext/initialComparePrompt'
 import { simcAplAvailableForSpec } from '../lib/knowledge/embeddedSimc'
 import { wowheadReferenceAvailableForSpec } from '../lib/knowledge/embeddedWowhead'
-import { PRESET_CASTS_VS_SIMC_WOWHEAD } from '../lib/styles'
+import { icyVeinsReferenceAvailableForSpec } from '../lib/knowledge/embeddedIcyVeins'
+import {
+  PRESET_CASTS_VS_SIMC_WOWHEAD,
+  PRESET_COMPARE_CASTS_VS_SIMC,
+  PRESET_COMPARE_ROTATION_WOWHEAD,
+  PRESET_COMPARE_ROTATION_ICY,
+  PRESET_COMPARE_ROTATION_BOTH,
+  PRESET_COMPARE_TALENT_LOG,
+  PRESET_SOLO_ROTATION_WOWHEAD,
+  PRESET_SOLO_ROTATION_ICY,
+  PRESET_SOLO_ROTATION_BOTH,
+} from '../lib/styles'
 import { fetchTalents } from '../lib/talents'
 import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
 
@@ -62,9 +73,9 @@ type FightMeta = {
   kill: boolean
 }
 
-type ChatMsg = { role: string; content: string }
+type ChatMsg = { role: string; content: string; usage?: { in: number; out: number } }
 
-export type AnalysisSubtab = 'solo' | 'compare'
+export type AnalysisSubtab = 'solo' | 'compare' | 'none'
 
 type FightAnalysisCtx = {
   compareUrl: string
@@ -84,6 +95,8 @@ type FightAnalysisCtx = {
   inputAnalyze: string
   setInputAnalyze: (v: string) => void
   aiLoading: boolean
+  /** While the model is responding: elapsed seconds and partial token counts from the stream. */
+  aiLiveStatus: { elapsedSec: number; inputTokens?: number; outputTokens?: number } | null
   simcCompareEnabled: boolean
   setSimcCompareEnabled: (v: boolean) => void
   bossName: string
@@ -109,10 +122,7 @@ type FightAnalysisCtx = {
   /** Which roster id is loaded (solo report); used to highlight the active chip while the roster stays open. */
   soloRosterSelectedPlayerId: number | null
   confirmSoloReportPlayer: (sourceToken: string) => Promise<void>
-  /** Persisted in app session. When false (default), compare load leaves chat empty until the user runs analysis. */
-  autoRunCompareAiAfterLoad: boolean
-  setAutoRunCompareAiAfterLoad: (v: boolean) => void
-  /** Sends the same initial compare prompt that auto-run would have used (current SimC toggle applies). */
+  /** Sends the full default compare prompt (current SimC toggle applies). */
   startInitialCompareAnalysis: () => void
 }
 
@@ -121,13 +131,6 @@ const FightAnalysisContext = createContext<FightAnalysisCtx | null>(null)
 export function FightAnalysisProvider({ children }: { children: ReactNode }) {
   const analyzeCache = useAnalyzePageCache()
   const { hydrated, session, patchSession } = useAppSession()
-
-  const setAutoRunCompareAiAfterLoad = useCallback(
-    (v: boolean) => {
-      patchSession({ autoRunCompareAiAfterLoad: v })
-    },
-    [patchSession]
-  )
 
   const [compareUrl, setCompareUrl] = useState('')
   const [status, setStatus] = useState<{ type: string; msg: string } | null>(null)
@@ -142,11 +145,13 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
   const [inputCompare, setInputCompare] = useState('')
   const [inputAnalyze, setInputAnalyze] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
+  const [aiLiveTick, setAiLiveTick] = useState(0)
+  const aiLiveRef = useRef({ start: 0, inTok: undefined as number | undefined, outTok: undefined as number | undefined })
   const [bossName, setBossName] = useState('')
   const [fightKill1, setFightKill1] = useState(true)
   const [fightKill2, setFightKill2] = useState(true)
   const [simcCompareEnabled, setSimcCompareEnabled] = useState(false)
-  const [analysisSubtab, setAnalysisSubtab] = useState<AnalysisSubtab>('solo')
+  const [analysisSubtab, setAnalysisSubtab] = useState<AnalysisSubtab>('none')
   const [soloFromReport, setSoloFromReport] = useState(false)
   const [soloPlayerChoices, setSoloPlayerChoices] = useState<FightPlayerRow[]>([])
   const [soloRosterSelectedPlayerId, setSoloRosterSelectedPlayerId] = useState<number | null>(null)
@@ -217,6 +222,8 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     setSoloFromReport(Boolean(s.soloFromReport))
     if (s.analysisSubtab === 'compare' || s.analysisSubtab === 'solo') {
       setAnalysisSubtab(s.analysisSubtab)
+    } else {
+      setAnalysisSubtab('none')
     }
   }, [analyzeCache])
 
@@ -292,6 +299,21 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    if (!aiLoading) return
+    const id = setInterval(() => setAiLiveTick(t => t + 1), 450)
+    return () => clearInterval(id)
+  }, [aiLoading])
+
+  const aiLiveStatus = useMemo(() => {
+    if (!aiLoading) return null
+    return {
+      elapsedSec: Math.floor((Date.now() - aiLiveRef.current.start) / 1000),
+      inputTokens: aiLiveRef.current.inTok,
+      outputTokens: aiLiveRef.current.outTok,
+    }
+  }, [aiLoading, aiLiveTick])
+
+  useEffect(() => {
     if (!hydrated || compareUrlRestoredRef.current) return
     compareUrlRestoredRef.current = true
     if (session.wclCompareUrl) setCompareUrl(session.wclCompareUrl)
@@ -302,8 +324,21 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
   }, [talentDiff?.specId])
 
   useEffect(() => {
-    if (analysisSubtab === 'compare' && (!p1data || !p2data || soloFromReport)) setAnalysisSubtab('solo')
+    if (analysisSubtab === 'compare' && (!p1data || !p2data || soloFromReport)) {
+      setAnalysisSubtab(p1data ? 'solo' : 'none')
+    }
   }, [analysisSubtab, p1data, p2data, soloFromReport])
+
+  /** After a completed load from cache without a stored subtab, pick solo vs compare. */
+  useEffect(() => {
+    if (!p1data || analysisSubtab !== 'none') return
+    const dualReal = Boolean(p2data && !soloFromReport)
+    setAnalysisSubtab(dualReal ? 'compare' : 'solo')
+  }, [p1data, p2data, soloFromReport, analysisSubtab])
+
+  useEffect(() => {
+    if (!p1data && analysisSubtab !== 'none') setAnalysisSubtab('none')
+  }, [p1data, analysisSubtab])
 
   const startAuth = useCallback(async () => {
     if (!clientId.trim()) {
@@ -321,13 +356,12 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
 
   const buildContextCompare = useCallback(() => {
     if (!p1data || !p2data) return ''
-    const useSimc = simcCompareEnabled && simcAplAvailableForSpec(talentDiff?.specId)
     return buildRichContext(p1data, p2data, talentDiff, {
       isKill1: fightKill1,
       isKill2: fightKill2,
-      simcGroundedAnalysis: useSimc,
+      simcGroundedAnalysis: false,
     })
-  }, [p1data, p2data, talentDiff, fightKill1, fightKill2, simcCompareEnabled])
+  }, [p1data, p2data, talentDiff, fightKill1, fightKill2])
 
   const buildContextPlayerOneCb = useCallback(() => {
     if (!p1data) return ''
@@ -347,17 +381,57 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       }
 
       const newMessages = [...priorThread, { role: 'user', content: userMsg }]
+      const withAssistant = [...newMessages, { role: 'assistant', content: '' }]
       const setMsgs = channel === 'compare' ? setMessagesCompare : setMessagesAnalyze
-      setMsgs(newMessages)
+      setMsgs(withAssistant)
       setAiLoading(true)
+      aiLiveRef.current = { start: Date.now(), inTok: undefined, outTok: undefined }
+      setAiLiveTick(t => t + 1)
+
       const ctx =
         ctxOverride ??
         (channel === 'compare' ? buildContextCompare() : buildContextPlayerOneCb())
+
+      let accumulated = ''
+      let rafId = 0
+      const flush = () => {
+        rafId = 0
+        setMsgs(prev => {
+          if (prev.length === 0) return prev
+          const next = [...prev]
+          const last = next[next.length - 1]
+          if (last?.role !== 'assistant') return prev
+          next[next.length - 1] = { ...last, content: accumulated }
+          return next
+        })
+      }
+      const scheduleFlush = () => {
+        if (rafId) return
+        rafId = requestAnimationFrame(flush)
+      }
+
       try {
-        const reply = await callAI(newMessages, ctx)
-        setMsgs([...newMessages, { role: 'assistant', content: reply }].slice(-20))
+        const { text, usage } = await callAIStream(newMessages, ctx, {
+          onText: full => {
+            accumulated = full
+            scheduleFlush()
+          },
+          onUsage: u => {
+            if (u.input_tokens != null) aiLiveRef.current.inTok = u.input_tokens
+            if (u.output_tokens != null) aiLiveRef.current.outTok = u.output_tokens
+            setAiLiveTick(x => x + 1)
+          },
+        })
+        if (rafId) cancelAnimationFrame(rafId)
+        const final = (text || accumulated || '').trim() || 'No response.'
+        const usageRow =
+          usage && (usage.input_tokens > 0 || usage.output_tokens > 0)
+            ? { in: usage.input_tokens, out: usage.output_tokens }
+            : undefined
+        setMsgs([...newMessages, { role: 'assistant', content: final, usage: usageRow }].slice(-20))
       } catch (e: any) {
-        setMsgs([...newMessages, { role: 'assistant', content: 'Error: ' + e.message }])
+        if (rafId) cancelAnimationFrame(rafId)
+        setMsgs([...newMessages, { role: 'assistant', content: 'Error: ' + e.message }].slice(-20))
       }
       setAiLoading(false)
     },
@@ -370,16 +444,62 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       const msg = q ?? inputCompare.trim()
       if (!msg) return
       setInputCompare('')
-      const forceAplAndGuides = msg === PRESET_CASTS_VS_SIMC_WOWHEAD
-      const ctxOverride =
-        forceAplAndGuides && talentDiff
-          ? buildRichContext(p1data, p2data, talentDiff, {
-              isKill1: fightKill1,
-              isKill2: fightKill2,
-              simcGroundedAnalysis: simcAplAvailableForSpec(talentDiff.specId),
-              wowheadGroundedAnalysis: wowheadReferenceAvailableForSpec(talentDiff.specId),
-            })
-          : undefined
+      const specId = talentDiff?.specId
+      const simOk = simcAplAvailableForSpec(specId)
+      const whOk = wowheadReferenceAvailableForSpec(specId)
+      const icyOk = icyVeinsReferenceAvailableForSpec(specId)
+      const baseOpts = {
+        isKill1: fightKill1,
+        isKill2: fightKill2,
+      } as const
+
+      let ctxOverride: string | undefined
+      if (talentDiff) {
+        if (msg === PRESET_COMPARE_CASTS_VS_SIMC) {
+          ctxOverride = buildRichContext(p1data, p2data, talentDiff, {
+            ...baseOpts,
+            simcGroundedAnalysis: simOk,
+            wowheadGroundedAnalysis: false,
+            icyVeinsGroundedAnalysis: false,
+          })
+        } else if (msg === PRESET_COMPARE_ROTATION_WOWHEAD) {
+          ctxOverride = buildRichContext(p1data, p2data, talentDiff, {
+            ...baseOpts,
+            simcGroundedAnalysis: false,
+            wowheadGroundedAnalysis: whOk,
+            icyVeinsGroundedAnalysis: false,
+          })
+        } else if (msg === PRESET_COMPARE_ROTATION_ICY) {
+          ctxOverride = buildRichContext(p1data, p2data, talentDiff, {
+            ...baseOpts,
+            simcGroundedAnalysis: false,
+            wowheadGroundedAnalysis: false,
+            icyVeinsGroundedAnalysis: icyOk,
+          })
+        } else if (msg === PRESET_COMPARE_ROTATION_BOTH) {
+          ctxOverride = buildRichContext(p1data, p2data, talentDiff, {
+            ...baseOpts,
+            simcGroundedAnalysis: false,
+            wowheadGroundedAnalysis: whOk,
+            icyVeinsGroundedAnalysis: icyOk,
+          })
+        } else if (msg === PRESET_COMPARE_TALENT_LOG) {
+          ctxOverride = buildRichContext(p1data, p2data, talentDiff, {
+            ...baseOpts,
+            simcGroundedAnalysis: false,
+            wowheadGroundedAnalysis: false,
+            icyVeinsGroundedAnalysis: false,
+          })
+        } else if (msg === PRESET_CASTS_VS_SIMC_WOWHEAD) {
+          ctxOverride = buildRichContext(p1data, p2data, talentDiff, {
+            ...baseOpts,
+            simcGroundedAnalysis: simOk,
+            wowheadGroundedAnalysis: whOk,
+            icyVeinsGroundedAnalysis: false,
+          })
+        }
+      }
+
       void runAI(msg, messagesCompare, ctxOverride, 'compare')
     },
     [
@@ -393,6 +513,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       talentDiff,
       fightKill1,
       fightKill2,
+      buildRichContext,
     ]
   )
 
@@ -402,15 +523,44 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       const msg = q ?? inputAnalyze.trim()
       if (!msg) return
       setInputAnalyze('')
-      const forceAplAndGuides = msg === PRESET_CASTS_VS_SIMC_WOWHEAD
-      const ctxOverride =
-        forceAplAndGuides && talentDiff
-          ? buildRichContextPlayerOne(p1data, talentDiff, {
-              isKill1: fightKill1,
-              simcGroundedAnalysis: simcAplAvailableForSpec(talentDiff.specId),
-              wowheadGroundedAnalysis: wowheadReferenceAvailableForSpec(talentDiff.specId),
-            })
-          : undefined
+      const specId = talentDiff?.specId
+      const simOk = simcAplAvailableForSpec(specId)
+      const whOk = wowheadReferenceAvailableForSpec(specId)
+      const icyOk = icyVeinsReferenceAvailableForSpec(specId)
+
+      let ctxOverride: string | undefined
+      if (talentDiff) {
+        const baseOpts = { isKill1: fightKill1 } as const
+        if (msg === PRESET_CASTS_VS_SIMC_WOWHEAD) {
+          ctxOverride = buildRichContextPlayerOne(p1data, talentDiff, {
+            ...baseOpts,
+            simcGroundedAnalysis: simOk,
+            wowheadGroundedAnalysis: whOk,
+          })
+        } else if (msg === PRESET_SOLO_ROTATION_WOWHEAD) {
+          ctxOverride = buildRichContextPlayerOne(p1data, talentDiff, {
+            ...baseOpts,
+            simcGroundedAnalysis: false,
+            wowheadGroundedAnalysis: whOk,
+            icyVeinsGroundedAnalysis: false,
+          })
+        } else if (msg === PRESET_SOLO_ROTATION_ICY) {
+          ctxOverride = buildRichContextPlayerOne(p1data, talentDiff, {
+            ...baseOpts,
+            simcGroundedAnalysis: false,
+            wowheadGroundedAnalysis: false,
+            icyVeinsGroundedAnalysis: icyOk,
+          })
+        } else if (msg === PRESET_SOLO_ROTATION_BOTH) {
+          ctxOverride = buildRichContextPlayerOne(p1data, talentDiff, {
+            ...baseOpts,
+            simcGroundedAnalysis: false,
+            wowheadGroundedAnalysis: whOk,
+            icyVeinsGroundedAnalysis: icyOk,
+          })
+        }
+      }
+
       void runAI(msg, messagesAnalyze, ctxOverride, 'analyze')
     },
     [aiLoading, p1data, inputAnalyze, messagesAnalyze, runAI, talentDiff, fightKill1]
@@ -418,14 +568,13 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
 
   const startInitialCompareAnalysis = useCallback(() => {
     if (aiLoading || !p1data || !p2data || soloFromReport || !talentDiff) return
-    const useSimc = simcCompareEnabled && simcAplAvailableForSpec(talentDiff.specId)
     const userPrompt = buildInitialCompareUserPrompt({
       name1: talentDiff.name1,
       name2: talentDiff.name2,
       spec1: p1data.spec,
       isKill1: fightKill1,
       isKill2: fightKill2,
-      simcGrounded: useSimc,
+      simcGrounded: false,
     })
     void runAI(userPrompt, [], undefined, 'compare')
   }, [
@@ -436,7 +585,6 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     talentDiff,
     fightKill1,
     fightKill2,
-    simcCompareEnabled,
     runAI,
   ])
 
@@ -619,6 +767,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       talentDiffResolved = { t1: null, t2: null, name1, name2: '\u2014', error: e.message }
       setTalentDiff(talentDiffResolved)
     }
+    setAnalysisSubtab('solo')
   }
 
   const confirmSoloReportPlayer = useCallback(
@@ -898,6 +1047,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         type: 'ok',
         msg: `✓ Loaded — ${name1} (${spec1}) vs ${name2} (${spec2}) on ${fight1.name}${wipeWarning}`,
       })
+      setAnalysisSubtab('compare')
 
       setLoadStep('Fetching talent data...')
       let talentDiffResolved: TalentDiffState | null = null
@@ -950,34 +1100,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         setTalentDiff(talentDiffResolved)
       }
 
-      const useSimc = simcCompareEnabled && simcAplAvailableForSpec(talentDiffResolved?.specId)
-      const ctx = buildRichContext(p1, p2, talentDiffResolved, {
-        isKill1,
-        isKill2,
-        simcGroundedAnalysis: useSimc,
-      })
-      const userPrompt = buildInitialCompareUserPrompt({
-        name1,
-        name2,
-        spec1,
-        isKill1,
-        isKill2,
-        simcGrounded: useSimc,
-      })
-      if (session.autoRunCompareAiAfterLoad === true) {
-        const initialThread: ChatMsg[] = [{ role: 'user', content: userPrompt }]
-        setMessagesCompare(initialThread)
-        setAiLoading(true)
-        try {
-          const reply = await callAI(initialThread, ctx)
-          setMessagesCompare([...initialThread, { role: 'assistant', content: reply }].slice(-20))
-        } catch (e: any) {
-          setMessagesCompare([...initialThread, { role: 'assistant', content: 'Error: ' + e.message }])
-        }
-        setAiLoading(false)
-      } else {
-        setMessagesCompare([])
-      }
+      setMessagesCompare([])
     } catch (e: any) {
       setStatus({ type: 'err', msg: 'Error: ' + e.message })
       console.error(e)
@@ -985,7 +1108,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       setLoading(false)
       setLoadStep('')
     }
-  }, [compareUrl, patchSession, simcCompareEnabled, session.autoRunCompareAiAfterLoad])
+  }, [compareUrl, patchSession, simcCompareEnabled])
 
   const value = useMemo<FightAnalysisCtx>(
     () => ({
@@ -1006,6 +1129,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       inputAnalyze,
       setInputAnalyze,
       aiLoading,
+      aiLiveStatus,
       simcCompareEnabled,
       setSimcCompareEnabled,
       bossName,
@@ -1028,8 +1152,6 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       soloPlayerChoices,
       soloRosterSelectedPlayerId,
       confirmSoloReportPlayer,
-      autoRunCompareAiAfterLoad: session.autoRunCompareAiAfterLoad === true,
-      setAutoRunCompareAiAfterLoad,
       startInitialCompareAnalysis,
     }),
     [
@@ -1047,6 +1169,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       inputCompare,
       inputAnalyze,
       aiLoading,
+      aiLiveStatus,
       simcCompareEnabled,
       bossName,
       fightKill1,
@@ -1065,8 +1188,6 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       soloPlayerChoices,
       soloRosterSelectedPlayerId,
       confirmSoloReportPlayer,
-      session.autoRunCompareAiAfterLoad,
-      setAutoRunCompareAiAfterLoad,
       startInitialCompareAnalysis,
     ]
   )

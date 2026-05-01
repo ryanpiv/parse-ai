@@ -25,8 +25,8 @@ export type AnalyzePageSnapshot = {
   fightKill2: boolean
   /** Opt-in: include SimC default APL + grounded framing in Claude system prompt (Frost Mage when bundled). */
   simcCompareEnabled: boolean
-  /** Solo = your pull only; Compare = side-by-side vs other player. */
-  analysisSubtab?: 'solo' | 'compare'
+  /** Solo vs Compare vs unset (until a fight is loaded). */
+  analysisSubtab?: 'solo' | 'compare' | 'none'
   /** True when data came from a single /reports/<code> URL (no vs-partner). */
   soloFromReport?: boolean
 }

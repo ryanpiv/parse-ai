@@ -50,7 +50,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const nodeTypeName: string = n.node_type?.type ?? 'ACTIVE'
       const isChoice = nodeTypeName === 'CHOICE'
 
-      let entries: Array<{ rank: number; spellId: number; name: string; description: string; maxRanks: number }>
+      let entries: Array<{
+        rank: number
+        spellId: number
+        talentId: number
+        name: string
+        description: string
+        maxRanks: number
+      }>
 
       if (isChoice) {
         // CHOICE nodes store options in choice_of_tooltips[], not tooltip
@@ -58,20 +65,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         entries = choices.map((c: any, idx: number) => ({
           rank: idx + 1,
           spellId: c.spell_tooltip?.spell?.id ?? 0,
+          talentId: c.talent?.id ?? 0,
           name: c.talent?.name || c.spell_tooltip?.spell?.name || `Choice ${idx + 1}`,
-          description: c.spell_tooltip?.description ?? '',
+          description: c.spell_tooltip?.description ?? c.talent?.description ?? '',
           maxRanks: choices.length,
         }))
       } else {
         // Regular/multi-rank nodes
         const firstName = ranks[0]?.tooltip?.talent?.name || ranks[0]?.tooltip?.spell_tooltip?.spell?.name || null
-        entries = ranks.map((r: any, idx: number) => ({
-          rank: r.rank ?? idx + 1,
-          spellId: r.tooltip?.spell_tooltip?.spell?.id ?? 0,
-          name: r.tooltip?.talent?.name || r.tooltip?.spell_tooltip?.spell?.name || firstName || `Node ${n.id}`,
-          description: r.tooltip?.spell_tooltip?.description ?? '',
-          maxRanks: ranks.length,
-        }))
+        entries = ranks.map((r: any, idx: number) => {
+          const tip = r.tooltip || {}
+          const st = tip.spell_tooltip || {}
+          const spellObj = st.spell || tip.spell || {}
+          const talentObj = tip.talent || {}
+          const desc =
+            (typeof st.description === 'string' ? st.description : '') ||
+            (typeof talentObj.description === 'string' ? talentObj.description : '') ||
+            (typeof tip.description === 'string' ? tip.description : '') ||
+            ''
+          return {
+            rank: r.rank ?? idx + 1,
+            spellId: st.spell?.id ?? spellObj?.id ?? 0,
+            talentId: talentObj?.id ?? 0,
+            name: talentObj.name || st.spell?.name || spellObj.name || firstName || `Node ${n.id}`,
+            description: desc,
+            maxRanks: ranks.length,
+          }
+        })
       }
 
       for (const toId of (n.unlocks || [])) edges.push({ from: n.id, to: toId })

@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { simcAplAvailableForSpec } from '../../lib/knowledge/embeddedSimc'
+import { wowheadReferenceAvailableForSpec } from '../../lib/knowledge/embeddedWowhead'
+import { icyVeinsReferenceAvailableForSpec } from '../../lib/knowledge/embeddedIcyVeins'
 import {
   SpellUsageChart,
   CastTimelineChart,
@@ -14,7 +16,17 @@ import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
 import { buildInitialSoloUserPrompt } from '../../lib/buildContext/initialComparePrompt'
-import { s, PRESET_QUESTIONS_SOLO, SOLO_INITIAL_QUICK_LABEL, resolvePresetPrompt } from '../../lib/styles'
+import {
+  s,
+  PRESET_QUESTIONS_SOLO,
+  SOLO_INITIAL_QUICK_LABEL,
+  resolvePresetPrompt,
+  PRESET_SOLO_ROTATION_WOWHEAD,
+  PRESET_SOLO_ROTATION_ICY,
+  PRESET_SOLO_ROTATION_BOTH,
+  ROTATION_GUIDE_CLUSTER_LABEL,
+  ROTATION_GUIDE_CLUSTER_LABEL_COLOR,
+} from '../../lib/styles'
 
 export function SoloFightView() {
   const fa = useFightAnalysis()
@@ -27,6 +39,7 @@ export function SoloFightView() {
     inputAnalyze,
     setInputAnalyze,
     aiLoading,
+    aiLiveStatus,
     simcCompareEnabled,
     setSimcCompareEnabled,
     bossName,
@@ -449,64 +462,91 @@ export function SoloFightView() {
                             {m.content}
                           </div>
                         ) : (
-                          <div style={{ position: 'relative' }}>
-                            <div
-                              style={{
-                                background: 'var(--bg2)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '2px 6px 6px 6px',
-                                padding: '13px 15px 36px 15px',
-                                fontSize: 13,
-                                lineHeight: 1.85,
-                              }}
-                            >
-                              <FormatAI text={m.content} />
-                            </div>
-                            <div style={{ position: 'absolute', bottom: 8, right: 10 }}>
-                              <CopyBtn text={m.content} label="Copy" />
-                            </div>
-                          </div>
+                          (() => {
+                            const isLast = i === messagesAnalyze.length - 1
+                            const streamingHere = isLast && aiLoading
+                            const showTyping = streamingHere && !m.content.trim()
+                            const bubblePad = showTyping || !m.content ? '13px 15px' : '13px 15px 36px 15px'
+                            return (
+                              <div style={{ position: 'relative' }}>
+                                <div
+                                  style={{
+                                    background: 'var(--bg2)',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: '2px 6px 6px 6px',
+                                    padding: bubblePad,
+                                    fontSize: 13,
+                                    lineHeight: 1.85,
+                                  }}
+                                >
+                                  {showTyping ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                      {[0, 200, 400].map(d => (
+                                        <div
+                                          key={d}
+                                          style={{
+                                            width: 5,
+                                            height: 5,
+                                            borderRadius: '50%',
+                                            background: 'var(--dim)',
+                                            animation: `td 1.2s ${d}ms infinite`,
+                                          }}
+                                        />
+                                      ))}
+                                      <span
+                                        style={{
+                                          fontSize: 11,
+                                          color: 'var(--dim)',
+                                          fontFamily: 'IBM Plex Mono,monospace',
+                                          marginLeft: 4,
+                                        }}
+                                      >
+                                        Analyzing… {aiLiveStatus ? `${aiLiveStatus.elapsedSec}s` : '0s'}
+                                        {aiLiveStatus?.inputTokens != null
+                                          ? ` · ${aiLiveStatus.inputTokens.toLocaleString()} in`
+                                          : ''}
+                                        {aiLiveStatus?.outputTokens != null
+                                          ? ` · ${aiLiveStatus.outputTokens.toLocaleString()} out`
+                                          : ''}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      {m.content ? <FormatAI text={m.content} /> : null}
+                                      {streamingHere && m.content ? (
+                                        <span style={{ color: 'var(--golddim)', fontWeight: 300 }} aria-hidden>
+                                          ▍
+                                        </span>
+                                      ) : null}
+                                    </>
+                                  )}
+                                  {m.usage && !streamingHere ? (
+                                    <div
+                                      style={{
+                                        fontSize: 10,
+                                        color: 'var(--dim)',
+                                        marginTop: 10,
+                                        fontFamily: 'IBM Plex Mono,monospace',
+                                        borderTop: '1px solid var(--border)',
+                                        paddingTop: 8,
+                                      }}
+                                    >
+                                      {m.usage.in.toLocaleString()} tokens in · {m.usage.out.toLocaleString()} out
+                                    </div>
+                                  ) : null}
+                                </div>
+                                {m.content && !showTyping ? (
+                                  <div style={{ position: 'absolute', bottom: 8, right: 10 }}>
+                                    <CopyBtn text={m.content} label="Copy" />
+                                  </div>
+                                ) : null}
+                              </div>
+                            )
+                          })()
                         )}
                       </div>
                     )
                   })}
-                  {aiLoading && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        padding: '12px 15px',
-                        background: 'var(--bg2)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '2px 6px 6px 6px',
-                        marginBottom: 10,
-                      }}
-                    >
-                      {[0, 200, 400].map(d => (
-                        <div
-                          key={d}
-                          style={{
-                            width: 5,
-                            height: 5,
-                            borderRadius: '50%',
-                            background: 'var(--dim)',
-                            animation: `td 1.2s ${d}ms infinite`,
-                          }}
-                        />
-                      ))}
-                      <span
-                        style={{
-                          fontSize: 11,
-                          color: 'var(--dim)',
-                          fontFamily: 'IBM Plex Mono,monospace',
-                          marginLeft: 6,
-                        }}
-                      >
-                        Analyzing...
-                      </span>
-                    </div>
-                  )}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'IBM Plex Mono,monospace', marginBottom: 6 }}>
                   Quick questions:
@@ -595,6 +635,121 @@ export function SoloFightView() {
                           ? 'Compare to SimulationCraft APL'
                           : 'Compare to SimulationCraft APL (unavailable)'}
                       </button>
+                    )
+                  })()}
+                  {(() => {
+                    const whOk = wowheadReferenceAvailableForSpec(talentDiff?.specId)
+                    const icyOk = icyVeinsReferenceAvailableForSpec(talentDiff?.specId)
+                    const bothOk = whOk && icyOk
+                    const subStyle = (disabled: boolean): CSSProperties => ({
+                      fontFamily: 'IBM Plex Mono,monospace',
+                      fontSize: 10,
+                      padding: '5px 8px',
+                      borderRadius: 2,
+                      border: '1px solid var(--border)',
+                      background: disabled ? 'var(--bg2)' : 'var(--bg3)',
+                      color: disabled ? 'var(--dim)' : 'var(--muted)',
+                      cursor: disabled || aiLoading ? 'not-allowed' : 'pointer',
+                      flex: '1 1 auto',
+                      minWidth: 0,
+                      lineHeight: 1.35,
+                    })
+                    return (
+                      <div
+                        style={{
+                          gridColumn: '1 / -1',
+                          border: '1px solid var(--border)',
+                          borderRadius: 3,
+                          padding: '8px 10px',
+                          background: 'var(--bg3)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontFamily: 'IBM Plex Mono,monospace',
+                            fontSize: 10,
+                            color: ROTATION_GUIDE_CLUSTER_LABEL_COLOR,
+                            marginBottom: 6,
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {ROTATION_GUIDE_CLUSTER_LABEL}
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                          <button
+                            type="button"
+                            disabled={aiLoading || !whOk}
+                            title={
+                              whOk
+                                ? 'Include Wowhead scraped rotation/talent text. Asks Claude to compare your log to that guide.'
+                                : 'Wowhead scraped bundle is not available for this spec yet.'
+                            }
+                            style={subStyle(aiLoading || !whOk)}
+                            onClick={() => sendAnalyzeQuestion(PRESET_SOLO_ROTATION_WOWHEAD)}
+                            onMouseEnter={e => {
+                              if (aiLoading || !whOk) return
+                              ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
+                              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
+                            }}
+                            onMouseLeave={e => {
+                              const el = e.currentTarget as HTMLButtonElement
+                              const d = aiLoading || !whOk
+                              el.style.borderColor = 'var(--border)'
+                              el.style.color = d ? 'var(--dim)' : 'var(--muted)'
+                            }}
+                          >
+                            Wowhead
+                          </button>
+                          <button
+                            type="button"
+                            disabled={aiLoading || !icyOk}
+                            title={
+                              icyOk
+                                ? 'Include Icy Veins scraped rotation text. Asks Claude to compare your log to that guide.'
+                                : 'Icy Veins scraped bundle is not available for this spec yet.'
+                            }
+                            style={subStyle(aiLoading || !icyOk)}
+                            onClick={() => sendAnalyzeQuestion(PRESET_SOLO_ROTATION_ICY)}
+                            onMouseEnter={e => {
+                              if (aiLoading || !icyOk) return
+                              ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
+                              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
+                            }}
+                            onMouseLeave={e => {
+                              const el = e.currentTarget as HTMLButtonElement
+                              const d = aiLoading || !icyOk
+                              el.style.borderColor = 'var(--border)'
+                              el.style.color = d ? 'var(--dim)' : 'var(--muted)'
+                            }}
+                          >
+                            Icy Veins
+                          </button>
+                          <button
+                            type="button"
+                            disabled={aiLoading || !bothOk}
+                            title={
+                              bothOk
+                                ? 'Include Wowhead and Icy Veins excerpts. Compares your pull to both guides.'
+                                : 'Both requires Wowhead and Icy Veins data for this spec (e.g. Frost Mage).'
+                            }
+                            style={subStyle(aiLoading || !bothOk)}
+                            onClick={() => sendAnalyzeQuestion(PRESET_SOLO_ROTATION_BOTH)}
+                            onMouseEnter={e => {
+                              if (aiLoading || !bothOk) return
+                              ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
+                              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
+                            }}
+                            onMouseLeave={e => {
+                              const el = e.currentTarget as HTMLButtonElement
+                              const d = aiLoading || !bothOk
+                              el.style.borderColor = 'var(--border)'
+                              el.style.color = d ? 'var(--dim)' : 'var(--muted)'
+                            }}
+                          >
+                            Both
+                          </button>
+                        </div>
+                      </div>
                     )
                   })()}
                   {PRESET_QUESTIONS_SOLO.map((p, i) => {

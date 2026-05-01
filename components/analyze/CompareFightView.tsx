@@ -1,12 +1,23 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
-import { simcAplAvailableForSpec } from '../../lib/knowledge/embeddedSimc'
+import { wowheadReferenceAvailableForSpec } from '../../lib/knowledge/embeddedWowhead'
+import { icyVeinsReferenceAvailableForSpec } from '../../lib/knowledge/embeddedIcyVeins'
 import { TalentCompare } from '../TalentCompare'
 import { SpellUsageChart, CastTimelineChart, ProcEfficiencyChart, CooldownTimelineChart, ChartCard } from '../Charts'
 import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
-import { s, PRESET_QUESTIONS, COMPARE_INITIAL_QUICK_LABEL, resolvePresetPrompt } from '../../lib/styles'
+import {
+  s,
+  PRESET_QUESTIONS_COMPARE,
+  resolvePresetPrompt,
+  PRESET_COMPARE_ROTATION_WOWHEAD,
+  PRESET_COMPARE_ROTATION_ICY,
+  PRESET_COMPARE_ROTATION_BOTH,
+  COMPARE_TOP_QUICK_ITEMS,
+  ROTATION_GUIDE_CLUSTER_LABEL,
+  ROTATION_GUIDE_CLUSTER_LABEL_COLOR,
+} from '../../lib/styles'
 
 export function CompareFightView() {
   const fa = useFightAnalysis()
@@ -19,10 +30,7 @@ export function CompareFightView() {
     inputCompare,
     setInputCompare,
     aiLoading,
-    simcCompareEnabled,
-    setSimcCompareEnabled,
-    autoRunCompareAiAfterLoad,
-    setAutoRunCompareAiAfterLoad,
+    aiLiveStatus,
     startInitialCompareAnalysis,
     bossName,
     fightKill1,
@@ -216,9 +224,29 @@ export function CompareFightView() {
                     {spellRows
                       .filter(r => r.count1 > 0 || r.count2 > 0)
                       .map((r, i) => {
-                        const diff = r.count2 > 0 ? Math.round(((r.count1 - r.count2) / r.count2) * 100) : null
+                        const rawDelta = r.count1 - r.count2
+                        const pct =
+                          r.count2 > 0
+                            ? Math.round((rawDelta / r.count2) * 100)
+                            : r.count1 > 0
+                              ? null
+                              : 0
+                        const pctStr =
+                          pct === null ? '—' : (pct >= 0 ? '+' : '') + pct + '%'
+                        const rawStr = (rawDelta >= 0 ? '+' : '') + rawDelta
+                        const diffCell = `${pctStr} / [${rawStr}]`
                         const dc =
-                          diff === null ? 'var(--dim)' : diff > 5 ? 'var(--green)' : diff < -5 ? 'var(--red)' : 'var(--dim)'
+                          r.count2 > 0
+                            ? pct! > 5
+                              ? 'var(--green)'
+                              : pct! < -5
+                                ? 'var(--red)'
+                                : 'var(--dim)'
+                            : rawDelta > 5
+                              ? 'var(--green)'
+                              : rawDelta < -5
+                                ? 'var(--red)'
+                                : 'var(--dim)'
                         const ft = r.first1 !== null && r.first2 !== null && Math.abs(r.first1 - r.first2) > 1.5
                         return (
                           <tr
@@ -281,7 +309,7 @@ export function CompareFightView() {
                                 textAlign: 'right',
                               }}
                             >
-                              {diff === null ? '—' : (diff >= 0 ? '+' : '') + diff + '%'}
+                              {diffCell}
                             </td>
                             <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--bg4)', fontSize: 11 }}>
                               {ft && (
@@ -413,32 +441,6 @@ export function CompareFightView() {
                 ) : undefined
               }
             >
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 10,
-                  marginBottom: 12,
-                  cursor: 'pointer',
-                  fontFamily: 'IBM Plex Mono,monospace',
-                  fontSize: 11,
-                  color: 'var(--muted)',
-                  lineHeight: 1.45,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={autoRunCompareAiAfterLoad}
-                  onChange={e => setAutoRunCompareAiAfterLoad(e.target.checked)}
-                  style={{ marginTop: 2, flexShrink: 0 }}
-                />
-                <span>
-                  <strong style={{ color: 'var(--text)' }}>Auto-run initial analysis</strong>
-                  {' — '}
-                  after a compare finishes loading, send the default “top 5 changes” prompt to Claude immediately (saved in
-                  this browser).
-                </span>
-              </label>
               <div
                 ref={chatRef}
                 style={{
@@ -464,7 +466,7 @@ export function CompareFightView() {
                       lineHeight: 1.5,
                     }}
                   >
-                    No messages yet — pick a quick question below (including the full initial review) or type your own.
+                    No messages yet — try a quick question below or type your own.
                   </div>
                 )}
                 {messagesCompare.map((m, i) => {
@@ -488,79 +490,99 @@ export function CompareFightView() {
                           {m.content}
                         </div>
                       ) : (
-                        <div style={{ position: 'relative' }}>
-                          <div
-                            style={{
-                              background: 'var(--bg2)',
-                              border: '1px solid var(--border)',
-                              borderRadius: '2px 6px 6px 6px',
-                              padding: '13px 15px 36px 15px',
-                              fontSize: 13,
-                              lineHeight: 1.85,
-                            }}
-                          >
-                            <FormatAI text={m.content} />
-                          </div>
-                          <div style={{ position: 'absolute', bottom: 8, right: 10 }}>
-                            <CopyBtn text={m.content} label="Copy" />
-                          </div>
-                        </div>
+                        (() => {
+                          const isLast = i === messagesCompare.length - 1
+                          const streamingHere = isLast && aiLoading
+                          const showTyping = streamingHere && !m.content.trim()
+                          const bubblePad = showTyping || !m.content ? '13px 15px' : '13px 15px 36px 15px'
+                          return (
+                            <div style={{ position: 'relative' }}>
+                              <div
+                                style={{
+                                  background: 'var(--bg2)',
+                                  border: '1px solid var(--border)',
+                                  borderRadius: '2px 6px 6px 6px',
+                                  padding: bubblePad,
+                                  fontSize: 13,
+                                  lineHeight: 1.85,
+                                }}
+                              >
+                                {showTyping ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                    {[0, 200, 400].map(d => (
+                                      <div
+                                        key={d}
+                                        style={{
+                                          width: 5,
+                                          height: 5,
+                                          borderRadius: '50%',
+                                          background: 'var(--dim)',
+                                          animation: `td 1.2s ${d}ms infinite`,
+                                        }}
+                                      />
+                                    ))}
+                                    <span
+                                      style={{
+                                        fontSize: 11,
+                                        color: 'var(--dim)',
+                                        fontFamily: 'IBM Plex Mono,monospace',
+                                        marginLeft: 4,
+                                      }}
+                                    >
+                                      Analyzing… {aiLiveStatus ? `${aiLiveStatus.elapsedSec}s` : '0s'}
+                                      {aiLiveStatus?.inputTokens != null
+                                        ? ` · ${aiLiveStatus.inputTokens.toLocaleString()} in`
+                                        : ''}
+                                      {aiLiveStatus?.outputTokens != null
+                                        ? ` · ${aiLiveStatus.outputTokens.toLocaleString()} out`
+                                        : ''}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <>
+                                    {m.content ? <FormatAI text={m.content} /> : null}
+                                    {streamingHere && m.content ? (
+                                      <span style={{ color: 'var(--golddim)', fontWeight: 300 }} aria-hidden>
+                                        ▍
+                                      </span>
+                                    ) : null}
+                                  </>
+                                )}
+                                {m.usage && !streamingHere ? (
+                                  <div
+                                    style={{
+                                      fontSize: 10,
+                                      color: 'var(--dim)',
+                                      marginTop: 10,
+                                      fontFamily: 'IBM Plex Mono,monospace',
+                                      borderTop: '1px solid var(--border)',
+                                      paddingTop: 8,
+                                    }}
+                                  >
+                                    {m.usage.in.toLocaleString()} tokens in · {m.usage.out.toLocaleString()} out
+                                  </div>
+                                ) : null}
+                              </div>
+                              {m.content && !showTyping ? (
+                                <div style={{ position: 'absolute', bottom: 8, right: 10 }}>
+                                  <CopyBtn text={m.content} label="Copy" />
+                                </div>
+                              ) : null}
+                            </div>
+                          )
+                        })()
                       )}
                     </div>
                   )
                 })}
-                {aiLoading && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '12px 15px',
-                      background: 'var(--bg2)',
-                      border: '1px solid var(--border)',
-                      borderRadius: '2px 6px 6px 6px',
-                      marginBottom: 10,
-                    }}
-                  >
-                    {[0, 200, 400].map(d => (
-                      <div
-                        key={d}
-                        style={{
-                          width: 5,
-                          height: 5,
-                          borderRadius: '50%',
-                          background: 'var(--dim)',
-                          animation: `td 1.2s ${d}ms infinite`,
-                        }}
-                      />
-                    ))}
-                    <span
-                      style={{
-                        fontSize: 11,
-                        color: 'var(--dim)',
-                        fontFamily: 'IBM Plex Mono,monospace',
-                        marginLeft: 6,
-                      }}
-                    >
-                      Analyzing...
-                    </span>
-                  </div>
-                )}
               </div>
               <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'IBM Plex Mono,monospace', marginBottom: 6 }}>
                 Quick questions:
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginBottom: 10 }}>
-                <button
-                  type="button"
-                  onClick={() => startInitialCompareAnalysis()}
-                  disabled={aiLoading || !talentDiff}
-                  title={
-                    talentDiff
-                      ? 'Sends the full default compare prompt (Part 1 + Part 2, wipes). Adds SimulationCraft APL to context only when “Compare to SimulationCraft APL” is on (gold border) for a supported spec — shorthand label only.'
-                      : 'Available once talent data has loaded'
-                  }
-                  style={{
+                {COMPARE_TOP_QUICK_ITEMS.map((item, idx) => {
+                  const disabled = aiLoading || !talentDiff
+                  const baseBtn = {
                     fontFamily: 'IBM Plex Mono,monospace',
                     fontSize: 11,
                     padding: '7px 10px',
@@ -568,69 +590,152 @@ export function CompareFightView() {
                     border: '1px solid var(--border)',
                     borderRadius: 3,
                     color: 'var(--muted)',
-                    cursor: aiLoading || !talentDiff ? 'not-allowed' : 'pointer',
-                    textAlign: 'left',
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    textAlign: 'left' as const,
                     lineHeight: 1.4,
-                  }}
-                  onMouseEnter={e => {
-                    if (!aiLoading && talentDiff) {
-                      ;(e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                      ;(e.target as HTMLButtonElement).style.color = 'var(--gold)'
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    ;(e.target as HTMLButtonElement).style.borderColor = 'var(--border)'
-                    ;(e.target as HTMLButtonElement).style.color = 'var(--muted)'
-                  }}
-                >
-                  {COMPARE_INITIAL_QUICK_LABEL}
-                </button>
-                {(() => {
-                  const simcForSpec = talentDiff ? simcAplAvailableForSpec(talentDiff.specId) : false
-                  const simcOn = simcCompareEnabled && simcForSpec
+                  }
                   return (
                     <button
+                      key={`${item.kind}-${idx}`}
                       type="button"
                       onClick={() => {
-                        if (simcForSpec) setSimcCompareEnabled(!simcCompareEnabled)
+                        if (disabled) return
+                        if (item.kind === 'initial') startInitialCompareAnalysis()
+                        else sendCompareQuestion(item.prompt)
                       }}
-                      disabled={aiLoading}
-                      title={
-                        simcForSpec
-                          ? 'Click to include SimulationCraft’s default APL in Claude’s system context (gold border = on). Does not send a message. Use “Ask: log casts vs SimC + Wowhead” to request a cast-by-cast comparison.'
-                          : 'SimulationCraft APL context is only wired for Mage and Death Knight (all three specs each).'
-                      }
-                      style={{
-                        fontFamily: 'IBM Plex Mono,monospace',
-                        fontSize: 11,
-                        padding: '7px 10px',
-                        background: 'var(--bg3)',
-                        border: `1px solid ${simcOn ? 'var(--golddim)' : 'var(--border)'}`,
-                        borderRadius: 3,
-                        color: simcOn ? 'var(--gold)' : 'var(--muted)',
-                        cursor: aiLoading ? 'not-allowed' : simcForSpec ? 'pointer' : 'not-allowed',
-                        opacity: simcForSpec ? 1 : 0.65,
-                        textAlign: 'left',
-                        lineHeight: 1.4,
-                      }}
+                      disabled={disabled}
+                      title={talentDiff ? item.title : 'Available once talent data has loaded'}
+                      style={baseBtn}
                       onMouseEnter={e => {
-                        if (aiLoading || !simcForSpec) return
+                        if (disabled) return
                         ;(e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'
                         ;(e.target as HTMLButtonElement).style.color = 'var(--gold)'
                       }}
                       onMouseLeave={e => {
-                        const el = e.target as HTMLButtonElement
-                        el.style.borderColor = simcOn ? 'var(--golddim)' : 'var(--border)'
-                        el.style.color = simcOn ? 'var(--gold)' : 'var(--muted)'
+                        ;(e.target as HTMLButtonElement).style.borderColor = 'var(--border)'
+                        ;(e.target as HTMLButtonElement).style.color = 'var(--muted)'
                       }}
                     >
-                      {simcForSpec
-                        ? 'Compare to SimulationCraft APL'
-                        : 'Compare to SimulationCraft APL (unavailable)'}
+                      {item.label}
                     </button>
                   )
+                })}
+                {(() => {
+                  const whOk = wowheadReferenceAvailableForSpec(talentDiff?.specId)
+                  const icyOk = icyVeinsReferenceAvailableForSpec(talentDiff?.specId)
+                  const bothOk = whOk && icyOk
+                  const subStyle = (disabled: boolean): CSSProperties => ({
+                    fontFamily: 'IBM Plex Mono,monospace',
+                    fontSize: 10,
+                    padding: '5px 8px',
+                    borderRadius: 2,
+                    border: '1px solid var(--border)',
+                    background: disabled ? 'var(--bg2)' : 'var(--bg3)',
+                    color: disabled ? 'var(--dim)' : 'var(--muted)',
+                    cursor: disabled || aiLoading ? 'not-allowed' : 'pointer',
+                    flex: '1 1 auto',
+                    minWidth: 0,
+                    lineHeight: 1.35,
+                  })
+                  return (
+                    <div
+                      style={{
+                        gridColumn: '1 / -1',
+                        border: '1px solid var(--border)',
+                        borderRadius: 3,
+                        padding: '8px 10px',
+                        background: 'var(--bg3)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: 'IBM Plex Mono,monospace',
+                          fontSize: 10,
+                          color: ROTATION_GUIDE_CLUSTER_LABEL_COLOR,
+                          marginBottom: 6,
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {ROTATION_GUIDE_CLUSTER_LABEL}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                        <button
+                          type="button"
+                          disabled={aiLoading || !whOk}
+                          title={
+                            whOk
+                              ? 'Include Wowhead scraped rotation/talent text. Asks Claude to compare both players’ logs to that guide.'
+                              : 'Wowhead scraped bundle is not available for this spec yet.'
+                          }
+                          style={subStyle(aiLoading || !whOk)}
+                          onClick={() => sendCompareQuestion(PRESET_COMPARE_ROTATION_WOWHEAD)}
+                          onMouseEnter={e => {
+                            if (aiLoading || !whOk) return
+                            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
+                            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
+                          }}
+                          onMouseLeave={e => {
+                            const el = e.currentTarget as HTMLButtonElement
+                            const d = aiLoading || !whOk
+                            el.style.borderColor = 'var(--border)'
+                            el.style.color = d ? 'var(--dim)' : 'var(--muted)'
+                          }}
+                        >
+                          Wowhead
+                        </button>
+                        <button
+                          type="button"
+                          disabled={aiLoading || !icyOk}
+                          title={
+                            icyOk
+                              ? 'Include Icy Veins scraped rotation text. Asks Claude to compare both players’ logs to that guide.'
+                              : 'Icy Veins scraped bundle is not available for this spec yet.'
+                          }
+                          style={subStyle(aiLoading || !icyOk)}
+                          onClick={() => sendCompareQuestion(PRESET_COMPARE_ROTATION_ICY)}
+                          onMouseEnter={e => {
+                            if (aiLoading || !icyOk) return
+                            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
+                            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
+                          }}
+                          onMouseLeave={e => {
+                            const el = e.currentTarget as HTMLButtonElement
+                            const d = aiLoading || !icyOk
+                            el.style.borderColor = 'var(--border)'
+                            el.style.color = d ? 'var(--dim)' : 'var(--muted)'
+                          }}
+                        >
+                          Icy Veins
+                        </button>
+                        <button
+                          type="button"
+                          disabled={aiLoading || !bothOk}
+                          title={
+                            bothOk
+                              ? 'Include Wowhead and Icy Veins excerpts. Compares both players to both guides.'
+                              : 'Both requires Wowhead and Icy Veins data for this spec (e.g. Frost Mage).'
+                          }
+                          style={subStyle(aiLoading || !bothOk)}
+                          onClick={() => sendCompareQuestion(PRESET_COMPARE_ROTATION_BOTH)}
+                          onMouseEnter={e => {
+                            if (aiLoading || !bothOk) return
+                            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
+                            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
+                          }}
+                          onMouseLeave={e => {
+                            const el = e.currentTarget as HTMLButtonElement
+                            const d = aiLoading || !bothOk
+                            el.style.borderColor = 'var(--border)'
+                            el.style.color = d ? 'var(--dim)' : 'var(--muted)'
+                          }}
+                        >
+                          Both
+                        </button>
+                      </div>
+                    </div>
+                  )
                 })()}
-                {PRESET_QUESTIONS.map((p, i) => {
+                {PRESET_QUESTIONS_COMPARE.map((p, i) => {
                   const { label, prompt } = resolvePresetPrompt(p)
                   return (
                     <button
@@ -671,7 +776,7 @@ export function CompareFightView() {
                   style={s.input}
                   value={inputCompare}
                   onChange={e => setInputCompare(e.target.value)}
-                  placeholder="Ask anything — why am I losing DPS, when should I hold cooldowns, etc."
+                  placeholder="Ask about your pull vs the other player — cooldowns, rotation gaps, anything"
                   onKeyDown={e => e.key === 'Enter' && sendCompareQuestion()}
                   disabled={aiLoading}
                 />

@@ -19,7 +19,7 @@ export interface BlizzardNode {
   rawY: number | null
   type: string
   nodeType: string
-  entries: { rank: number; spellId: number; name: string; description: string; maxRanks: number }[]
+  entries: { rank: number; spellId: number; talentId: number; name: string; description: string; maxRanks: number }[]
   unlocks: number[]
   // set during diff
   state?: DiffState
@@ -50,35 +50,77 @@ const RAIDBOTS_STEP = 55  // 33 + 22  (matches Raidbots spacing)
 /** Space around the node grid so diff outlines / hover scale are not clipped. */
 const LAYOUT_PAD = 12
 
-// Module-level icon cache: spellId → slug or '' (failed)
-const iconCache: Record<number, string> = {}
+// Module-level icon cache: "s:id" / "t:id" → slug or '' (failed)
+const iconCache: Record<string, string> = {}
 
-function useSpellIcon(spellId: number): string | null {
-  const [icon, setIcon] = useState<string | null>(
-    spellId && iconCache[spellId] !== undefined ? (iconCache[spellId] || null) : null
-  )
+async function fetchIconSlug(id: number, type: 'spell' | 'talent'): Promise<string> {
+  const k = type === 'spell' ? `s:${id}` : `t:${id}`
+  if (iconCache[k] !== undefined) return iconCache[k]
+  try {
+    const q = type === 'spell' ? `/api/tooltip?id=${id}` : `/api/tooltip?id=${id}&type=talent`
+    const r = await fetch(q)
+    if (!r.ok) throw new Error(String(r.status))
+    const d = await r.json()
+    const slug: string = d.icon || ''
+    iconCache[k] = slug
+    return slug
+  } catch {
+    iconCache[k] = ''
+    return ''
+  }
+}
+
+function useEntryIcon(spellId: number, talentId = 0): string | null {
+  const [icon, setIcon] = useState<string | null>(() => {
+    if (spellId > 0 && iconCache[`s:${spellId}`] !== undefined) return iconCache[`s:${spellId}`] ? `https://wow.zamimg.com/images/wow/icons/medium/${iconCache[`s:${spellId}`]}.jpg` : null
+    if (spellId <= 0 && talentId > 0 && iconCache[`t:${talentId}`] !== undefined)
+      return iconCache[`t:${talentId}`] ? `https://wow.zamimg.com/images/wow/icons/medium/${iconCache[`t:${talentId}`]}.jpg` : null
+    return null
+  })
 
   useEffect(() => {
-    if (!spellId) return
-    if (iconCache[spellId] !== undefined) {
-      setIcon(iconCache[spellId] || null)
-      return
+    let cancelled = false
+    ;(async () => {
+      if (spellId > 0) {
+        const slug = await fetchIconSlug(spellId, 'spell')
+        if (!cancelled && slug) {
+          setIcon(`https://wow.zamimg.com/images/wow/icons/medium/${slug}.jpg`)
+          return
+        }
+      }
+      if (talentId > 0) {
+        const slug = await fetchIconSlug(talentId, 'talent')
+        if (!cancelled && slug) {
+          setIcon(`https://wow.zamimg.com/images/wow/icons/medium/${slug}.jpg`)
+          return
+        }
+      }
+      if (!cancelled) setIcon(null)
+    })()
+    return () => {
+      cancelled = true
     }
-    // Route through our server-side proxy — avoids CORS, has proper User-Agent
-    fetch(`/api/tooltip?id=${spellId}`)
-      .then(r => r.ok ? r.json() : Promise.reject(r.status))
-      .then(d => {
-        const slug: string = d.icon || ''
-        iconCache[spellId] = slug
-        setIcon(slug || null)
-      })
-      .catch(() => {
-        iconCache[spellId] = ''
-        setIcon(null)
-      })
-  }, [spellId])
+  }, [spellId, talentId])
 
-  return icon ? `https://wow.zamimg.com/images/wow/icons/medium/${icon}.jpg` : null
+  return icon
+}
+
+/** Picks the rank-matching or first entry with spell/talent ids (multi-rank nodes vary by API row). */
+function primaryEntryForSingleNode(node: BlizzardNode): BlizzardNode['entries'][number] | undefined {
+  const entries = node.entries
+  if (!entries.length) return undefined
+  const rank = node.rank ?? 0
+  const maxR = entries[0]?.maxRanks ?? 1
+  const hasKey = (e: (typeof entries)[number]) => e.spellId > 0 || e.talentId > 0
+  if (rank <= 0 || maxR <= 1) {
+    return entries.find(hasKey) ?? entries[0]
+  }
+  const byRank = entries.find(e => e.rank === rank && hasKey(e))
+  if (byRank) return byRank
+  const idx = Math.min(Math.max(0, rank - 1), entries.length - 1)
+  const atIdx = entries[idx]
+  if (atIdx && hasKey(atIdx)) return atIdx
+  return entries.find(hasKey) ?? entries[0]
 }
 
 function NodeIcon({ node, size, renderMode }: { node: BlizzardNode; size: number; renderMode: TalentTreeRenderMode }) {
@@ -183,8 +225,8 @@ function SingleNodeIcon({ node, size, containerStyle, s, borderRadius, renderMod
   renderMode: TalentTreeRenderMode
   active: boolean
 }) {
-  const entry = node.entries[0]
-  const iconUrl = useSpellIcon(entry?.spellId ?? 0)
+  const entry = primaryEntryForSingleNode(node)
+  const iconUrl = useEntryIcon(entry?.spellId ?? 0, entry?.talentId ?? 0)
   const name = entry?.name || `Node ${node.nodeId}`
   const maxR = entry?.maxRanks ?? 1
   const cur = node.rank ?? 0
@@ -194,21 +236,44 @@ function SingleNodeIcon({ node, size, containerStyle, s, borderRadius, renderMod
 
   const onEnter = useCallback((e: React.MouseEvent<HTMLElement>) => {
     const el = e.currentTarget
-    el.style.transform = 'scale(1.25)'
-    el.style.zIndex = '20'
-    if (entry?.spellId) show(entry.spellId, el.getBoundingClientRect())
-  }, [entry?.spellId, show])
+    if (renderMode === 'raidbots') {
+      el.style.transform = 'scale(1.25)'
+      el.style.zIndex = '20'
+      el.style.outline = ''
+      el.style.outlineOffset = ''
+    } else {
+      el.style.transform = ''
+      el.style.zIndex = '30'
+      el.style.outline = '2px solid rgba(232,205,112,0.55)'
+      el.style.outlineOffset = '2px'
+    }
+    const sid = entry?.spellId ?? 0
+    const tid = entry?.talentId ?? 0
+    if (sid > 0 || tid > 0) {
+      const desc = (entry?.description || '').trim()
+      show(sid, el.getBoundingClientRect(), name, {
+        description: desc || undefined,
+        talentId: tid > 0 ? tid : undefined,
+      })
+    }
+  }, [entry?.spellId, entry?.talentId, entry?.description, name, renderMode, show])
 
   const onLeave = useCallback((e: React.MouseEvent<HTMLElement>) => {
     const el = e.currentTarget
     el.style.transform = 'scale(1)'
     el.style.zIndex = '1'
+    el.style.outline = 'none'
+    el.style.outlineOffset = ''
     hide()
   }, [hide])
 
   return (
     <div
-      title={!entry?.spellId ? `${name}${maxR > 1 || renderMode === 'raidbots' ? ` (${cur}/${maxR})` : ''}` : undefined}
+      title={
+        !entry?.spellId && !entry?.talentId
+          ? `${name}${maxR > 1 || renderMode === 'raidbots' ? ` (${cur}/${maxR})` : ''}`
+          : undefined
+      }
       data-wh-spell={entry?.spellId || undefined}
       style={containerStyle}
       onMouseEnter={onEnter}
@@ -239,8 +304,8 @@ function ChoiceNodeIcon({ node, size, containerStyle, s, renderMode, active }: {
 }) {
   const e0 = node.entries[0]
   const e1 = node.entries[1]
-  const icon0 = useSpellIcon(e0?.spellId ?? 0)
-  const icon1 = useSpellIcon(e1?.spellId ?? 0)
+  const icon0 = useEntryIcon(e0?.spellId ?? 0, e0?.talentId ?? 0)
+  const icon1 = useEntryIcon(e1?.spellId ?? 0, e1?.talentId ?? 0)
   const name0 = e0?.name || 'Choice A'
   const name1 = e1?.name || 'Choice B'
   const maxR = e0?.maxRanks ?? 2
@@ -248,30 +313,49 @@ function ChoiceNodeIcon({ node, size, containerStyle, s, renderMode, active }: {
   const imgFilter = renderMode === 'raidbots' && !active ? 'grayscale(1) brightness(0.92)' : undefined
   const { show, hide } = useSpellTooltip()
 
-  const selectedSpellId = node.rank
-    ? (node.rank === 1 ? e0?.spellId : e1?.spellId)
-    : e0?.spellId
+  const selectedSpellId = node.rank ? (node.rank === 1 ? e0?.spellId : e1?.spellId) : e0?.spellId
+  const selectedTalentId = node.rank ? (node.rank === 1 ? e0?.talentId : e1?.talentId) : e0?.talentId
+  const sid = selectedSpellId ?? 0
+  const tid = selectedTalentId ?? 0
   const fallbackTitle = node.rank
     ? `${node.rank === 1 ? name0 : name1}`
     : `${name0} / ${name1}`
 
   const onEnter = useCallback((e: React.MouseEvent<HTMLElement>) => {
     const el = e.currentTarget
-    el.style.transform = 'scale(1.25)'
-    el.style.zIndex = '20'
-    if (selectedSpellId) show(selectedSpellId, el.getBoundingClientRect())
-  }, [selectedSpellId, show])
+    if (renderMode === 'raidbots') {
+      el.style.transform = 'scale(1.25)'
+      el.style.zIndex = '20'
+      el.style.outline = ''
+      el.style.outlineOffset = ''
+    } else {
+      el.style.transform = ''
+      el.style.zIndex = '30'
+      el.style.outline = '2px solid rgba(232,205,112,0.55)'
+      el.style.outlineOffset = '2px'
+    }
+    if (sid > 0 || tid > 0) {
+      const metaEntry = node.rank === 2 ? e1 : e0
+      const desc = (metaEntry?.description || '').trim()
+      show(sid, el.getBoundingClientRect(), fallbackTitle, {
+        description: desc || undefined,
+        talentId: tid > 0 ? tid : undefined,
+      })
+    }
+  }, [sid, tid, fallbackTitle, renderMode, show, node.rank, e0?.description, e1?.description])
 
   const onLeave = useCallback((e: React.MouseEvent<HTMLElement>) => {
     const el = e.currentTarget
     el.style.transform = 'scale(1)'
     el.style.zIndex = '1'
+    el.style.outline = 'none'
+    el.style.outlineOffset = ''
     hide()
   }, [hide])
 
   return (
     <div
-      title={!selectedSpellId ? fallbackTitle : undefined}
+      title={sid <= 0 && tid <= 0 ? fallbackTitle : undefined}
       style={containerStyle}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
@@ -457,8 +541,18 @@ export function TalentTreeSection({ nodes, edges, name1, name2, renderMode = 'di
         const p = px.get(n.nodeId)!
         const st = n.state ?? 'neither'
         const zDiff = renderMode === 'diff' && (st === 'p1' || st === 'p2') ? 8 : undefined
+        const wrapZ = zDiff ?? (renderMode === 'raidbots' ? 6 : 1)
         return (
-          <div key={n.nodeId} style={{ position: 'absolute', left: p.x, top: p.y, zIndex: zDiff ?? (renderMode === 'raidbots' ? 6 : undefined) }}>
+          <div
+            key={n.nodeId}
+            style={{ position: 'absolute', left: p.x, top: p.y, zIndex: wrapZ }}
+            onMouseEnter={e => {
+              ;(e.currentTarget as HTMLDivElement).style.zIndex = '10050'
+            }}
+            onMouseLeave={e => {
+              ;(e.currentTarget as HTMLDivElement).style.zIndex = String(wrapZ)
+            }}
+          >
             <NodeIcon node={n} size={NODE} renderMode={renderMode} />
           </div>
         )

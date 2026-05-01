@@ -38,3 +38,5 @@ export async function callAI(messages: Array<{ role: string; content: string }>,
   if (data.error) throw new Error(data.error)
   return data.content?.[0]?.text || 'No response.'
 }
+
+export { callAIStream, type AIStreamUsage } from './callAIStream'
