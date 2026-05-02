@@ -19,6 +19,12 @@
   --red:     #d44040;
   --green:   #40a060;
   --purple:  #a855f7;
+
+  /*
+   * Fixed route-tab strip height, in-flow spacer, and Analyze view bar sticky `top` — one value stays aligned.
+   * Nudge here if Analyze / Talent / Talents row padding or fonts change.
+   */
+  --pa-sticky-app-nav-offset: 52px;
 }
 
 html, body {
@@ -37,3 +43,349 @@ a:hover { text-decoration: underline; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.pa-app-nav-tabs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: var(--pa-sticky-app-nav-offset);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+}
+
+.pa-app-nav-tabs nav {
+  max-width: 1200px;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* In-flow space under fixed route tabs (= strip height above). */
+.pa-app-nav-tabs-spacer {
+  height: var(--pa-sticky-app-nav-offset);
+  flex-shrink: 0;
+}
+
+/* --- Shared UI (Analyze view bar + reusable controls) --- */
+
+.pa-view-tab {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  background: var(--bg3);
+  color: var(--dim);
+  text-align: left;
+  min-height: 56px;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pa-view-tab--active {
+  border-color: var(--golddim);
+  color: var(--gold2);
+  background: var(--bg2);
+}
+
+.pa-view-tab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pa-view-tab:not(.pa-view-tab--active):not(:disabled):hover {
+  border-color: var(--golddim);
+  color: var(--gold);
+  background: var(--bg2);
+}
+
+.pa-view-tab:not(.pa-view-tab--active):not(:disabled):hover .pa-view-tab__sub {
+  color: var(--golddim);
+}
+
+.pa-view-tab__sub {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--dim);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+
+.pa-btn-ghost {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  background: transparent;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.pa-btn-ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pa-btn-ghost:hover:not(:disabled) {
+  border-color: var(--golddim);
+  color: var(--gold);
+}
+
+.pa-btn-ghost.pa-btn-ghost--view-bar {
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+a.pa-btn-ghost,
+a.pa-btn-ghost:visited {
+  color: var(--dim);
+}
+
+a.pa-btn-ghost:hover {
+  border-color: var(--golddim);
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.pa-btn-ghost--sm {
+  font-size: 10px;
+  padding: 4px 10px;
+  letter-spacing: 0.06em;
+}
+
+.pa-btn-ghost--link {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+}
+
+/* Same visual scale as .pa-btn-gold for outlined buttons in one row (border → slightly less vertical padding). */
+.pa-btn-ghost--primary-row {
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 8px 22px;
+  border-radius: 4px;
+}
+
+a.pa-btn-ghost--link:hover {
+  text-decoration: none;
+}
+
+.pa-btn-gold {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 9px 22px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background: var(--gold);
+  color: #0a0c0f;
+  white-space: nowrap;
+}
+
+.pa-btn-gold:disabled {
+  cursor: not-allowed;
+  background: var(--golddim);
+  color: var(--dim);
+}
+
+.pa-quick-tile {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 7px 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.pa-quick-tile:disabled {
+  cursor: not-allowed;
+}
+
+.pa-quick-tile:not(:disabled):hover {
+  border-color: var(--golddim);
+  color: var(--gold);
+}
+
+.pa-quick-tile--active {
+  border-color: var(--golddim);
+  color: var(--gold);
+}
+
+.pa-quick-tile--unavailable {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.pa-quick-tile--unavailable:not(:disabled):hover {
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.pa-guide-chip {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  padding: 5px 8px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--muted);
+  cursor: pointer;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.pa-guide-chip:disabled {
+  background: var(--bg2);
+  color: var(--dim);
+  cursor: not-allowed;
+}
+
+.pa-guide-chip:not(:disabled):hover {
+  border-color: var(--golddim);
+  color: var(--gold);
+}
+
+.pa-collapsible-trigger {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+}
+
+.pa-collapsible-trigger:hover {
+  color: var(--gold);
+}
+
+.pa-collapsible-trigger__chev {
+  font-size: 10px;
+  color: var(--dim);
+  width: 14px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.pa-btn-copy {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  background: var(--bg4);
+  color: var(--dim);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.pa-btn-copy--copied {
+  background: #102a18;
+  color: var(--green);
+  border-color: #1a4a28;
+}
+
+.pa-btn-copy:not(:disabled):hover:not(.pa-btn-copy--copied) {
+  border-color: var(--golddim);
+  color: var(--gold);
+}
+
+.pa-btn-timeline {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--dim);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pa-btn-timeline:hover {
+  border-color: var(--golddim);
+  color: var(--gold);
+}
+
+.pa-roster-pick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  text-align: left;
+}
+
+.pa-roster-pick--active {
+  background: var(--bg2);
+  border-color: var(--golddim);
+}
+
+.pa-roster-pick:disabled {
+  cursor: not-allowed;
+}

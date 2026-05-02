@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, type MutableRefObject } from 'react'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { simcAplAvailableForSpec } from '../../lib/knowledge/embeddedSimc'
 import { wowheadReferenceAvailableForSpec } from '../../lib/knowledge/embeddedWowhead'
@@ -15,9 +15,11 @@ import {
 import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
+import { CollapsibleGroupProvider, type CollapsibleBridgeApi } from '../CollapsibleGroup'
 import { buildInitialSoloUserPrompt } from '../../lib/buildContext/initialComparePrompt'
 import {
   s,
+  pa,
   PRESET_QUESTIONS_SOLO,
   SOLO_INITIAL_QUICK_LABEL,
   resolvePresetPrompt,
@@ -28,7 +30,10 @@ import {
   ROTATION_GUIDE_CLUSTER_LABEL_COLOR,
 } from '../../lib/styles'
 
-export function SoloFightView() {
+export function SoloFightView(props: {
+  collapsibleBridgeRef?: MutableRefObject<CollapsibleBridgeApi | null>
+}) {
+  const { collapsibleBridgeRef } = props
   const fa = useFightAnalysis()
   const {
     p1data,
@@ -97,7 +102,8 @@ export function SoloFightView() {
         )}
 
         {p1data && p2data && (
-          <>
+          <CollapsibleGroupProvider bridgeRef={collapsibleBridgeRef}>
+            <>
             <div style={s.panel}>
               <CollapsibleSection
                 title={
@@ -567,28 +573,7 @@ export function SoloFightView() {
                     }}
                     disabled={aiLoading}
                     title="Sends the full default solo prompt (Part 1 + Part 2, wipe note). Adds SimulationCraft APL to context only when “Compare to SimulationCraft APL” is on (gold border) for a supported spec — shorthand label only."
-                    style={{
-                      fontFamily: 'IBM Plex Mono,monospace',
-                      fontSize: 11,
-                      padding: '7px 10px',
-                      background: 'var(--bg3)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 3,
-                      color: 'var(--muted)',
-                      cursor: aiLoading ? 'not-allowed' : 'pointer',
-                      textAlign: 'left',
-                      lineHeight: 1.4,
-                    }}
-                    onMouseEnter={e => {
-                      if (!aiLoading) {
-                        ;(e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                        ;(e.target as HTMLButtonElement).style.color = 'var(--gold)'
-                      }
-                    }}
-                    onMouseLeave={e => {
-                      ;(e.target as HTMLButtonElement).style.borderColor = 'var(--border)'
-                      ;(e.target as HTMLButtonElement).style.color = 'var(--muted)'
-                    }}
+                    className={pa.quickTile}
                   >
                     {SOLO_INITIAL_QUICK_LABEL}
                   </button>
@@ -607,29 +592,11 @@ export function SoloFightView() {
                             ? 'Click to include SimulationCraft’s default APL in Claude’s system context (gold border = on). Does not send a message. Use “Ask: log casts vs SimC + Wowhead” to request a cast-by-cast comparison.'
                             : 'SimulationCraft APL context is only wired for Mage and Death Knight (all three specs each).'
                         }
-                        style={{
-                          fontFamily: 'IBM Plex Mono,monospace',
-                          fontSize: 11,
-                          padding: '7px 10px',
-                          background: 'var(--bg3)',
-                          border: `1px solid ${simcOn ? 'var(--golddim)' : 'var(--border)'}`,
-                          borderRadius: 3,
-                          color: simcOn ? 'var(--gold)' : 'var(--muted)',
-                          cursor: aiLoading ? 'not-allowed' : simcForSpec ? 'pointer' : 'not-allowed',
-                          opacity: simcForSpec ? 1 : 0.65,
-                          textAlign: 'left',
-                          lineHeight: 1.4,
-                        }}
-                        onMouseEnter={e => {
-                          if (aiLoading || !simcForSpec) return
-                          ;(e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                          ;(e.target as HTMLButtonElement).style.color = 'var(--gold)'
-                        }}
-                        onMouseLeave={e => {
-                          const el = e.target as HTMLButtonElement
-                          el.style.borderColor = simcOn ? 'var(--golddim)' : 'var(--border)'
-                          el.style.color = simcOn ? 'var(--gold)' : 'var(--muted)'
-                        }}
+                        className={
+                          pa.quickTile +
+                          (simcOn ? ` ${pa.quickTileActive}` : '') +
+                          (!simcForSpec ? ` ${pa.quickTileUnavailable}` : '')
+                        }
                       >
                         {simcForSpec
                           ? 'Compare to SimulationCraft APL'
@@ -641,19 +608,6 @@ export function SoloFightView() {
                     const whOk = wowheadReferenceAvailableForSpec(talentDiff?.specId)
                     const icyOk = icyVeinsReferenceAvailableForSpec(talentDiff?.specId)
                     const bothOk = whOk && icyOk
-                    const subStyle = (disabled: boolean): CSSProperties => ({
-                      fontFamily: 'IBM Plex Mono,monospace',
-                      fontSize: 10,
-                      padding: '5px 8px',
-                      borderRadius: 2,
-                      border: '1px solid var(--border)',
-                      background: disabled ? 'var(--bg2)' : 'var(--bg3)',
-                      color: disabled ? 'var(--dim)' : 'var(--muted)',
-                      cursor: disabled || aiLoading ? 'not-allowed' : 'pointer',
-                      flex: '1 1 auto',
-                      minWidth: 0,
-                      lineHeight: 1.35,
-                    })
                     return (
                       <div
                         style={{
@@ -684,19 +638,8 @@ export function SoloFightView() {
                                 ? 'Include Wowhead scraped rotation/talent text. Asks Claude to compare your log to that guide.'
                                 : 'Wowhead scraped bundle is not available for this spec yet.'
                             }
-                            style={subStyle(aiLoading || !whOk)}
+                            className={pa.guideChip}
                             onClick={() => sendAnalyzeQuestion(PRESET_SOLO_ROTATION_WOWHEAD)}
-                            onMouseEnter={e => {
-                              if (aiLoading || !whOk) return
-                              ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
-                            }}
-                            onMouseLeave={e => {
-                              const el = e.currentTarget as HTMLButtonElement
-                              const d = aiLoading || !whOk
-                              el.style.borderColor = 'var(--border)'
-                              el.style.color = d ? 'var(--dim)' : 'var(--muted)'
-                            }}
                           >
                             Wowhead
                           </button>
@@ -708,19 +651,8 @@ export function SoloFightView() {
                                 ? 'Include Icy Veins scraped rotation text. Asks Claude to compare your log to that guide.'
                                 : 'Icy Veins scraped bundle is not available for this spec yet.'
                             }
-                            style={subStyle(aiLoading || !icyOk)}
+                            className={pa.guideChip}
                             onClick={() => sendAnalyzeQuestion(PRESET_SOLO_ROTATION_ICY)}
-                            onMouseEnter={e => {
-                              if (aiLoading || !icyOk) return
-                              ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
-                            }}
-                            onMouseLeave={e => {
-                              const el = e.currentTarget as HTMLButtonElement
-                              const d = aiLoading || !icyOk
-                              el.style.borderColor = 'var(--border)'
-                              el.style.color = d ? 'var(--dim)' : 'var(--muted)'
-                            }}
                           >
                             Icy Veins
                           </button>
@@ -732,19 +664,8 @@ export function SoloFightView() {
                                 ? 'Include Wowhead and Icy Veins excerpts. Compares your pull to both guides.'
                                 : 'Both requires Wowhead and Icy Veins data for this spec (e.g. Frost Mage).'
                             }
-                            style={subStyle(aiLoading || !bothOk)}
+                            className={pa.guideChip}
                             onClick={() => sendAnalyzeQuestion(PRESET_SOLO_ROTATION_BOTH)}
-                            onMouseEnter={e => {
-                              if (aiLoading || !bothOk) return
-                              ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
-                            }}
-                            onMouseLeave={e => {
-                              const el = e.currentTarget as HTMLButtonElement
-                              const d = aiLoading || !bothOk
-                              el.style.borderColor = 'var(--border)'
-                              el.style.color = d ? 'var(--dim)' : 'var(--muted)'
-                            }}
                           >
                             Both
                           </button>
@@ -760,28 +681,7 @@ export function SoloFightView() {
                         type="button"
                         onClick={() => sendAnalyzeQuestion(prompt)}
                         disabled={aiLoading}
-                        style={{
-                          fontFamily: 'IBM Plex Mono,monospace',
-                          fontSize: 11,
-                          padding: '7px 10px',
-                          background: 'var(--bg3)',
-                          border: '1px solid var(--border)',
-                          borderRadius: 3,
-                          color: 'var(--muted)',
-                          cursor: aiLoading ? 'not-allowed' : 'pointer',
-                          textAlign: 'left',
-                          lineHeight: 1.4,
-                        }}
-                        onMouseEnter={e => {
-                          if (!aiLoading) {
-                            ;(e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                            ;(e.target as HTMLButtonElement).style.color = 'var(--gold)'
-                          }
-                        }}
-                        onMouseLeave={e => {
-                          ;(e.target as HTMLButtonElement).style.borderColor = 'var(--border)'
-                          ;(e.target as HTMLButtonElement).style.color = 'var(--muted)'
-                        }}
+                        className={pa.quickTile}
                       >
                         {label}
                       </button>
@@ -797,13 +697,19 @@ export function SoloFightView() {
                     onKeyDown={e => e.key === 'Enter' && sendAnalyzeQuestion()}
                     disabled={aiLoading}
                   />
-                  <button style={aiLoading ? s.btnGoldDis : s.btnGold} onClick={() => sendAnalyzeQuestion()} disabled={aiLoading}>
+                  <button
+                    type="button"
+                    className={pa.btnGold}
+                    onClick={() => sendAnalyzeQuestion()}
+                    disabled={aiLoading}
+                  >
                     Ask
                   </button>
                 </div>
               </CollapsibleSection>
             </div>
           </>
+          </CollapsibleGroupProvider>
         )}
     </>
   )

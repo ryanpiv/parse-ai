@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { pa } from '../../lib/styles'
 
 export function CopyBtn({ text, label = 'Copy' }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false)
@@ -24,15 +25,9 @@ export function CopyBtn({ text, label = 'Copy' }: { text: string; label?: string
 
   return (
     <button
+      type="button"
       onClick={doCopy}
-      style={{
-        fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 11,
-        letterSpacing: '.8px', textTransform: 'uppercase', padding: '4px 10px',
-        borderRadius: 3, border: '1px solid var(--border)', cursor: 'pointer',
-        background: copied ? '#102a18' : 'var(--bg4)',
-        color: copied ? 'var(--green)' : 'var(--dim)',
-        transition: 'all .15s', whiteSpace: 'nowrap',
-      }}
+      className={`${pa.btnCopy}${copied ? ` ${pa.btnCopyCopied}` : ''}`}
     >
       {copied ? '✓ Copied' : label}
     </button>

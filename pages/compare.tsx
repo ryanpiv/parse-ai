@@ -11,7 +11,7 @@ import {
 } from '../lib/talents/decodeTalentString'
 import { apiNodesToTreeNodes } from '../lib/talents/apiNodesToTreeNodes'
 import { parseNextApiJson } from '../lib/wclClient'
-import { s } from '../lib/styles'
+import { s, pa } from '../lib/styles'
 import { useAppSession } from '../contexts/AppSessionContext'
 import { useAnalyzePageCache } from '../contexts/AnalyzePageCacheContext'
 import { useFightAnalysis } from '../contexts/FightAnalysisContext'
@@ -383,7 +383,6 @@ export default function ComparePage() {
             <div style={s.logo}>PARSE-AI</div>
             <div style={s.logoSub}>talent compare</div>
           </div>
-          <a href="/" style={{ ...s.btnGhost, textDecoration: 'none' }}>Back to analysis</a>
         </div>
 
         {/* Talent string inputs */}
@@ -420,7 +419,7 @@ export default function ComparePage() {
               type="button"
               onClick={() => void handleWclFetch()}
               disabled={!compareUrl.trim() || wclLoading}
-              style={compareUrl.trim() && !wclLoading ? s.btnGold : s.btnGoldDis}
+              className={pa.btnGold}
             >
               {wclLoading ? 'Loading...' : 'Fetch talents from URL'}
             </button>
@@ -464,16 +463,15 @@ export default function ComparePage() {
           )}
 
           <div style={{ display: 'flex', gap: 10, marginTop: 14, alignItems: 'center' }}>
-            <button
-              type="button"
-              onClick={handleCompare}
-              disabled={!ready || loading}
-              style={ready && !loading ? s.btnGold : s.btnGoldDis}
-            >
+            <button type="button" onClick={handleCompare} disabled={!ready || loading} className={pa.btnGold}>
               {loading ? 'Loading...' : 'Compare'}
             </button>
             {compareData && (
-              <button type="button" onClick={handleClear} style={s.btnGhost}>
+              <button
+                type="button"
+                onClick={handleClear}
+                className={`${pa.btnGhost} ${pa.btnGhostPrimaryRow}`}
+              >
                 Clear
               </button>
             )}
@@ -529,7 +527,11 @@ function CopyLinkButton({ url }: { url: string }) {
     })
   }
   return (
-    <button type="button" onClick={handleCopy} style={{ ...s.btnGhost, fontSize: 10, padding: '4px 10px' }}>
+    <button
+      type="button"
+      onClick={handleCopy}
+      className={`${pa.btnGhost} ${pa.btnGhostPrimaryRow}`}
+    >
       {copied ? 'Copied!' : 'Copy share link'}
     </button>
   )

@@ -25,6 +25,7 @@ import {
 } from '../lib/talents/p1TalentTreeSession'
 import { partitionBlizzardTalentNodes } from '../lib/talents/partitionBlizzardTree'
 import { applyRankMapAsRaidbotsP1, sumRanks } from '../lib/talents/raidbotsRankMap'
+import { pa } from '../lib/styles'
 
 const FONT = '"Avenir Next", Lato, "Helvetica Neue", Helvetica, sans-serif'
 const BG = '#0e1015'
@@ -453,23 +454,7 @@ export default function TalentPreviewPage() {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28, width: CANVAS_W }}>
-                <button
-                  type="button"
-                  onClick={copyLink}
-                  style={{
-                    fontFamily: FONT,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    padding: '10px 22px',
-                    background: '#444',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 2,
-                    cursor: 'pointer',
-                  }}
-                >
+                <button type="button" onClick={copyLink} className={pa.btnGold}>
                   {copyOk ? 'Copied' : 'Copy to clipboard'}
                 </button>
               </div>

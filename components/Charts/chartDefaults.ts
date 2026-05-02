@@ -51,12 +51,30 @@ export function useChart(
   canvasRef: RefObject<HTMLCanvasElement | null>,
   config: any
 ) {
+  const configKey = JSON.stringify(config)
+
   useEffect(() => {
     if (!canvasRef.current) return
     const existing = Chart.getChart(canvasRef.current)
     if (existing) existing.destroy()
     const chart = new Chart(canvasRef.current, config)
-    return () => { chart.destroy() }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(config)])
+    return () => {
+      chart.destroy()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configKey])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || typeof ResizeObserver === 'undefined') return
+    const parent = canvas.parentElement
+    if (!parent) return
+    const ro = new ResizeObserver(() => {
+      const ch = Chart.getChart(canvas)
+      ch?.resize()
+    })
+    ro.observe(parent)
+    return () => ro.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configKey])
 }

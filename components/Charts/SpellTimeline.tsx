@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo, useId } from 'react'
+import { pa } from '../../lib/styles'
 import type { CastTimelineSegment } from '../../lib/gameState/castTimeline'
 
 const GOLD = 'rgba(201,162,39,0.95)'
@@ -234,26 +235,10 @@ export function SpellTimeline({ groups, name1, name2, dur1, dur2, color1 = GOLD,
               redraw()
             }}
           />
-          <button
-            type="button"
-            onClick={() => {
+          <button type="button" className={pa.btnTimeline} onClick={() => {
               windowSecRef.current = dur
               offsetSecRef.current = 0
               redraw()
-            }}
-            style={{
-              fontFamily: 'Rajdhani, sans-serif',
-              fontWeight: 600,
-              fontSize: 10,
-              letterSpacing: '.6px',
-              textTransform: 'uppercase',
-              padding: '3px 8px',
-              background: 'transparent',
-              border: `1px solid ${BORDER}`,
-              borderRadius: 3,
-              color: DIM,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
             }}
           >
             Reset

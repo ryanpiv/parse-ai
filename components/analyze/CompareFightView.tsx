@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, type MutableRefObject } from 'react'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { wowheadReferenceAvailableForSpec } from '../../lib/knowledge/embeddedWowhead'
 import { icyVeinsReferenceAvailableForSpec } from '../../lib/knowledge/embeddedIcyVeins'
@@ -7,8 +7,10 @@ import { SpellUsageChart, CastTimelineChart, ProcEfficiencyChart, CooldownTimeli
 import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
+import { CollapsibleGroupProvider, type CollapsibleBridgeApi } from '../CollapsibleGroup'
 import {
   s,
+  pa,
   PRESET_QUESTIONS_COMPARE,
   resolvePresetPrompt,
   PRESET_COMPARE_ROTATION_WOWHEAD,
@@ -19,7 +21,10 @@ import {
   ROTATION_GUIDE_CLUSTER_LABEL_COLOR,
 } from '../../lib/styles'
 
-export function CompareFightView() {
+export function CompareFightView(props: {
+  collapsibleBridgeRef?: MutableRefObject<CollapsibleBridgeApi | null>
+}) {
+  const { collapsibleBridgeRef } = props
   const fa = useFightAnalysis()
   const {
     p1data,
@@ -90,7 +95,8 @@ export function CompareFightView() {
   }
 
   return (
-    <>
+    <CollapsibleGroupProvider bridgeRef={collapsibleBridgeRef}>
+      <>
       <div style={s.panel}>
             <CollapsibleSection
               title={
@@ -100,7 +106,7 @@ export function CompareFightView() {
                 </>
               }
               rightSlot={
-                <button type="button" style={s.btnGhost} onClick={downloadDataCompare}>
+                <button type="button" className={pa.btnGhost} onClick={downloadDataCompare}>
                   Download Data
                 </button>
               }
@@ -398,7 +404,7 @@ export function CompareFightView() {
                     href={`/compare?b1=${encodeURIComponent(talentDiff.t1.talentString)}&b2=${encodeURIComponent(talentDiff.t2.talentString)}&n1=${encodeURIComponent(talentDiff.name1)}&n2=${encodeURIComponent(talentDiff.name2)}`}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ ...s.btnGhost, textDecoration: 'none', fontSize: 10, padding: '4px 10px' }}
+                    className={`${pa.btnGhost} ${pa.btnGhostSm} ${pa.btnGhostLink}`}
                   >
                     Open shareable diff
                   </a>
@@ -582,18 +588,6 @@ export function CompareFightView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginBottom: 10 }}>
                 {COMPARE_TOP_QUICK_ITEMS.map((item, idx) => {
                   const disabled = aiLoading || !talentDiff
-                  const baseBtn = {
-                    fontFamily: 'IBM Plex Mono,monospace',
-                    fontSize: 11,
-                    padding: '7px 10px',
-                    background: 'var(--bg3)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 3,
-                    color: 'var(--muted)',
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    textAlign: 'left' as const,
-                    lineHeight: 1.4,
-                  }
                   return (
                     <button
                       key={`${item.kind}-${idx}`}
@@ -605,16 +599,7 @@ export function CompareFightView() {
                       }}
                       disabled={disabled}
                       title={talentDiff ? item.title : 'Available once talent data has loaded'}
-                      style={baseBtn}
-                      onMouseEnter={e => {
-                        if (disabled) return
-                        ;(e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                        ;(e.target as HTMLButtonElement).style.color = 'var(--gold)'
-                      }}
-                      onMouseLeave={e => {
-                        ;(e.target as HTMLButtonElement).style.borderColor = 'var(--border)'
-                        ;(e.target as HTMLButtonElement).style.color = 'var(--muted)'
-                      }}
+                      className={pa.quickTile}
                     >
                       {item.label}
                     </button>
@@ -624,19 +609,6 @@ export function CompareFightView() {
                   const whOk = wowheadReferenceAvailableForSpec(talentDiff?.specId)
                   const icyOk = icyVeinsReferenceAvailableForSpec(talentDiff?.specId)
                   const bothOk = whOk && icyOk
-                  const subStyle = (disabled: boolean): CSSProperties => ({
-                    fontFamily: 'IBM Plex Mono,monospace',
-                    fontSize: 10,
-                    padding: '5px 8px',
-                    borderRadius: 2,
-                    border: '1px solid var(--border)',
-                    background: disabled ? 'var(--bg2)' : 'var(--bg3)',
-                    color: disabled ? 'var(--dim)' : 'var(--muted)',
-                    cursor: disabled || aiLoading ? 'not-allowed' : 'pointer',
-                    flex: '1 1 auto',
-                    minWidth: 0,
-                    lineHeight: 1.35,
-                  })
                   return (
                     <div
                       style={{
@@ -667,19 +639,8 @@ export function CompareFightView() {
                               ? 'Include Wowhead scraped rotation/talent text. Asks Claude to compare both players’ logs to that guide.'
                               : 'Wowhead scraped bundle is not available for this spec yet.'
                           }
-                          style={subStyle(aiLoading || !whOk)}
+                          className={pa.guideChip}
                           onClick={() => sendCompareQuestion(PRESET_COMPARE_ROTATION_WOWHEAD)}
-                          onMouseEnter={e => {
-                            if (aiLoading || !whOk) return
-                            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
-                          }}
-                          onMouseLeave={e => {
-                            const el = e.currentTarget as HTMLButtonElement
-                            const d = aiLoading || !whOk
-                            el.style.borderColor = 'var(--border)'
-                            el.style.color = d ? 'var(--dim)' : 'var(--muted)'
-                          }}
                         >
                           Wowhead
                         </button>
@@ -691,19 +652,8 @@ export function CompareFightView() {
                               ? 'Include Icy Veins scraped rotation text. Asks Claude to compare both players’ logs to that guide.'
                               : 'Icy Veins scraped bundle is not available for this spec yet.'
                           }
-                          style={subStyle(aiLoading || !icyOk)}
+                          className={pa.guideChip}
                           onClick={() => sendCompareQuestion(PRESET_COMPARE_ROTATION_ICY)}
-                          onMouseEnter={e => {
-                            if (aiLoading || !icyOk) return
-                            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
-                          }}
-                          onMouseLeave={e => {
-                            const el = e.currentTarget as HTMLButtonElement
-                            const d = aiLoading || !icyOk
-                            el.style.borderColor = 'var(--border)'
-                            el.style.color = d ? 'var(--dim)' : 'var(--muted)'
-                          }}
                         >
                           Icy Veins
                         </button>
@@ -715,19 +665,8 @@ export function CompareFightView() {
                               ? 'Include Wowhead and Icy Veins excerpts. Compares both players to both guides.'
                               : 'Both requires Wowhead and Icy Veins data for this spec (e.g. Frost Mage).'
                           }
-                          style={subStyle(aiLoading || !bothOk)}
+                          className={pa.guideChip}
                           onClick={() => sendCompareQuestion(PRESET_COMPARE_ROTATION_BOTH)}
-                          onMouseEnter={e => {
-                            if (aiLoading || !bothOk) return
-                            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--gold)'
-                          }}
-                          onMouseLeave={e => {
-                            const el = e.currentTarget as HTMLButtonElement
-                            const d = aiLoading || !bothOk
-                            el.style.borderColor = 'var(--border)'
-                            el.style.color = d ? 'var(--dim)' : 'var(--muted)'
-                          }}
                         >
                           Both
                         </button>
@@ -743,28 +682,7 @@ export function CompareFightView() {
                       type="button"
                       onClick={() => sendCompareQuestion(prompt)}
                       disabled={aiLoading}
-                      style={{
-                        fontFamily: 'IBM Plex Mono,monospace',
-                        fontSize: 11,
-                        padding: '7px 10px',
-                        background: 'var(--bg3)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 3,
-                        color: 'var(--muted)',
-                        cursor: aiLoading ? 'not-allowed' : 'pointer',
-                        textAlign: 'left',
-                        lineHeight: 1.4,
-                      }}
-                      onMouseEnter={e => {
-                        if (!aiLoading) {
-                          ;(e.target as HTMLButtonElement).style.borderColor = 'var(--golddim)'
-                          ;(e.target as HTMLButtonElement).style.color = 'var(--gold)'
-                        }
-                      }}
-                      onMouseLeave={e => {
-                        ;(e.target as HTMLButtonElement).style.borderColor = 'var(--border)'
-                        ;(e.target as HTMLButtonElement).style.color = 'var(--muted)'
-                      }}
+                      className={pa.quickTile}
                     >
                       {label}
                     </button>
@@ -780,12 +698,13 @@ export function CompareFightView() {
                   onKeyDown={e => e.key === 'Enter' && sendCompareQuestion()}
                   disabled={aiLoading}
                 />
-                <button style={aiLoading ? s.btnGoldDis : s.btnGold} onClick={() => sendCompareQuestion()} disabled={aiLoading}>
+                <button type="button" className={pa.btnGold} onClick={() => sendCompareQuestion()} disabled={aiLoading}>
                   Ask
                 </button>
               </div>
             </CollapsibleSection>
           </div>
     </>
+    </CollapsibleGroupProvider>
   )
 }

@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useFightAnalysis } from '../contexts/FightAnalysisContext'
-import { s } from '../lib/styles'
+import { pa, s } from '../lib/styles'
 
 const linkStyle = (active: boolean): CSSProperties => ({
   fontFamily: 'Rajdhani, sans-serif',
@@ -24,28 +24,21 @@ export function AppNav() {
   const analyzeActive = path === '/' || path === '/analyze'
 
   return (
-    <header style={{ borderBottom: '1px solid var(--border)', marginBottom: 0 }}>
-      <nav
-        style={{
-          maxWidth: 1200,
-          margin: '0 auto',
-          padding: '12px 20px 0',
-          display: 'flex',
-          gap: 22,
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}
-      >
-        <Link href="/" style={linkStyle(analyzeActive)}>
-          Analyze
-        </Link>
-        <Link href="/compare" style={linkStyle(path === '/compare')}>
-          Talent compare
-        </Link>
-        <Link href="/talent-preview" style={linkStyle(path === '/talent-preview')}>
-          Talents
-        </Link>
-      </nav>
+    <header style={{ marginBottom: 0 }}>
+      <div className={pa.appNavTabs}>
+        <nav>
+          <Link href="/" style={linkStyle(analyzeActive)}>
+            Analyze
+          </Link>
+          <Link href="/compare" style={linkStyle(path === '/compare')}>
+            Talent compare
+          </Link>
+          <Link href="/talent-preview" style={linkStyle(path === '/talent-preview')}>
+            Talents
+          </Link>
+        </nav>
+      </div>
+      <div className={pa.appNavTabsSpacer} aria-hidden />
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 20px 14px' }}>
         {fa.authStatus === 'checking' && (
@@ -73,7 +66,7 @@ export function AppNav() {
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                <button style={s.btnGold} onClick={fa.startAuth}>
+                <button type="button" className={pa.btnGold} onClick={fa.startAuth}>
                   Authenticate
                 </button>
               </div>
@@ -114,7 +107,7 @@ export function AppNav() {
             <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, color: 'var(--green)' }}>
               ● WarcraftLogs connected
             </div>
-            <button style={s.btnGhost} onClick={() => fa.setAuthStatus('needed')}>
+            <button type="button" className={pa.btnGhost} onClick={() => fa.setAuthStatus('needed')}>
               Reconnect
             </button>
           </div>
@@ -137,11 +130,7 @@ export function AppNav() {
               />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-              <button
-                style={fa.loading ? s.btnGoldDis : s.btnGold}
-                disabled={fa.loading}
-                onClick={fa.loadCompare}
-              >
+              <button type="button" className={pa.btnGold} disabled={fa.loading} onClick={fa.loadCompare}>
                 {fa.loading ? fa.loadStep || 'Loading...' : 'Load'}
               </button>
             </div>
@@ -189,20 +178,7 @@ export function AppNav() {
                     type="button"
                     disabled={fa.loading}
                     onClick={() => void fa.confirmSoloReportPlayer(String(p.id))}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '8px 12px',
-                      background: active ? 'var(--bg2)' : 'var(--bg3)',
-                      border: active ? '1px solid var(--golddim)' : '1px solid var(--border)',
-                      borderRadius: 4,
-                      cursor: fa.loading ? 'not-allowed' : 'pointer',
-                      color: 'var(--muted)',
-                      fontFamily: 'IBM Plex Mono,monospace',
-                      fontSize: 12,
-                      textAlign: 'left',
-                    }}
+                    className={`${pa.rosterPick}${active ? ` ${pa.rosterPickActive}` : ''}`}
                     title={`${p.role} · ${p.className}`}
                   >
                     {p.iconUrl ? (

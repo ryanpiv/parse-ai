@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from 'react'
+import { pa } from '../lib/styles'
+import { useRegisterCollapsible } from './CollapsibleGroup'
 
 type Props = {
   /** Shown next to the chevron (e.g. gold bar + label) */
@@ -22,6 +24,7 @@ export function CollapsibleSection({
   style,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen)
+  useRegisterCollapsible(setOpen)
 
   return (
     <div style={style}>
@@ -34,38 +37,8 @@ export function CollapsibleSection({
           flexWrap: 'wrap',
         }}
       >
-        <button
-          type="button"
-          onClick={() => setOpen(o => !o)}
-          style={{
-            fontFamily: 'Rajdhani,sans-serif',
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: '1.2px',
-            textTransform: 'uppercase',
-            color: 'var(--muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            flex: 1,
-            minWidth: 0,
-            cursor: 'pointer',
-            border: 'none',
-            background: 'transparent',
-            padding: 0,
-            textAlign: 'left',
-          }}
-        >
-          <span
-            aria-hidden
-            style={{
-              fontSize: 10,
-              color: 'var(--dim)',
-              width: 14,
-              flexShrink: 0,
-              userSelect: 'none',
-            }}
-          >
+        <button type="button" onClick={() => setOpen(o => !o)} className={pa.collapsibleTrigger}>
+          <span aria-hidden className={pa.collapsibleTriggerChev}>
             {open ? '▼' : '▶'}
           </span>
           {title}

@@ -1,31 +1,11 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import Head from 'next/head'
 import '../lib/spellTooltips'
 import { useFightAnalysis, type AnalysisSubtab } from '../contexts/FightAnalysisContext'
 import { SoloFightView } from '../components/analyze/SoloFightView'
 import { CompareFightView } from '../components/analyze/CompareFightView'
-import { s } from '../lib/styles'
-
-const subBase: CSSProperties = {
-  fontFamily: 'Rajdhani, sans-serif',
-  fontSize: 12,
-  fontWeight: 600,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  padding: '8px 16px',
-  borderRadius: 4,
-  border: '1px solid var(--border)',
-  cursor: 'pointer',
-  background: 'var(--bg3)',
-  color: 'var(--dim)',
-}
-
-const subActive: CSSProperties = {
-  ...subBase,
-  borderColor: 'var(--golddim)',
-  color: 'var(--gold2)',
-  background: 'var(--bg2)',
-}
+import type { CollapsibleBridgeApi } from '../components/CollapsibleGroup'
+import { pa, s } from '../lib/styles'
 
 export default function HomePage() {
   const fa = useFightAnalysis()
@@ -33,15 +13,73 @@ export default function HomePage() {
   const logLoaded = Boolean(p1data)
   const compareReady = Boolean(p1data && p2data && !fa.soloFromReport)
 
+  const soloCollapsibleRef = useRef<CollapsibleBridgeApi | null>(null)
+  const compareCollapsibleRef = useRef<CollapsibleBridgeApi | null>(null)
+
+  const [compareMounted, setCompareMounted] = useState(false)
+  useEffect(() => {
+    if (compareReady && analysisSubtab === 'compare') setCompareMounted(true)
+  }, [compareReady, analysisSubtab])
+
+  /** Window scroll per tab — toggling panes changes document height and clamps scroll; save before commit in goSub, restore after layout. */
+  const scrollYByTabRef = useRef({ solo: 0, compare: 0 })
+  /** After first dual-mode layout, seed current tab's Y; then restores run on tab changes. */
+  const dualScrollPrimedRef = useRef(false)
+
+  useLayoutEffect(() => {
+    if (!logLoaded || !compareReady) {
+      dualScrollPrimedRef.current = false
+      return
+    }
+    const tab = analysisSubtab
+    if (tab !== 'solo' && tab !== 'compare') return
+
+    if (!dualScrollPrimedRef.current) {
+      dualScrollPrimedRef.current = true
+      scrollYByTabRef.current[tab] = window.scrollY
+      return
+    }
+
+    window.scrollTo(0, scrollYByTabRef.current[tab])
+  }, [analysisSubtab, logLoaded, compareReady])
+
   function goSub(next: Exclude<AnalysisSubtab, 'none'>) {
     if (!logLoaded) return
     if (next === 'compare' && !compareReady) return
+    if (
+      compareReady &&
+      (analysisSubtab === 'solo' || analysisSubtab === 'compare') &&
+      (next === 'solo' || next === 'compare') &&
+      next !== analysisSubtab
+    ) {
+      scrollYByTabRef.current[analysisSubtab] = window.scrollY
+    }
     setAnalysisSubtab(next)
   }
 
-  const tabMuted: CSSProperties = { ...subBase, opacity: 0.45, cursor: 'not-allowed' }
+  const viewBarStyle: CSSProperties = {
+    marginBottom: 14,
+    paddingTop: 4,
+    paddingBottom: 12,
+    borderBottom: '1px solid var(--border)',
+    position: 'sticky',
+    top: 'var(--pa-sticky-app-nav-offset)',
+    zIndex: 40,
+    background: 'var(--bg)',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+  }
 
-  const showComparePane = logLoaded && analysisSubtab === 'compare'
+  function expandAllSections() {
+    if (!logLoaded) return
+    if (analysisSubtab === 'solo') soloCollapsibleRef.current?.expandAll()
+    else compareCollapsibleRef.current?.expandAll()
+  }
+
+  function collapseAllSections() {
+    if (!logLoaded) return
+    if (analysisSubtab === 'solo') soloCollapsibleRef.current?.collapseAll()
+    else compareCollapsibleRef.current?.collapseAll()
+  }
 
   return (
     <>
@@ -56,107 +94,97 @@ export default function HomePage() {
             <div style={s.logo}>PARSE ANALYZER</div>
             <div style={s.logoSub}>AI-powered fight analysis</div>
           </div>
-          <span style={s.badge}>✦ Claude AI</span>
         </div>
 
-        <div
-          style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 40,
-            marginBottom: 14,
-            paddingTop: 4,
-            paddingBottom: 12,
-            background: 'var(--bg)',
-            borderBottom: '1px solid var(--border)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-          }}
-        >
+        <div style={viewBarStyle}>
           <div
             style={{
               display: 'flex',
               flexWrap: 'wrap',
-              alignItems: 'center',
+              alignItems: 'stretch',
               gap: 8,
+              width: '100%',
+              justifyContent: 'space-between',
             }}
           >
-            <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)', marginRight: 4 }}>
-              View
-            </span>
-            <button
-              type="button"
-              disabled={!logLoaded}
-              onClick={() => goSub('solo')}
-              style={
-                !logLoaded
-                  ? tabMuted
-                  : analysisSubtab === 'solo'
-                    ? subActive
-                    : subBase
-              }
-              title={
-                logLoaded ? 'Your pull only (player 1 in the compare)' : 'Load a fight from Warcraft Logs first'
-              }
-            >
-              Solo
-              <span
-                style={{
-                  display: 'block',
-                  fontFamily: 'IBM Plex Mono,monospace',
-                  fontSize: 9,
-                  fontWeight: 400,
-                  letterSpacing: 0,
-                  textTransform: 'none',
-                  color: 'var(--dim)',
-                  marginTop: 2,
-                }}
-              >
-                your pull
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)', marginRight: 4 }}>
+                View
               </span>
-            </button>
-            <button
-              type="button"
-              disabled={!logLoaded || !compareReady}
-              onClick={() => goSub('compare')}
-              style={
-                !logLoaded
-                  ? tabMuted
-                  : !compareReady
-                    ? { ...subBase, opacity: 0.45, cursor: 'not-allowed' }
-                    : analysisSubtab === 'compare'
-                      ? subActive
-                      : subBase
-              }
-              title={
-                !logLoaded
-                  ? 'Load a Warcraft Logs fight first'
-                  : compareReady
-                    ? 'You vs comparison player — side-by-side'
-                    : fa.soloFromReport
-                      ? 'Compare needs a two-player Warcraft Logs compare URL'
-                      : 'Load a Warcraft Logs compare URL (two players) first'
-              }
-            >
-              Compare
-              <span
-                style={{
-                  display: 'block',
-                  fontFamily: 'IBM Plex Mono,monospace',
-                  fontSize: 9,
-                  fontWeight: 400,
-                  letterSpacing: 0,
-                  textTransform: 'none',
-                  color: 'var(--dim)',
-                  marginTop: 2,
-                }}
+              <button
+                type="button"
+                disabled={!logLoaded}
+                onClick={() => goSub('solo')}
+                className={`${pa.viewTab}${!logLoaded ? '' : analysisSubtab === 'solo' ? ` ${pa.viewTabActive}` : ''}`}
+                title={
+                  logLoaded ? 'Your pull only (player 1 in the compare)' : 'Load a fight from Warcraft Logs first'
+                }
               >
-                vs other player
-              </span>
-            </button>
+                Solo
+                <span className={pa.viewTabSub}>your pull</span>
+              </button>
+              <button
+                type="button"
+                disabled={!logLoaded || !compareReady}
+                onClick={() => goSub('compare')}
+                className={
+                  pa.viewTab +
+                  (!logLoaded || !compareReady ? '' : analysisSubtab === 'compare' ? ` ${pa.viewTabActive}` : '')
+                }
+                title={
+                  !logLoaded
+                    ? 'Load a Warcraft Logs fight first'
+                    : compareReady
+                      ? 'You vs comparison player — side-by-side'
+                      : fa.soloFromReport
+                        ? 'Compare needs a two-player Warcraft Logs compare URL'
+                        : 'Load a Warcraft Logs compare URL (two players) first'
+                }
+              >
+                Compare
+                <span className={pa.viewTabSub}>vs other player</span>
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', gap: 8 }}>
+              <button
+                type="button"
+                disabled={!logLoaded}
+                onClick={expandAllSections}
+                className={`${pa.btnGhost} ${pa.btnGhostViewBar}`}
+                title={logLoaded ? 'Open every collapsible section' : 'Load a fight first'}
+              >
+                Expand all
+              </button>
+              <button
+                type="button"
+                disabled={!logLoaded}
+                onClick={collapseAllSections}
+                className={`${pa.btnGhost} ${pa.btnGhostViewBar}`}
+                title={logLoaded ? 'Close every collapsible section' : 'Load a fight first'}
+              >
+                Collapse all
+              </button>
+            </div>
           </div>
         </div>
 
-        {showComparePane ? <CompareFightView /> : <SoloFightView />}
+        {logLoaded && compareReady ? (
+          <>
+            <div style={{ display: analysisSubtab === 'solo' ? 'block' : 'none' }} aria-hidden={analysisSubtab !== 'solo'}>
+              <SoloFightView collapsibleBridgeRef={soloCollapsibleRef} />
+            </div>
+            {compareMounted || analysisSubtab === 'compare' ? (
+              <div
+                style={{ display: analysisSubtab === 'compare' ? 'block' : 'none' }}
+                aria-hidden={analysisSubtab !== 'compare'}
+              >
+                <CompareFightView collapsibleBridgeRef={compareCollapsibleRef} />
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <SoloFightView collapsibleBridgeRef={soloCollapsibleRef} />
+        )}
       </div>
       <style>{`@keyframes td{0%,60%,100%{opacity:.3;transform:scale(.8)}30%{opacity:1;transform:scale(1)}} input:focus{border-color:var(--golddim)!important;outline:none;}`}</style>
     </>
