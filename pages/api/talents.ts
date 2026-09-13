@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import type { TalentNodeInfo } from '../../types/wcl'
-import { wclToken } from '../../lib/serverEnv'
+import { getWclToken } from '../../lib/serverWclToken'
 
 /**
  * Batch-resolves talent nodeIDs to spell info using WCL's gameData.ability API.
@@ -22,8 +22,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { nodeIDs } = req.body as { nodeIDs?: number[] }
   if (!nodeIDs?.length) return res.status(400).json({ error: 'nodeIDs required' })
 
-  const token = wclToken()
-  if (!token) return res.status(500).json({ error: 'WCL_TOKEN not set (Vercel env or .env.local)' })
+  const token = await getWclToken()
+  if (!token) {
+    return res.status(500).json({
+      error: 'WarcraftLogs credentials not configured — set WCL_CLIENT_ID and WCL_CLIENT_SECRET (Vercel env or .env.local)',
+    })
+  }
 
   const uncached = nodeIDs.filter(id => _cache[id] === undefined)
 

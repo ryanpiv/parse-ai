@@ -11,6 +11,7 @@ import {
 } from '../lib/talents/decodeTalentString'
 import { apiNodesToTreeNodes } from '../lib/talents/apiNodesToTreeNodes'
 import { parseNextApiJson } from '../lib/wclClient'
+import { wclClientHeaders } from '../lib/wclUserToken'
 import { s, pa } from '../lib/styles'
 import { Accordion, FieldRow, OrDivider, PageHeader, Panel } from '../components/ui'
 import { useAppSession } from '../contexts/AppSessionContext'
@@ -321,7 +322,7 @@ export default function ComparePage() {
     try {
       const res = await fetch('/api/wcl', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: wclClientHeaders(),
         body: JSON.stringify({ action: 'compare-talents', url }),
       })
       const data = await parseNextApiJson(res, '/api/wcl')

@@ -23,8 +23,8 @@ import {
   createSoloAnalysisPartnerStub,
 } from '../lib/fightAnalysis'
 import type { AnalyzedFightData } from '../lib/fightAnalysis'
-import { genVerifier, genChallenge } from '../lib/pkce'
 import { buildRichContext, buildRichContextPlayerOne } from '../lib/buildContext'
+import { readWclUser, WCL_USER_CHANGED_EVENT } from '../lib/wclUserToken'
 import { buildInitialCompareUserPrompt } from '../lib/buildContext/initialComparePrompt'
 import { simcAplAvailableForSpec } from '../lib/knowledge/embeddedSimc'
 import { wowheadReferenceAvailableForSpec } from '../lib/knowledge/embeddedWowhead'
@@ -102,12 +102,10 @@ type FightAnalysisCtx = {
   bossName: string
   fightKill1: boolean
   fightKill2: boolean
+  /** ok = the user is signed in with their WCL account (required to load logs). */
   authStatus: 'checking' | 'ok' | 'needed'
-  clientId: string
-  setClientId: (v: string) => void
-  authMsg: { type: string; msg: string } | null
-  startAuth: () => Promise<void>
-  setAuthStatus: (v: 'checking' | 'ok' | 'needed') => void
+  /** App's WCL client id (public) — enables the "Sign in with WarcraftLogs" button. */
+  wclClientId: string | null
   sendCompareQuestion: (q?: string) => void
   sendAnalyzeQuestion: (q?: string) => void
   buildContextCompare: () => string
@@ -157,8 +155,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
   const [soloRosterSelectedPlayerId, setSoloRosterSelectedPlayerId] = useState<number | null>(null)
 
   const [authStatus, setAuthStatus] = useState<'checking' | 'ok' | 'needed'>('checking')
-  const [clientId, setClientId] = useState('')
-  const [authMsg, setAuthMsg] = useState<{ type: string; msg: string } | null>(null)
+  const [wclClientId, setWclClientId] = useState<string | null>(null)
 
   const compareUrlRestoredRef = useRef(false)
   const executeSoloReportFullRef = useRef<(code: string, fightId: number, srcRaw: string) => Promise<void>>(
@@ -291,11 +288,18 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     analyzeCache,
   ])
 
+  // Loading logs requires the user's own WCL sign-in (token in localStorage;
+  // see lib/wclUserToken). /api/auth only supplies the public client id needed
+  // to start the sign-in redirect.
   useEffect(() => {
+    const recompute = () => setAuthStatus(readWclUser() ? 'ok' : 'needed')
+    recompute()
     fetch('/api/auth')
       .then(r => r.json())
-      .then(d => setAuthStatus(d.authenticated ? 'ok' : 'needed'))
-      .catch(() => setAuthStatus('needed'))
+      .then((d: { clientId?: string | null }) => setWclClientId(d.clientId ?? null))
+      .catch(() => setWclClientId(null))
+    window.addEventListener(WCL_USER_CHANGED_EVENT, recompute)
+    return () => window.removeEventListener(WCL_USER_CHANGED_EVENT, recompute)
   }, [])
 
   useEffect(() => {
@@ -329,20 +333,6 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     const dualReal = Boolean(p2data && !soloFromReport)
     setAnalysisSubtab(dualReal ? 'compare' : 'solo')
   }, [p1data, p2data, soloFromReport, analysisSubtab])
-
-  const startAuth = useCallback(async () => {
-    if (!clientId.trim()) {
-      setAuthMsg({ type: 'err', msg: 'Enter your WCL Client ID.' })
-      return
-    }
-    sessionStorage.setItem('wcl_client_id', clientId.trim())
-    const verifier = genVerifier()
-    const state = Math.random().toString(36).slice(2)
-    const challenge = await genChallenge(verifier)
-    sessionStorage.setItem('wcl_pkce_verifier', verifier)
-    sessionStorage.setItem('wcl_pkce_state', state)
-    window.location.href = `https://www.warcraftlogs.com/oauth/authorize?client_id=${encodeURIComponent(clientId.trim())}&redirect_uri=${encodeURIComponent('http://localhost:3000/auth/callback')}&response_type=code&code_challenge=${challenge}&code_challenge_method=S256&state=${state}`
-  }, [clientId])
 
   const buildContextCompare = useCallback(() => {
     if (!p1data || !p2data) return ''
@@ -1134,11 +1124,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       fightKill1,
       fightKill2,
       authStatus,
-      clientId,
-      setClientId,
-      authMsg,
-      startAuth,
-      setAuthStatus,
+      wclClientId,
       sendCompareQuestion,
       sendAnalyzeQuestion,
       buildContextCompare,
@@ -1173,9 +1159,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       fightKill1,
       fightKill2,
       authStatus,
-      clientId,
-      authMsg,
-      startAuth,
+      wclClientId,
       sendCompareQuestion,
       sendAnalyzeQuestion,
       buildContextCompare,

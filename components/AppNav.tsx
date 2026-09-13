@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useFightAnalysis } from '../contexts/FightAnalysisContext'
 import { pa, s } from '../lib/styles'
-import { KeyField } from './ui'
 import { AnthropicKeyPanel } from './AnthropicKeyPanel'
 import { applyVibe, readStoredVibe, VIBES, type VibeId } from '../lib/vibes'
-import { OPEN_CLAUDE_KEY_SETTINGS_EVENT, OPEN_WCL_KEY_SETTINGS_EVENT } from '../lib/claudeKeyBus'
+import { OPEN_CLAUDE_KEY_SETTINGS_EVENT } from '../lib/claudeKeyBus'
+import { startWclSignIn, useWclUser, writeWclUser } from '../lib/wclUserToken'
 
 const linkStyle = (active: boolean): CSSProperties => ({
   fontFamily: 'var(--font-display)',
@@ -25,26 +25,16 @@ export function AppNav() {
   const path = router.pathname || ''
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [highlightClaudeKey, setHighlightClaudeKey] = useState(false)
-  const [highlightWclKey, setHighlightWclKey] = useState(false)
 
-  // "Add your key" buttons elsewhere open Settings and pulse the matching key field.
+  // "Add your key" buttons elsewhere open Settings and pulse the Claude key field.
   useEffect(() => {
     const onOpenClaudeKey = () => {
       setSettingsOpen(true)
       setHighlightClaudeKey(true)
       window.setTimeout(() => setHighlightClaudeKey(false), 2600)
     }
-    const onOpenWclKey = () => {
-      setSettingsOpen(true)
-      setHighlightWclKey(true)
-      window.setTimeout(() => setHighlightWclKey(false), 2600)
-    }
     window.addEventListener(OPEN_CLAUDE_KEY_SETTINGS_EVENT, onOpenClaudeKey)
-    window.addEventListener(OPEN_WCL_KEY_SETTINGS_EVENT, onOpenWclKey)
-    return () => {
-      window.removeEventListener(OPEN_CLAUDE_KEY_SETTINGS_EVENT, onOpenClaudeKey)
-      window.removeEventListener(OPEN_WCL_KEY_SETTINGS_EVENT, onOpenWclKey)
-    }
+    return () => window.removeEventListener(OPEN_CLAUDE_KEY_SETTINGS_EVENT, onOpenClaudeKey)
   }, [])
 
   const analyzeActive = path === '/' || path === '/analyze'
@@ -83,11 +73,7 @@ export function AppNav() {
       <div className={pa.appNavTabsSpacer} aria-hidden />
 
       {settingsOpen && (
-        <SettingsMenu
-          onClose={() => setSettingsOpen(false)}
-          highlightClaudeKey={highlightClaudeKey}
-          highlightWclKey={highlightWclKey}
-        />
+        <SettingsMenu onClose={() => setSettingsOpen(false)} highlightClaudeKey={highlightClaudeKey} />
       )}
     </header>
   )
@@ -96,11 +82,9 @@ export function AppNav() {
 function SettingsMenu({
   onClose,
   highlightClaudeKey = false,
-  highlightWclKey = false,
 }: {
   onClose: () => void
   highlightClaudeKey?: boolean
-  highlightWclKey?: boolean
 }) {
   const fa = useFightAnalysis()
   const [vibe, setVibe] = useState<VibeId>('slate')
@@ -173,38 +157,64 @@ function SettingsMenu({
           </div>
 
           <div style={{ marginBottom: 18 }}>
-            <KeyField
-              label="WarcraftLogs client ID"
-              highlight={highlightWclKey}
-              value={fa.clientId}
-              onChange={fa.setClientId}
-              onSave={() => void fa.startAuth()}
-              saved={fa.authStatus === 'ok'}
-              savedText="Connected"
-              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-              note={
-                fa.authStatus === 'ok' ? null : fa.authStatus === 'checking' ? (
-                  'Checking connection…'
-                ) : (
-                  <>
-                    Create a public client at{' '}
-                    <a href="https://www.warcraftlogs.com/api/clients" target="_blank" rel="noreferrer">
-                      warcraftlogs.com/api/clients
-                    </a>{' '}
-                    (redirect URL <code>http://localhost:3000/auth/callback</code>). Saving opens WarcraftLogs to
-                    authorize.
-                  </>
-                )
-              }
-            />
-            {fa.authMsg && (
-              <div style={fa.authMsg.type === 'err' ? s.alertErr : s.alertInfo}>{fa.authMsg.msg}</div>
-            )}
+            <div style={s.label}>WarcraftLogs</div>
+            <WclAccountRow />
           </div>
 
           <AnthropicKeyPanel highlight={highlightClaudeKey} />
         </div>
       </div>
     </>
+  )
+}
+
+/** Per-user WCL sign-in — required to load reports; each user brings their own account. */
+function WclAccountRow() {
+  const fa = useFightAnalysis()
+  const user = useWclUser()
+
+  if (user) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--green, #4caf7d)' }}>
+          ✓ Signed in{user.userName ? ` as ${user.userName}` : ''}
+        </span>
+        <button type="button" className={`${pa.btnGhost} ${pa.btnGhostSm}`} onClick={() => writeWclUser(null)}>
+          Sign out
+        </button>
+      </div>
+    )
+  }
+
+  if (fa.wclClientId) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+        <button type="button" className={pa.btnGold} onClick={() => void startWclSignIn(fa.wclClientId!)}>
+          Sign in with WarcraftLogs
+        </button>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--dim)' }}>
+          required to load reports — uses your account &amp; rate limit
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <p
+      style={{
+        margin: '8px 0 0',
+        fontFamily: 'var(--font-ui)',
+        fontSize: 12.5,
+        lineHeight: 1.6,
+        color: 'var(--muted)',
+      }}
+    >
+      Sign-in unavailable: the server owner must set <code>WCL_CLIENT_ID</code> /{' '}
+      <code>WCL_CLIENT_SECRET</code> (from{' '}
+      <a href="https://www.warcraftlogs.com/api/clients" target="_blank" rel="noreferrer">
+        warcraftlogs.com/api/clients
+      </a>
+      ) in the server environment.
+    </p>
   )
 }

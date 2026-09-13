@@ -62,11 +62,13 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 
 ### Settings (nav dropdown)
 - **Themes** — three vibes as radio buttons: **Slate** (default, `:root` palette), **Gold HUD** (`classic`), **Light**. Selection sets `data-vibe` on `<html>` and persists to `localStorage` (`parse-analyzer-vibe`); a pre-hydration script in `pages/_document.tsx` prevents flash. Definitions: `lib/vibes.ts` (data) + `styles/globals.css` (`html[data-vibe="…"]` overrides).
-- **WarcraftLogs client ID** — password `KeyField`; Save starts the OAuth PKCE flow. Green ✓ Connected when OAuth completed. When auth is missing, the Analyze empty state shows `WclKeyPrompt`: an "Add client ID in Settings" button (dispatches `pa:open-wcl-key-settings` → dropdown opens, field glows/focuses) plus a toggleable how-to for creating a WCL API client.
+- **WarcraftLogs** — "Sign in with WarcraftLogs" button (or "✓ Signed in as {name}" + Sign out). Sign-in is **required** to load reports; see §WCL auth. When signed out, the Analyze empty state shows `WclKeyPrompt` (sign-in button, or operator setup steps if the server has no client id).
 - **Claude API key (BYOK)** — password `KeyField` (`AnthropicKeyPanel`): a Claude **Console** key (`sk-ant-…`) stored only in `localStorage` (`lib/anthropicUserKey.ts`), sent as `x-anthropic-api-key` header to `/api/ai`, which prefers it over the server's `ANTHROPIC_API_KEY` env fallback. **There is no "Sign in with Claude" for third-party apps** — Console API keys are the supported path. Save/clear dispatch `pa:claude-key-changed`, and `pa:open-claude-key-settings` (from "Add key in Settings" buttons) opens this dropdown with the field focused and glowing (`lib/claudeKeyBus.ts`, `.paKeyGlow` in `globals.css`).
 
-### WCL auth
-- OAuth PKCE flow (`lib/pkce.ts`, `/auth/callback`) writes the resulting token to `.env.local` as `WCL_TOKEN` via `/api/auth` POST. The Settings "Connected" check means OAuth completed; **GraphQL calls use the server-side `WCL_TOKEN`**, which is a separate concern — both must be valid.
+### WCL auth (per-user sign-in, required)
+- **"Sign in with WarcraftLogs" is mandatory for report loading** (`lib/wclUserToken.ts`): authorization code + PKCE using the operator's client id (served by `/api/auth` GET as `{ clientId }`). `/auth/callback` POSTs the code to `/api/auth` (`action: 'user-exchange'`); the resulting **user token is returned to the browser and stored in localStorage only** (`parse-analyzer-wcl-user`, with expiry + user name) — never on the server. `wclClientHeaders()` adds `x-wcl-user-token` to `/api/wcl` calls; the route **requires it (401 otherwise)** and targets WCL's **`/api/v2/user`** endpoint — each user gets their own permissions (private logs) and rate-limit budget. Sign-out clears localStorage. The WCL client's **redirect URL must include** `http://localhost:3000/auth/callback` (plus the production origin).
+- **Server client-credentials token** (`lib/serverWclToken.ts`, `getWclToken()`): now only for game-data lookups (`/api/talents`, `/api/debug-tree`) — cached in module memory, auto-refreshed. A static `WCL_TOKEN` env is a legacy fallback for those routes only.
+- `FightAnalysisContext.authStatus` is 'ok' only when the user is signed in; `wclClientId` feeds the sign-in buttons (Settings row and `WclKeyPrompt`, which shows operator setup steps when no client id is configured).
 
 ### Shared UI primitives (`components/ui.tsx`)
 - `PageHeader`, `Panel`, `FieldRow`, `KeyField`, `OrDivider` — every page composes these instead of hand-rolling heading/panel/field markup. New UI goes through them so themes and layout stay uniform.
@@ -84,11 +86,11 @@ pages/
   _app.tsx             AppErrorBoundary → provider stack (AppSession → AnalyzePageCache →
                        FightAnalysis) + AppNav
   _document.tsx        Pre-hydration vibe script (slate default) + favicon links
-  auth/callback.tsx    WCL PKCE callback
+  auth/callback.tsx    Sign-in landing: exchanges code, stores user token in localStorage
   api/
     ai.ts              Claude proxy (JSON + SSE streaming; BYOK header > env key)
-    wcl.ts             WCL GraphQL proxy; also `action: 'compare-talents'`
-    auth.ts            WCL token check / PKCE exchange (writes .env.local)
+    wcl.ts             WCL GraphQL proxy (user token header > shared token); compare-talents
+    auth.ts            GET public clientId; POST user-exchange (code → user token)
     blizzard-tree.ts   Blizzard talent tree per specId (24h cache)
     talents.ts         Batch node-ID → spell info
     tooltip.ts         Wowhead icon proxy (never add ?dataEnv=11)
@@ -132,7 +134,9 @@ lib/
   claudeKeyBus.ts      Key-changed / open-settings window events (Claude + WCL) + useClaudeKeyPresent()
   vibes.ts             Theme definitions (Settings radios)
   styles.ts            Shared inline styles (s.*) + pa-* class name map
-  serverEnv.ts         Server-only env resolution (WCL_TOKEN, ANTHROPIC_API_KEY, Blizzard)
+  serverEnv.ts         Server-only env resolution (WCL/Blizzard/Anthropic keys)
+  serverWclToken.ts    WCL client-credentials token cache (getWclToken)
+  wclUserToken.ts      Per-user WCL sign-in (localStorage token, headers, PKCE redirect)
   blizzardClient.ts, pkce.ts, wclFightPlayers.ts, spellTooltips/
 
 knowledge/             Source-of-truth corpora (see §6)
@@ -196,7 +200,8 @@ Prompt precedence rule baked into the prompts: **the log data always wins** over
 `.env.local` (never commit):
 
 ```
-WCL_TOKEN=            # written automatically by in-app PKCE flow; server-side GraphQL
+WCL_CLIENT_ID=        # warcraftlogs.com/api/clients — powers required user sign-in + game data
+WCL_CLIENT_SECRET=    # (register redirect URL http://localhost:3000/auth/callback + prod)
 ANTHROPIC_API_KEY=    # optional server fallback; users can BYOK in the UI instead
 BLIZZARD_CLIENT_ID=   # Battle.net app (talent trees)
 BLIZZARD_CLIENT_SECRET=
@@ -260,5 +265,5 @@ Test layout mirrors source: `__tests__/api/*` (route handlers with mocked fetch)
 - Guide corpora cover few specs (see §6); extending them is the highest-leverage content work.
 - `.cursor/rules/parse-analyzer.mdc` holds the always-on agent dev context; keep it consistent with this document when architecture changes.
 - Themes restyle shared chrome via variables, but a few components still carry hardcoded `Rajdhani`/hex values (charts, tooltips, talent trees) — migrate opportunistically to the CSS variables when touching those files. The **Light** theme is most affected by leftovers.
-- WCL OAuth "connected" and `WCL_TOKEN` validity are independent; a stale token manifests as GraphQL errors despite a green badge.
+- Anonymous visitors share the server's WCL token and rate limit; heavy shared use can exhaust the hourly points budget, and private reports need per-user sign-in. Signed-in users get their own budget and private-log access.
 ```

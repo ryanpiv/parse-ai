@@ -1,19 +1,37 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { wclToken } from '../../lib/serverEnv'
 
-const WCL_ENDPOINT = 'https://www.warcraftlogs.com/api/v2/client'
+const WCL_USER_ENDPOINT = 'https://www.warcraftlogs.com/api/v2/user'
 const RATE_LIMIT_QUERY = '{ rateLimitData { limitPerHour pointsSpentThisHour pointsResetIn } }'
 
-function getToken(): string | undefined {
-  return wclToken()
+const NO_TOKEN_ERROR =
+  'Sign in with WarcraftLogs to load reports (Settings, top right). Each user connects their own WCL account.'
+
+interface WclAuth {
+  token: string
+  /** User tokens must use /api/v2/user to get the user's report permissions. */
+  endpoint: string
 }
 
-async function wclFetch(token: string, body: object): Promise<{ status: number; text: string }> {
-  const response = await fetch(WCL_ENDPOINT, {
+/**
+ * Report data ALWAYS uses the signed-in user's token (their permissions, their
+ * rate limit) — there is deliberately no shared-token fallback here. The
+ * server's client credentials only power the sign-in flow and game-data
+ * lookups (/api/talents).
+ */
+function resolveAuth(req: NextApiRequest): WclAuth | null {
+  const userToken = req.headers['x-wcl-user-token']
+  if (typeof userToken === 'string' && userToken.trim()) {
+    return { token: userToken.trim(), endpoint: WCL_USER_ENDPOINT }
+  }
+  return null
+}
+
+async function wclFetch(auth: WclAuth, body: object): Promise<{ status: number; text: string }> {
+  const response = await fetch(auth.endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${auth.token}`,
     },
     body: JSON.stringify(body),
   })
@@ -44,11 +62,11 @@ function safeJson(res: NextApiResponse, status: number, payload: unknown) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
-      const token = getToken()
-      if (!token) return safeJson(res, 500, { error: 'WCL_TOKEN not set (Vercel env or .env.local)' })
+      const auth = resolveAuth(req)
+      if (!auth) return safeJson(res, 401, { error: NO_TOKEN_ERROR })
 
       try {
-        const { status, text } = await wclFetch(token, { query: RATE_LIMIT_QUERY })
+        const { status, text } = await wclFetch(auth, { query: RATE_LIMIT_QUERY })
         if (status !== 200) {
           return safeJson(res, status, { error: `WCL returned ${status}`, body: text.slice(0, 300) })
         }
@@ -73,12 +91,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return safeJson(res, 405, { error: 'Method not allowed' })
     }
 
-    const token = getToken()
-    if (!token) return safeJson(res, 500, { error: 'WCL_TOKEN not set (Vercel env or .env.local)' })
+    const auth = resolveAuth(req)
+    if (!auth) return safeJson(res, 401, { error: NO_TOKEN_ERROR })
 
     // Special action: extract talent strings from a WCL compare URL
     if (req.body?.action === 'compare-talents') {
-      return await handleCompareTalents(req, res, token)
+      return await handleCompareTalents(req, res, auth)
     }
 
     if (req.body == null || typeof req.body !== 'object' || typeof (req.body as { query?: unknown }).query !== 'string') {
@@ -88,7 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-      const { status, text } = await wclFetch(token, req.body as object)
+      const { status, text } = await wclFetch(auth, req.body as object)
       if (status !== 200) {
         return safeJson(res, status, { error: `WCL returned ${status}`, body: text.slice(0, 300) })
       }
@@ -96,8 +114,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const parsed = tryParseJSON(text)
       if (!parsed.ok) {
         return safeJson(res, 500, {
-          error:
-            'WCL returned non-JSON — token likely expired. Update WCL_TOKEN in Vercel or .env.local',
+          error: 'WCL returned non-JSON — token likely expired or credentials invalid.',
           body: text.slice(0, 300),
         })
       }
@@ -125,8 +142,8 @@ function gqlData(httpBody: any): any {
   return httpBody
 }
 
-async function gqlQuery(token: string, query: string, variables: Record<string, unknown>) {
-  const { status, text } = await wclFetch(token, { query, variables })
+async function gqlQuery(auth: WclAuth, query: string, variables: Record<string, unknown>) {
+  const { status, text } = await wclFetch(auth, { query, variables })
   if (status !== 200) throw new Error(`WCL returned ${status}`)
   const parsed = tryParseJSON(text)
   if (!parsed.ok) throw new Error('WCL returned non-JSON — token may be expired')
@@ -167,13 +184,13 @@ const COMBATANT_INFO_QUERY = `
 `
 
 async function fetchCombatantEvents(
-  token: string,
+  auth: WclAuth,
   reportCode: string,
   fightId: number,
   start: number,
   end: number
 ): Promise<any[]> {
-  const root = await gqlQuery(token, COMBATANT_INFO_QUERY, {
+  const root = await gqlQuery(auth, COMBATANT_INFO_QUERY, {
     code: reportCode,
     fightId,
     start,
@@ -184,7 +201,7 @@ async function fetchCombatantEvents(
 }
 
 async function resolvePlayerEvent(
-  token: string,
+  auth: WclAuth,
   reportCode: string,
   fightId: number,
   fightStart: number,
@@ -199,7 +216,7 @@ async function resolvePlayerEvent(
 
   if (!playerEvent) {
     const pdRoot = await gqlQuery(
-      token,
+      auth,
       `query($code: String!, $fightId: Int!) {
         reportData { report(code: $code) { playerDetails(fightIDs: [$fightId]) } }
       }`,
@@ -226,7 +243,7 @@ function normalizeTalentTreeRows(raw: any): any[] {
     .filter((t: any) => t.nodeID != null && Number(t.nodeID) > 0)
 }
 
-async function handleCompareTalents(req: NextApiRequest, res: NextApiResponse, token: string) {
+async function handleCompareTalents(req: NextApiRequest, res: NextApiResponse, auth: WclAuth) {
   try {
     const url: string = req.body.url || ''
     const pm = url.match(/\/reports\/compare\/([^/]+)\/([^/?]+)/)
@@ -248,8 +265,8 @@ async function handleCompareTalents(req: NextApiRequest, res: NextApiResponse, t
     }`
 
     const [m1, m2] = await Promise.all([
-      gqlQuery(token, metaQuery, { code: r1 }),
-      gqlQuery(token, metaQuery, { code: r2 }),
+      gqlQuery(auth, metaQuery, { code: r1 }),
+      gqlQuery(auth, metaQuery, { code: r2 }),
     ])
 
     const rep1 = gqlData(m1)?.reportData?.report
@@ -270,15 +287,15 @@ async function handleCompareTalents(req: NextApiRequest, res: NextApiResponse, t
     const id2 = actor2?.id ?? (/^\d+$/.test(src2) ? parseInt(src2, 10) : undefined)
 
     const [events1, events2] = await Promise.all([
-      fetchCombatantEvents(token, r1, f1id, fight1.startTime, fight1.endTime),
-      fetchCombatantEvents(token, r2, f2id, fight2.startTime, fight2.endTime),
+      fetchCombatantEvents(auth, r1, f1id, fight1.startTime, fight1.endTime),
+      fetchCombatantEvents(auth, r2, f2id, fight2.startTime, fight2.endTime),
     ])
 
     const ev1 = await resolvePlayerEvent(
-      token, r1, f1id, fight1.startTime, fight1.endTime, name1, id1, events1
+      auth, r1, f1id, fight1.startTime, fight1.endTime, name1, id1, events1
     )
     const ev2 = await resolvePlayerEvent(
-      token, r2, f2id, fight2.startTime, fight2.endTime, name2, id2, events2
+      auth, r2, f2id, fight2.startTime, fight2.endTime, name2, id2, events2
     )
 
     const b1 = ev1?.talentSpec || null

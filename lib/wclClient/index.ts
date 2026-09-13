@@ -1,5 +1,6 @@
 /** Parse JSON from a Next API route; HTML (404 page, proxy error) gives a clear message. */
 import { anthropicClientHeaders } from '../anthropicUserKey'
+import { wclClientHeaders } from '../wclUserToken'
 import { ANTHROPIC_MODEL } from './anthropicModel'
 
 export async function parseNextApiJson(res: Response, route: string): Promise<Record<string, any>> {
@@ -93,7 +94,7 @@ export async function gql(query: string, variables: Record<string, unknown> = {}
   try {
     res = await fetch('/api/wcl', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: wclClientHeaders(),
       body: JSON.stringify({ query, variables }),
       signal: abortAfter(WCL_FETCH_TIMEOUT_MS),
     })

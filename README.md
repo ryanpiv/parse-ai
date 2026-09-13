@@ -27,7 +27,7 @@ An AI-powered WarcraftLogs comparison tool. Paste two WarcraftLogs report URLs a
 | Fight Data | WarcraftLogs GraphQL API v2 |
 | Talent Trees | Blizzard Game Data API (OAuth client credentials) |
 | Icons | Wowhead tooltip API → Zamimg CDN |
-| Auth | WCL: PKCE OAuth flow; Blizzard: client credentials |
+| Auth | WCL: client credentials (server env); Blizzard: client credentials |
 
 ---
 
@@ -36,15 +36,16 @@ An AI-powered WarcraftLogs comparison tool. Paste two WarcraftLogs report URLs a
 Create `.env.local` at the repo root:
 
 ```
-WCL_TOKEN=<WarcraftLogs OAuth JWT>
+WCL_CLIENT_ID=<WarcraftLogs API client ID>
+WCL_CLIENT_SECRET=<WarcraftLogs API client secret>
 BLIZZARD_CLIENT_ID=<Battle.net client ID>
 BLIZZARD_CLIENT_SECRET=<Battle.net client secret>
 ANTHROPIC_API_KEY=<Anthropic API key>
 ```
 
-- **WCL_TOKEN** — Obtain via the in-app OAuth button (PKCE flow)
+- **WCL_CLIENT_ID / SECRET** — Create a client at https://www.warcraftlogs.com/api/clients with redirect URL `http://localhost:3000/auth/callback` (add your production URL when deploying). These power **"Sign in with WarcraftLogs"** — every user must sign in with their own WCL account to load reports (their permissions, their rate limit; token stored in that browser only). The server also uses them (client-credentials) for game-data lookups like spell names in `/api/talents`.
 - **BLIZZARD_CLIENT_ID / SECRET** — Register an app at https://develop.battle.net
-- **ANTHROPIC_API_KEY** — https://console.anthropic.com
+- **ANTHROPIC_API_KEY** — https://console.anthropic.com (optional server fallback; users can bring their own key in Settings)
 
 ---
 
@@ -55,10 +56,10 @@ pages/
   index.tsx               # Main app — URL parsing, data fetching, charts, AI chat
   talent-preview.tsx      # Dev/QA page for testing talent tree rendering
   _app.tsx                # App wrapper, global CSS
-  auth/callback.tsx       # WCL OAuth callback handler
+  auth/callback.tsx       # "Sign in with WCL" landing — stores user token in localStorage
   api/
     ai.ts                 # POST → Anthropic Claude proxy
-    auth.ts               # GET (token check) / POST (PKCE token exchange)
+    auth.ts               # GET server WCL status; POST user-exchange (OAuth code → user token)
     wcl.ts                # GraphQL proxy to WarcraftLogs
     talents.ts            # Batch resolve talent node IDs → spell info
     blizzard-tree.ts      # GET talent tree structure from Blizzard (24h cache)
@@ -81,6 +82,8 @@ lib/
     diffTalents.ts        # Categorize talents: both / p1-only / p2-only
     nodeResolution.ts     # Resolve node IDs → spell names via WCL API
   blizzardClient.ts       # Blizzard OAuth token cache + blizzardGet()
+  serverWclToken.ts       # WCL client-credentials token cache (getWclToken)
+  wclUserToken.ts         # Per-user WCL sign-in: localStorage token, headers, PKCE redirect
   pkce.ts                 # PKCE helpers (genVerifier, genChallenge)
   styles.ts               # Shared inline style constants
 
@@ -171,8 +174,8 @@ CHOICE nodes use `ranks[0].choice_of_tooltips[]` in the Blizzard API (not the st
 | Endpoint | Method | Description |
 |---|---|---|
 | `/api/ai` | POST | Proxy to Anthropic `/v1/messages` |
-| `/api/auth` | GET | Check if WCL_TOKEN is valid |
-| `/api/auth` | POST | Exchange PKCE code for WCL OAuth token; writes to `.env.local` |
+| `/api/auth` | GET | Public WCL client id for the sign-in redirect (`{ clientId }`) |
+| `/api/auth` | POST | `action: 'user-exchange'` — OAuth code → user token, returned to the browser |
 | `/api/wcl` | POST | GraphQL proxy to WarcraftLogs v2 API |
 | `/api/wcl` | GET | WCL rate limit info |
 | `/api/talents` | POST | Batch resolve talent node IDs → spell names/icons |
@@ -199,7 +202,7 @@ node scripts/test-icons.mjs            # Test Wowhead icon fetching for known Fr
 
 - **All external API calls are server-side** — WCL, Blizzard, Wowhead, and Anthropic are all proxied through Next.js API routes. No secrets or CORS issues on the client.
 - **Talent tree layout uses raw Blizzard positions** — `raw_position_x` / `raw_position_y` give accurate in-game node placement matching what Raidbots shows.
-- **WCL token is persisted to `.env.local`** — The PKCE OAuth flow writes the token directly to the file so it survives server restarts without a separate database.
+- **WCL access is per-user** — every user signs in with WarcraftLogs (authorization code + PKCE via the operator's `WCL_CLIENT_ID`/`WCL_CLIENT_SECRET`). Their token lives in their browser's localStorage only, is sent as `x-wcl-user-token`, and `/api/wcl` requires it (401 otherwise) — targeting WCL's `/api/v2/user` endpoint, so each user gets their own permissions (private logs) and rate-limit budget. The server never sees or stores user tokens; its own client-credentials token only serves game-data lookups (`/api/talents`, `/api/debug-tree`).
 - **Fight context is built once, reused for all chat turns** — The structured prompt is assembled after initial analysis and prepended to every subsequent AI message.
 - **Icon cache is module-level** — `iconCache` in `TalentTree.tsx` persists across renders within a session so Wowhead is only hit once per spell ID per page load.
 - **Never auto-commit** — File edits are made and left unstaged so the developer can review diffs in their IDE before committing.

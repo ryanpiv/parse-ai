@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { pa } from '../../lib/styles'
-import { requestWclKeySetup } from '../../lib/claudeKeyBus'
+import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
+import { startWclSignIn } from '../../lib/wclUserToken'
 
 /**
- * Shown when no WarcraftLogs client ID is connected — sends the user to
- * Settings (field glows), with a toggleable how-to for getting a client ID.
+ * Shown when the user isn't signed in to WCL — sign-in is required to load
+ * reports (each user brings their own account, permissions, and rate limit).
+ * Falls back to operator setup steps when the server has no client id.
  */
 export function WclKeyPrompt() {
+  const fa = useFightAnalysis()
   const [showHelp, setShowHelp] = useState(false)
   return (
     <div
@@ -28,20 +31,24 @@ export function WclKeyPrompt() {
             lineHeight: 1.5,
           }}
         >
-          Loading reports needs a free WarcraftLogs API client ID, stored only in this browser.
+          {fa.wclClientId
+            ? 'Sign in with your WarcraftLogs account to load reports. Loads use your own permissions (private logs included) and your own rate limit; the token stays in this browser.'
+            : "This server isn't set up for WarcraftLogs sign-in yet, so reports can't load. The server owner sets this up once."}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button type="button" className={pa.btnGold} onClick={requestWclKeySetup}>
-            Add client ID in Settings
-          </button>
+          {fa.wclClientId && (
+            <button type="button" className={pa.btnGold} onClick={() => void startWclSignIn(fa.wclClientId!)}>
+              Sign in with WarcraftLogs
+            </button>
+          )}
           <button
             type="button"
             className={`${pa.btnGhost} ${pa.btnGhostSm}`}
             aria-expanded={showHelp}
-            title="How do I get a client ID?"
+            title="Server setup instructions"
             onClick={() => setShowHelp(o => !o)}
           >
-            {showHelp ? 'Hide help' : 'How do I get one?'}
+            {showHelp ? 'Hide setup steps' : 'Server setup steps'}
           </button>
         </div>
       </div>
@@ -57,20 +64,23 @@ export function WclKeyPrompt() {
           }}
         >
           <li>
-            Sign in at warcraftlogs.com (a free account works), then open{' '}
+            Sign in at warcraftlogs.com (a free account works), then create a client at{' '}
             <a href="https://www.warcraftlogs.com/api/clients" target="_blank" rel="noreferrer">
               warcraftlogs.com/api/clients
-            </a>
-            .
+            </a>{' '}
+            with redirect URL{' '}
+            <code style={{ color: 'var(--blue)' }}>http://localhost:3000/auth/callback</code> (add your
+            production URL too when deploying).
           </li>
           <li>
-            Create a client — any name, redirect URL{' '}
-            <code style={{ color: 'var(--blue)' }}>http://localhost:3000/auth/callback</code>, and check{' '}
-            <strong style={{ color: 'var(--text)' }}>public client</strong>.
+            Add <code style={{ color: 'var(--blue)' }}>WCL_CLIENT_ID</code> and{' '}
+            <code style={{ color: 'var(--blue)' }}>WCL_CLIENT_SECRET</code> to{' '}
+            <code style={{ color: 'var(--blue)' }}>.env.local</code> (or your host&apos;s environment
+            variables).
           </li>
           <li>
-            Copy the client ID into Settings and Save — WarcraftLogs opens once so you can authorize
-            this app.
+            Restart the server. Every user then signs in with their own WarcraftLogs account (here or
+            in Settings) to load reports.
           </li>
         </ol>
       )}

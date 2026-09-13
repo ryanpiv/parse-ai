@@ -5,8 +5,14 @@ import handler from '../../pages/api/wcl'
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>
 global.fetch = mockFetch
 
+/** Report data requires the per-user token header — there is no shared fallback. */
 function mockReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
-  return { method: 'POST', body: { query: '{ reportData { report(code: "abc") { title } } }' }, ...overrides } as NextApiRequest
+  return {
+    method: 'POST',
+    headers: { 'x-wcl-user-token': 'user-token-abc' },
+    body: { query: '{ reportData { report(code: "abc") { title } } }' },
+    ...overrides,
+  } as NextApiRequest
 }
 
 function mockRes() {
@@ -20,7 +26,6 @@ function mockRes() {
 describe('/api/wcl', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    process.env.WCL_TOKEN = 'test-token'
   })
 
   it('rejects unsupported methods', async () => {
@@ -29,12 +34,14 @@ describe('/api/wcl', () => {
     expect(res.status).toHaveBeenCalledWith(405)
   })
 
-  it('returns 500 when token is missing', async () => {
-    delete process.env.WCL_TOKEN
+  it('returns 401 without a signed-in user token', async () => {
     const res = mockRes()
-    await handler(mockReq(), res)
-    expect(res.status).toHaveBeenCalledWith(500)
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringContaining('WCL_TOKEN') }))
+    await handler(mockReq({ headers: {} }), res)
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: expect.stringContaining('Sign in with WarcraftLogs') })
+    )
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 
   it('GET returns rate limit data on success', async () => {
@@ -49,7 +56,7 @@ describe('/api/wcl', () => {
     expect(res.json).toHaveBeenCalledWith({ ok: true, rateLimit: wclResponse.data.rateLimitData })
   })
 
-  it('POST forwards GraphQL query and returns parsed data', async () => {
+  it('POST forwards GraphQL to the user endpoint with the user token', async () => {
     const wclData = { data: { reportData: { report: { title: 'Test Report' } } } }
     mockFetch.mockResolvedValueOnce({
       ok: true, status: 200, text: async () => JSON.stringify(wclData),
@@ -58,9 +65,9 @@ describe('/api/wcl', () => {
     const res = mockRes()
     await handler(mockReq(), res)
 
-    expect(mockFetch).toHaveBeenCalledWith('https://www.warcraftlogs.com/api/v2/client', expect.objectContaining({
+    expect(mockFetch).toHaveBeenCalledWith('https://www.warcraftlogs.com/api/v2/user', expect.objectContaining({
       method: 'POST',
-      headers: expect.objectContaining({ 'Authorization': 'Bearer test-token' }),
+      headers: expect.objectContaining({ 'Authorization': 'Bearer user-token-abc' }),
     }))
     expect(res.status).toHaveBeenCalledWith(200)
     expect(res.json).toHaveBeenCalledWith(wclData)
