@@ -3,12 +3,16 @@ import { Html, Head, Main, NextScript } from 'next/document'
 export default function Document() {
   return (
     <Html lang="en">
-      <Head />
+      <Head>
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </Head>
       <body>
         <script
           dangerouslySetInnerHTML={{
             __html:
-              `try{var v=localStorage.getItem('parse-analyzer-vibe');if(v&&v!=='classic')document.documentElement.setAttribute('data-vibe',v)}catch(e){}`,
+              `try{var v=localStorage.getItem('parse-analyzer-vibe');if(v==='classic'||v==='light')document.documentElement.setAttribute('data-vibe',v)}catch(e){}`,
           }}
         />
         <Main />

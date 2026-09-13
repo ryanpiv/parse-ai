@@ -26,11 +26,8 @@ import {
 } from '../lib/talents/p1TalentTreeSession'
 import { partitionBlizzardTalentNodes } from '../lib/talents/partitionBlizzardTree'
 import { applyRankMapAsRaidbotsP1, sumRanks } from '../lib/talents/raidbotsRankMap'
-import { pa } from '../lib/styles'
-
-const FONT = '"Avenir Next", Lato, "Helvetica Neue", Helvetica, sans-serif'
-const BG = '#0e1015'
-const TEXT = '#e8edf2'
+import { pa, s } from '../lib/styles'
+import { PageHeader } from '../components/ui'
 
 const CANVAS_W = 1100
 const COL_CLASS_W = 410
@@ -70,11 +67,9 @@ export default function TalentPreviewPage() {
   )
 
   const loading = !router.isReady || (!hydrated && !specFromQuery) || treeLoading
-  const noSpecMessage =
-    router.isReady && hydrated && !specFromQuery && !effectiveSpecId
-      ? 'No specialization id. Paste an export string or load a report below, or pass ?specId=…'
-      : null
-  const error = noSpecMessage ?? treeFetchError
+  /** Fresh visit with nothing loaded — an empty state, not an error. */
+  const nothingLoaded = router.isReady && hydrated && !specFromQuery && !effectiveSpecId
+  const error = treeFetchError
 
   const { classNodes, specNodes, heroBlocks, edges, usingSavedP1 } = useMemo(() => {
     if (!tree) {
@@ -258,18 +253,19 @@ export default function TalentPreviewPage() {
     return { mode: 'wireframeAll' as const, blocks: heroBlocks, hasRanks: false }
   }, [heroBlocks])
 
-  const pageUrl = typeof window !== 'undefined' ? window.location.href : ''
+  /** The build's export string (if the session has one) — sharable into any talent calculator. */
+  const exportString = hydrated ? (session.compareStr1 || '').trim() : ''
 
-  const copyLink = () => {
-    if (!pageUrl) return
-    void navigator.clipboard.writeText(pageUrl).then(() => {
+  const copyExportString = () => {
+    if (!exportString) return
+    void navigator.clipboard.writeText(exportString).then(() => {
       setCopyOk(true)
       setTimeout(() => setCopyOk(false), 2000)
     })
   }
 
   const RAIDBOTS_STEP = 55
-  const uniformWidth = useMemo(
+  const treeWidths = useMemo(
     () =>
       uniformClassSpecTreeWidth(
         classNodes,
@@ -309,40 +305,30 @@ export default function TalentPreviewPage() {
           {usingSavedP1 ? `${p1Name} — talents — parse-ai` : `Talent preview — parse-ai`}
         </title>
       </Head>
-      <div
-        style={{
-          minHeight: '100vh',
-          background: BG,
-          color: TEXT,
-          padding: '24px 20px 48px',
-          fontFamily: FONT,
-        }}
-      >
-        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-          <h1
-            style={{
-              margin: '0 0 6px',
-              fontSize: 22,
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-            }}
-          >
-            {usingSavedP1 ? `${p1Name} — full talents` : 'Talent preview'}
-          </h1>
-          <p style={{ fontSize: 13, color: '#8899aa', margin: '0 0 16px', lineHeight: 1.5 }}>
-            {usingSavedP1
-              ? 'Uses WCL node rows when available, otherwise the export string.'
-              : 'Load a report or paste an export string below. Synthetic fills still work via ?preset=budget.'}
-          </p>
+      <div style={s.wrap}>
+        <div>
+          <PageHeader
+            title={usingSavedP1 ? `${p1Name} — full talents` : 'Talents'}
+            subtitle={
+              usingSavedP1
+                ? 'Uses WCL node rows when available, otherwise the export string.'
+                : 'Load a report or paste an export string below.'
+            }
+          />
           <TalentSourceForm />
-          <p style={{ fontSize: 11, color: '#556', marginBottom: 14, fontFamily: 'IBM Plex Mono, monospace' }}>
+          <p style={{ fontSize: 11, color: 'var(--dim)', marginBottom: 14, fontFamily: 'var(--font-mono)' }}>
             specId={effectiveSpecId || '—'} · preset={presetMode}
             {hydrated && session.p1TalentTreeJson ? ' · session has WCL rows' : ''}
             {hydrated && session.compareStr1 ? ' · session has export string' : ''}
           </p>
 
-          {loading && <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 13, color: '#667' }}>Loading tree…</p>}
-          {error && <p style={{ color: '#e04040', fontFamily: 'IBM Plex Mono, monospace', fontSize: 13 }}>{error}</p>}
+          {loading && <p style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--dim)' }}>Loading tree…</p>}
+          {nothingLoaded && !loading && (
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--muted)' }}>
+              No talents loaded yet — the tree appears here once you load a URL or apply an export string above.
+            </p>
+          )}
+          {error && <p style={{ color: 'var(--red)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>{error}</p>}
 
           {!loading && !error && tree && (
             <>
@@ -364,7 +350,7 @@ export default function TalentPreviewPage() {
                       name2=""
                       renderMode="raidbots"
                       nodePx={nodePx}
-                      forceWidth={uniformWidth}
+                      forceWidth={treeWidths.classWidth}
                       forceGrid
                     />
                   )}
@@ -448,18 +434,25 @@ export default function TalentPreviewPage() {
                       name2=""
                       renderMode="raidbots"
                       nodePx={nodePx}
-                      forceWidth={uniformWidth}
+                      forceWidth={treeWidths.specWidth}
                       forceGrid
                     />
                   )}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28, width: CANVAS_W }}>
-                <button type="button" onClick={copyLink} className={pa.btnGold}>
-                  {copyOk ? 'Copied' : 'Copy to clipboard'}
-                </button>
-              </div>
+              {exportString && (
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28, width: CANVAS_W }}>
+                  <button
+                    type="button"
+                    onClick={copyExportString}
+                    className={pa.btnGold}
+                    title="Copy this build's talent export string (paste in-game or into any calculator)"
+                  >
+                    {copyOk ? 'Copied' : 'Copy export string'}
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

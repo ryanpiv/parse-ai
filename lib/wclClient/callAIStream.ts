@@ -1,6 +1,7 @@
 /** Stream Claude via `/api/ai` (SSE). Parses Anthropic messages SSE events. */
 
 import { anthropicClientHeaders } from '../anthropicUserKey'
+import { ANTHROPIC_MODEL } from './anthropicModel'
 
 export type StreamedAIMessage = { role: string; content: string }
 
@@ -48,7 +49,7 @@ export async function callAIStream(
     method: 'POST',
     headers: anthropicClientHeaders(),
     body: JSON.stringify({
-      model: opts.model ?? 'claude-sonnet-4-20250514',
+      model: opts.model ?? ANTHROPIC_MODEL,
       max_tokens: opts.maxTokens ?? 2000,
       system,
       messages,
@@ -62,8 +63,9 @@ export async function callAIStream(
     const text = await res.text()
     let msg = text.slice(0, 500)
     try {
-      const j = JSON.parse(text) as { error?: { message?: string }; message?: string }
-      msg = j.error?.message || j.message || msg
+      // /api/ai returns { error: "string" }; raw Anthropic errors use { error: { message } }.
+      const j = JSON.parse(text) as { error?: string | { message?: string }; message?: string }
+      msg = (typeof j.error === 'string' ? j.error : j.error?.message) || j.message || msg
     } catch {
       /* use raw */
     }

@@ -39,17 +39,20 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 ## 3. Feature inventory
 
 ### Analyze (`/`, the home page)
-- **Warcraft Logs bar** (in `AppNav`, shared across pages): report/compare URL input, Load button, PKCE OAuth connect strip, load status alerts.
+- **Flow**: page heading → **Warcraft Logs panel** (`components/analyze/WclLoadPanel.tsx`: URL input, Load, status alerts, roster picker) → view tabs + charts/chat, which stay hidden until a fight is loaded (empty state shows instead). WCL OAuth setup lives in the Settings dropdown.
 - **Solo | Compare view tabs** — always clickable. When nothing is loaded, each shows an instructional empty state (`AnalyzeEmptyState`) explaining what URL format to paste. Solo works from any single report (`?fight=<id|last|first>`) or a compare URL (you are player 1). Compare needs a two-player compare URL.
 - **Multi-player reports** — if a single report fight has several players and no `?source=`, a roster picker appears (class icons, spec labels).
 - **Charts** — spell usage bars, cast timeline, proc efficiency, cooldown timeline, compact spell timeline with sticky zoom, crit rate. Compare mode has a "trim to shorter fight" toggle windowing all charts (`compareWindowSec`).
-- **AI chat** — two independent threads (solo/analyze vs compare), streaming responses with live token counts, preset question tiles, markdown rendering with Wowhead links, copy buttons.
+- **AI chat** — two independent threads (solo/analyze vs compare), streaming responses with live token counts, preset question tiles, markdown rendering with Wowhead links, copy buttons. The "Ask Claude" section is **gated on a saved Claude key**: without one it renders collapsed with a prompt (`ClaudeKeyPrompt`) whose button opens Settings and glows/focuses the key field (window-event bus in `lib/claudeKeyBus.ts`); saving a key unlocks and expands the chat live. The model id is the single constant in `lib/wclClient/anthropicModel.ts` — both `callAI` and `callAIStream` use it.
 - **Chat presets** (`lib/prompts/chatPresets.ts`) — canned prompts; some force extra knowledge context (SimC APL, Wowhead scrape, Icy Veins scrape) for that message. SimC block is otherwise opt-in via a UI toggle (`simcCompareEnabled`).
 - **Load errors are loud** — red "Could not load this log" banner in both the WCL panel and the sticky view bar; `/api/wcl` fetches time out after 60s and network failures map to "is `npm run dev` running?" guidance.
 
 ### Talent compare (`/compare`)
 - Paste two talent export strings (in-game `/etl`, Wowhead, Raidbots), or fetch both builds from a WCL compare URL (`action: 'compare-talents'` on `/api/wcl`).
-- Decodes/encodes Blizzard talent export strings (`lib/talents/decodeTalentString.ts`), diffs builds, renders three side-by-side trees (class / hero / spec) with diff coloring.
+- Decodes/encodes Blizzard talent export strings (`lib/talents/decodeTalentString.ts`), diffs builds, renders three side-by-side trees (class / hero / spec) with diff coloring. The heading is the diff summary: shared count plus a wrapping "{player} only: N · talent · talent…" row per player (Wowhead-linked names); the tree columns themselves have no headers.
+- **Compare vs Single tree toggle** — Single tree stacks each player's full Raidbots-style tree (`FullTalentTree`) under their name; both views render at the same node scale (constants in `TalentCompare.tsx` match `FullTalentTree.tsx`).
+- Player names come from the loaded data (WCL or the Analyze snapshot); "Build 1/2" only appears for hand-pasted strings.
+- Reachable from Analyze via the **Open in Talent compare** button on the talent section — links with `?b1=&b2=` when export strings exist, otherwise plain `/compare` (the page restores both builds from the in-memory Analyze snapshot's talent rows).
 - Shareable URL via `?b1=&b2=&n1=&n2=`.
 
 ### Talents (`/talent-preview`)
@@ -57,15 +60,16 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 - Sources, in priority order: WCL node rows saved in session → talent export string → synthetic fills (`?preset=budget|max|none` for QA).
 - `TalentSourceForm` lets the user paste an export string or load player-1 talents straight from the WCL URL bar (`lib/talents/loadTalentsFromWclUrl.ts`), including a roster picker.
 
-### Look (`/look`)
-- Visual theme ("vibe") gallery. Each card is a mini UI kit — swatches, type sample, mock nav/tabs/panel — for the five bundled themes: **Classic** (gold HUD), **Linen**, **Slate**, **Orchid**, **Harbor**.
-- "Use this kit" sets `data-vibe` on `<html>` and persists to `localStorage` (`parse-analyzer-vibe`); a pre-hydration script in `pages/_document.tsx` prevents flash. Theme definitions live in `lib/vibes.ts` (data) and `styles/globals.css` (`html[data-vibe="…"]` variable overrides).
-
-### Claude API key (BYOK)
-- `AnthropicKeyPanel` in the header: user pastes a Claude **Console** key (`sk-ant-…`). Stored only in `localStorage` (`lib/anthropicUserKey.ts`), sent as `x-anthropic-api-key` header to `/api/ai`, which prefers it over the server's `ANTHROPIC_API_KEY` env fallback. **There is no "Sign in with Claude" for third-party apps** — Anthropic's policy restricts consumer OAuth to their own products; Console API keys are the supported path.
+### Settings (nav dropdown)
+- **Themes** — three vibes as radio buttons: **Slate** (default, `:root` palette), **Gold HUD** (`classic`), **Light**. Selection sets `data-vibe` on `<html>` and persists to `localStorage` (`parse-analyzer-vibe`); a pre-hydration script in `pages/_document.tsx` prevents flash. Definitions: `lib/vibes.ts` (data) + `styles/globals.css` (`html[data-vibe="…"]` overrides).
+- **WarcraftLogs client ID** — password `KeyField`; Save starts the OAuth PKCE flow. Green ✓ Connected when OAuth completed.
+- **Claude API key (BYOK)** — password `KeyField` (`AnthropicKeyPanel`): a Claude **Console** key (`sk-ant-…`) stored only in `localStorage` (`lib/anthropicUserKey.ts`), sent as `x-anthropic-api-key` header to `/api/ai`, which prefers it over the server's `ANTHROPIC_API_KEY` env fallback. **There is no "Sign in with Claude" for third-party apps** — Console API keys are the supported path. Save/clear dispatch `pa:claude-key-changed`, and `pa:open-claude-key-settings` (from "Add key in Settings" buttons) opens this dropdown with the field focused and glowing (`lib/claudeKeyBus.ts`, `.paKeyGlow` in `globals.css`).
 
 ### WCL auth
-- OAuth PKCE flow (`lib/pkce.ts`, `/auth/callback`) writes the resulting token to `.env.local` as `WCL_TOKEN` via `/api/auth` POST. The green "connected" badge means OAuth completed; **GraphQL calls use the server-side `WCL_TOKEN`**, which is a separate concern — both must be valid.
+- OAuth PKCE flow (`lib/pkce.ts`, `/auth/callback`) writes the resulting token to `.env.local` as `WCL_TOKEN` via `/api/auth` POST. The Settings "Connected" check means OAuth completed; **GraphQL calls use the server-side `WCL_TOKEN`**, which is a separate concern — both must be valid.
+
+### Shared UI primitives (`components/ui.tsx`)
+- `PageHeader`, `Panel`, `FieldRow`, `KeyField`, `OrDivider` — every page composes these instead of hand-rolling heading/panel/field markup. New UI goes through them so themes and layout stay uniform.
 
 ---
 
@@ -73,13 +77,13 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 
 ```
 pages/
-  index.tsx            Analyze: view tabs, pane gating, Solo/Compare mounting
+  index.tsx            Analyze: heading → WCL panel → view tabs (gated on load)
   analyze.tsx          Redirect → /
-  compare.tsx          Talent string diff page
+  compare.tsx          Talent diff page (2 strings OR WCL compare URL; diff/full-tree toggle)
   talent-preview.tsx   Full single-player tree (Raidbots-style)
-  look.tsx             Theme/UI-kit gallery
-  _app.tsx             Provider stack: AppSession → AnalyzePageCache → FightAnalysis, + AppNav
-  _document.tsx        Pre-hydration vibe script
+  _app.tsx             AppErrorBoundary → provider stack (AppSession → AnalyzePageCache →
+                       FightAnalysis) + AppNav
+  _document.tsx        Pre-hydration vibe script (slate default) + favicon links
   auth/callback.tsx    WCL PKCE callback
   api/
     ai.ts              Claude proxy (JSON + SSE streaming; BYOK header > env key)
@@ -97,17 +101,23 @@ contexts/
                                analysisSubtab, auth state (~1200 lines)
 
 components/
-  AppNav.tsx           Fixed route tabs + WCL panel + AnthropicKeyPanel (hidden on /look)
+  AppNav.tsx           Fixed route tabs + Settings dropdown (theme radios, WCL + Claude keys;
+                       listens for pa:open-claude-key-settings)
+  AppErrorBoundary.tsx Last-resort catch for uncaught render errors (brief message + Reload)
+  ui.tsx               Shared primitives: PageHeader, Panel, FieldRow, KeyField (highlight/
+                       focus support), OrDivider, Accordion
   WclLoadStatus.tsx    Load progress/error banners ('nav' and 'viewbar' variants)
   AnthropicKeyPanel.tsx
-  analyze/             SoloFightView, CompareFightView, AnalyzeEmptyState
+  analyze/             SoloFightView, CompareFightView, AnalyzeEmptyState, WclLoadPanel,
+                       ClaudeKeyPrompt
   AIChat/              Chat list, FormatAI markdown renderer, CopyBtn
   Charts/              All Chart.js wrappers + SpellTimeline + ChartCard
-  TalentCompare/       TalentCompare, TalentTree (SVG), TalentIcon, SpellTooltip,
-                       TalentSourceForm
+  TalentCompare/       TalentCompare, FullTalentTree, TalentTree (SVG), TalentIcon,
+                       SpellTooltip, TalentSourceForm
 
 lib/
-  wclClient/           gql() with timeout + formatted errors; callAI / callAIStream
+  wclClient/           gql() with timeout + formatted errors; callAI / callAIStream;
+                       anthropicModel.ts = the single ANTHROPIC_MODEL constant
   fightAnalysis/       fetchFullFightData, processFightData, solo partner stub
   gameState/           Buff/proc timeline tracking, cast annotation, uptimes
   buildContext/        buildRichContext / buildRichContextPlayerOne → Claude system prompt
@@ -119,12 +129,14 @@ lib/
   wclReportUrl.ts      URL parsing (compare + single report, fight=last/first,
                        source & comparesource params)
   anthropicUserKey.ts  BYOK storage/validation/headers
-  vibes.ts             Theme kit data for /look
+  claudeKeyBus.ts      Key-changed / open-settings window events + useClaudeKeyPresent()
+  vibes.ts             Theme definitions (Settings radios)
   styles.ts            Shared inline styles (s.*) + pa-* class name map
   serverEnv.ts         Server-only env resolution (WCL_TOKEN, ANTHROPIC_API_KEY, Blizzard)
   blizzardClient.ts, pkce.ts, wclFightPlayers.ts, spellTooltips/
 
 knowledge/             Source-of-truth corpora (see §6)
+public/                favicon.svg (source) + favicon.ico + apple-touch-icon.png
 scripts/               embed-simc.mjs, wowhead + icy-veins scrapers
 styles/globals.css     CSS variables (:root + html[data-vibe=…]), all .pa-* classes
 types/                 wcl.ts, global.d.ts
@@ -198,7 +210,7 @@ BLIZZARD_CLIENT_SECRET=
 
 ## 8. Theming
 
-- Every color/font/radius flows through CSS custom properties defined in `:root` (Classic) and overridden per theme in `html[data-vibe="linen|slate|orchid|harbor"]` blocks in `styles/globals.css`.
+- Every color/font/radius flows through CSS custom properties defined in `:root` (**Slate**, the default) and overridden per theme in `html[data-vibe="classic|light"]` blocks in `styles/globals.css`. Theme choice is a Settings radio (`lib/vibes.ts`).
 - Semantic variables: `--bg..--bg4`, `--border`, `--text/--muted/--dim`, `--gold/--gold2/--golddim` (the *accent*, regardless of hue), `--blue`, `--red`, `--green`, `--on-accent`, `--font-ui/--font-display/--font-mono`, `--radius/--radius-sm`, `--label-tracking/--label-transform`.
 - **Rule for new UI:** never hardcode hex or font families in components — use the variables (via `lib/styles.ts` `s.*` styles or `.pa-*` classes). Then all five themes keep working.
 - `--pa-sticky-app-nav-offset` couples the fixed nav height, its spacer, and the Analyze sticky view bar — change together.
@@ -212,7 +224,7 @@ BLIZZARD_CLIENT_SECRET=
 3. **Never commit unless the user explicitly asks.** Leave changes unstaged for review.
 4. **Client-side constraint:** anything reachable from `buildRichContext*` or React components must not use `fs`, Node APIs, or server env. Static knowledge = bundled TS imports.
 5. **After editing `.simc` files:** run `npm run embed-simc`. After editing guide bodies: sync `embeddedGuides.ts` manually.
-6. **Errors must be readable.** Use `formatApiError` / `formatLoadError` / `formatFetchError` (`lib/wclClient`) — never surface `[object Object]` or silently spin. `gql()` has a 60s timeout; preserve that behavior in new fetch paths.
+6. **Errors must be readable.** Use `formatApiError` / `formatLoadError` / `formatFetchError` (`lib/wclClient`) — never surface `[object Object]`, raw JSON bodies, or silently spin. Catch-all messages state what was being attempted ("Loading builds from Warcraft Logs failed — …"); uncaught render errors hit `AppErrorBoundary`. `gql()` has a 60s timeout; preserve that behavior in new fetch paths. Note `/api/ai` returns `{ error: "string" }` while raw Anthropic errors use `{ error: { message } }` — parse both.
 7. **Windows dev environment.** Shell is PowerShell 5 (`&&` does not work; use `;`). Dev server webpack cache occasionally corrupts (`Cannot find module './chunks/undefined'`, 500s on every route) — fix by stopping the server and deleting `.next`, not by changing code.
 8. **URL parsing gotchas:** single-report URLs require `?fight=` (id, `last`, `first`); compare URLs accept both `source` and `comparesource` params; browser-truncated URLs (ending in a bare `&compares`) still parse but lose player selection.
 9. **Wowhead tooltip proxy:** do not add `?dataEnv=11` to Wowhead requests — it 404s retail spells.
@@ -223,8 +235,8 @@ BLIZZARD_CLIENT_SECRET=
 - **New chart:** add a component in `components/Charts/` using `chartDefaults.ts` + `ChartCard`, feed it from `p1data/p2data/spellRows`, mount in `SoloFightView`/`CompareFightView`, respect `compareWindowSec` if compare-aware.
 - **New chat preset:** add to `lib/prompts/chatPresets.ts`, wire the tile in the relevant view; if it needs a knowledge block, add a prompt section in `lib/buildContext/index.ts`.
 - **New spec knowledge:** follow §6 table + the READMEs in `knowledge/guides/` and `knowledge/simc/`.
-- **New theme:** add a `html[data-vibe="…"]` block in `globals.css` + an entry in `lib/vibes.ts` (both must stay in sync).
-- **New page:** add to `pages/`, add a nav link in `AppNav.tsx`, decide whether the WCL panel should show (see the `/look` `lookPage` gate).
+- **New theme:** add a `html[data-vibe="…"]` block in `globals.css` + an entry in `lib/vibes.ts` (both must stay in sync); it appears as a Settings radio automatically.
+- **New page:** add to `pages/`, add a nav link in `AppNav.tsx`, compose the body from `components/ui.tsx` primitives (PageHeader → Panel/FieldRow).
 
 ---
 
@@ -247,6 +259,6 @@ Test layout mirrors source: `__tests__/api/*` (route handlers with mocked fetch)
 
 - Guide corpora cover few specs (see §6); extending them is the highest-leverage content work.
 - `.cursor/rules/parse-analyzer.mdc` holds the always-on agent dev context; keep it consistent with this document when architecture changes.
-- The `/look` themes restyle shared chrome via variables, but a few components still carry hardcoded `Rajdhani`/hex values (charts, tooltips, talent pages) — migrate opportunistically to the CSS variables when touching those files.
+- Themes restyle shared chrome via variables, but a few components still carry hardcoded `Rajdhani`/hex values (charts, tooltips, talent trees) — migrate opportunistically to the CSS variables when touching those files. The **Light** theme is most affected by leftovers.
 - WCL OAuth "connected" and `WCL_TOKEN` validity are independent; a stale token manifests as GraphQL errors despite a green badge.
 ```

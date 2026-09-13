@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { useAppSession } from '../../contexts/AppSessionContext'
 import { gql } from '../../lib/wclClient'
@@ -10,16 +10,28 @@ import {
   type TalentLoadPick,
 } from '../../lib/talents/loadTalentsFromWclUrl'
 import { pa, s } from '../../lib/styles'
+import { Accordion, FieldRow, OrDivider, Panel } from '../ui'
 import type { FightPlayerRow } from '../../lib/wclFightPlayers'
 
 export function TalentSourceForm() {
   const fa = useFightAnalysis()
-  const { patchSession } = useAppSession()
+  const { hydrated, session, patchSession } = useAppSession()
   const [stringDraft, setStringDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState<string | null>(null)
   const [pick, setPick] = useState<TalentLoadPick | null>(null)
+  const prefilledRef = useRef(false)
+  /** WCL URL accordion — opened automatically (once) when a logs link is present. */
+  const [wclOpen, setWclOpen] = useState(false)
+  const wclOpenedOnceRef = useRef(false)
+
+  // Prefill the export-string box with the saved player-1 string (from parse AI or a prior load).
+  useEffect(() => {
+    if (!hydrated || prefilledRef.current) return
+    prefilledRef.current = true
+    if (session.compareStr1?.trim()) setStringDraft(session.compareStr1)
+  }, [hydrated, session.compareStr1])
 
   function applyLoaded(name: string, specId: number, talentString: string, talentTree: unknown[]) {
     let sid = specId
@@ -36,6 +48,7 @@ export function TalentSourceForm() {
       p1TalentTreeJson: talentDataToP1RowsJson(talentTree),
       compareName1: name,
     })
+    if (talentString) setStringDraft(talentString)
     setOk(`${name}${sid ? ` · spec ${sid}` : ''} loaded`)
     setPick(null)
   }
@@ -86,6 +99,13 @@ export function TalentSourceForm() {
     }
   }
 
+  // Open the WCL accordion once when a logs link is present. Loading only happens on click.
+  useEffect(() => {
+    if (!hydrated || wclOpenedOnceRef.current || !fa.compareUrl.trim()) return
+    wclOpenedOnceRef.current = true
+    setWclOpen(true)
+  }, [hydrated, fa.compareUrl])
+
   async function pickPlayer(p: FightPlayerRow) {
     if (!pick) return
     setBusy(true)
@@ -101,40 +121,60 @@ export function TalentSourceForm() {
   }
 
   return (
-    <div style={{ ...s.panel, marginBottom: 16 }}>
-      <div style={s.ptitle}>
-        <div style={s.ptitleBar} />
-        Load talents
-      </div>
+    <Panel title="Load talents — a WCL URL or an export string" style={{ marginBottom: 16 }}>
       <p style={{ ...s.note, marginTop: 0, marginBottom: 12 }}>
-        Paste an export string (<code>/etl</code>, Wowhead, Raidbots) or use the report URL in the Warcraft Logs bar
-        (single report with <code>?fight=</code>, or a compare URL — player 1).
+        Load from a Warcraft Logs URL (single report with <code>?fight=</code>, or a compare URL —
+        player 1), or paste an export string (<code>/etl</code>, Wowhead, Raidbots).
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, marginBottom: 12 }}>
-        <div style={s.field}>
-          <label style={s.label}>Talent export string</label>
-          <textarea
-            style={{ ...s.input, resize: 'vertical', minHeight: 56 }}
-            rows={2}
-            value={stringDraft}
-            onChange={e => setStringDraft(e.target.value)}
-            placeholder="Paste talent export string…"
-          />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 8 }}>
+      <div style={{ marginBottom: 16 }}>
+        <Accordion
+          label="Load from Warcraft Logs"
+          open={wclOpen}
+          onToggle={() => setWclOpen(o => !o)}
+        >
+          <FieldRow
+            label="Warcraft Logs URL"
+            action={
+              <button
+                type="button"
+                className={pa.btnGold}
+                disabled={busy || !fa.compareUrl.trim()}
+                onClick={() => void loadFromUrl()}
+              >
+                {busy ? 'Loading…' : 'Load talents'}
+              </button>
+            }
+          >
+            <input
+              style={s.input}
+              value={fa.compareUrl}
+              onChange={e => fa.setCompareUrl(e.target.value)}
+              placeholder="https://www.warcraftlogs.com/reports/… or …/compare/…"
+              onKeyDown={e => {
+                if (e.key === 'Enter' && fa.compareUrl.trim() && !busy) void loadFromUrl()
+              }}
+            />
+          </FieldRow>
+        </Accordion>
+      </div>
+      {wclOpen && <OrDivider label="or paste an export string" />}
+      <FieldRow
+        label="Talent export string"
+        action={
           <button type="button" className={pa.btnGold} disabled={busy} onClick={() => void applyString()}>
             Apply string
           </button>
-          <button
-            type="button"
-            className={`${pa.btnGhost} ${pa.btnGhostPrimaryRow}`}
-            disabled={busy || !fa.compareUrl.trim()}
-            onClick={() => void loadFromUrl()}
-          >
-            {busy ? 'Loading…' : 'Load talents from URL'}
-          </button>
-        </div>
-      </div>
+        }
+        style={{ marginBottom: 12 }}
+      >
+        <textarea
+          style={{ ...s.input, resize: 'vertical', minHeight: 56 }}
+          rows={2}
+          value={stringDraft}
+          onChange={e => setStringDraft(e.target.value)}
+          placeholder="Paste talent export string…"
+        />
+      </FieldRow>
       {pick && pick.players.length > 0 && (
         <div style={{ marginBottom: 10 }}>
           <div style={{ ...s.label, marginBottom: 8 }}>Select character</div>
@@ -175,6 +215,6 @@ export function TalentSourceForm() {
       )}
       {error && <div style={s.alertErr}>{error}</div>}
       {ok && <div style={s.alertOk}>{ok}</div>}
-    </div>
+    </Panel>
   )
 }

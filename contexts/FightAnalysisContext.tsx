@@ -421,7 +421,13 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         setMsgs([...newMessages, { role: 'assistant', content: final, usage: usageRow }].slice(-20))
       } catch (e: any) {
         if (rafId) cancelAnimationFrame(rafId)
-        setMsgs([...newMessages, { role: 'assistant', content: 'Error: ' + e.message }].slice(-20))
+        const detail = (e?.message && String(e.message)) || 'unknown error'
+        setMsgs(
+          [
+            ...newMessages,
+            { role: 'assistant', content: `Couldn't get a reply from Claude — ${detail}` },
+          ].slice(-20)
+        )
       }
       setAiLoading(false)
     },

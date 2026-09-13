@@ -17,6 +17,8 @@ import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
 import { CollapsibleGroupProvider, type CollapsibleBridgeApi } from '../CollapsibleGroup'
 import { AnalyzeEmptyState } from './AnalyzeEmptyState'
+import { ClaudeKeyPrompt } from './ClaudeKeyPrompt'
+import { useClaudeKeyPresent } from '../../lib/claudeKeyBus'
 import { buildInitialSoloUserPrompt } from '../../lib/buildContext/initialComparePrompt'
 import {
   s,
@@ -55,6 +57,7 @@ export function SoloFightView(props: {
 
   const chatRef = useRef<HTMLDivElement>(null)
   const lastUserMsgRef = useRef<HTMLDivElement>(null)
+  const hasClaudeKey = useClaudeKeyPresent()
 
   useEffect(() => {
     const el = chatRef.current
@@ -393,6 +396,8 @@ export function SoloFightView(props: {
 
             <div style={s.panel}>
               <CollapsibleSection
+                key={hasClaudeKey ? 'claude-ready' : 'claude-locked'}
+                defaultOpen={hasClaudeKey}
                 title={
                   <>
                     <div style={s.ptitleBar} />
@@ -410,6 +415,10 @@ export function SoloFightView(props: {
                   ) : undefined
                 }
               >
+                {!hasClaudeKey ? (
+                  <ClaudeKeyPrompt />
+                ) : (
+                  <>
                 <div
                   ref={chatRef}
                   style={{
@@ -602,7 +611,6 @@ export function SoloFightView(props: {
                     return (
                       <div
                         style={{
-                          gridColumn: '1 / -1',
                           border: '1px solid var(--border)',
                           borderRadius: 3,
                           padding: '8px 10px',
@@ -697,6 +705,8 @@ export function SoloFightView(props: {
                     Ask
                   </button>
                 </div>
+                  </>
+                )}
               </CollapsibleSection>
             </div>
           </>

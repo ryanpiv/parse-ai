@@ -1,5 +1,4 @@
-import { useMemo, type ReactNode } from 'react'
-import { heroTreeShortLabel } from '../../lib/talents/heroLabels'
+import { useMemo } from 'react'
 import { partitionBlizzardTalentNodes } from '../../lib/talents/partitionBlizzardTree'
 import { TalentTreeSection, type BlizzardNode, type DiffState } from './TalentTree'
 import { SpellTooltipProvider } from './SpellTooltip'
@@ -18,15 +17,11 @@ interface Props {
   specId?: number
 }
 
-const LABEL: React.CSSProperties = {
-  fontFamily: 'Rajdhani,sans-serif', fontSize: 10, fontWeight: 600,
-  letterSpacing: '.8px', textTransform: 'uppercase',
-  color: 'var(--dim,#4a5a6a)', marginBottom: 8,
-}
-
-const NODE_PX = 28
-const STEP = 42
-const MAX_TREE_W = 340
+// Match FullTalentTree's raidbots sizing so the Compare and Single tree views render at the same scale.
+const NODE_PX = 33
+const STEP = 55
+const MAX_TREE_W = 400
+const HERO_TREE_W = 270
 
 function TalentDiffLink({ spellId, name, color }: { spellId: number; name: string; color: 'gold' | 'blue' }) {
   const { show, hide } = useSpellTooltip()
@@ -70,20 +65,28 @@ function CircleSep() {
   )
 }
 
-/** Talents on one line (wraps); small circles between names. */
-function withSeparators(nodes: BlizzardNode[], color: 'gold' | 'blue'): ReactNode[] {
-  return nodes.flatMap((n, i) => {
-    const piece =
-      n.entries[0]?.spellId ? (
-        <TalentDiffLink key={n.nodeId} spellId={n.entries[0].spellId} name={n.entries[0].name || `Node ${n.nodeId}`} color={color} />
-      ) : (
-        <span key={n.nodeId} style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: color === 'gold' ? 'rgba(201,162,39,0.7)' : 'rgba(90,173,240,0.7)' }}>
-          {n.entries[0]?.name || `Node ${n.nodeId}`}
+/** "{name} only: N" followed by the differing talents on one wrapping row. */
+function OnlyList({ name, nodes, color }: { name: string; nodes: BlizzardNode[]; color: 'gold' | 'blue' }) {
+  const headColor = color === 'gold' ? 'rgba(201,162,39,0.95)' : 'rgba(90,173,240,0.95)'
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 6, columnGap: 0 }}>
+      <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: headColor }}>
+        {name} only: <strong>{nodes.length}</strong>
+      </span>
+      {nodes.map(n => (
+        <span key={n.nodeId} style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <CircleSep />
+          {n.entries[0]?.spellId ? (
+            <TalentDiffLink spellId={n.entries[0].spellId} name={n.entries[0].name || `Node ${n.nodeId}`} color={color} />
+          ) : (
+            <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: color === 'gold' ? 'rgba(201,162,39,0.7)' : 'rgba(90,173,240,0.7)' }}>
+              {n.entries[0]?.name || `Node ${n.nodeId}`}
+            </span>
+          )}
         </span>
-      )
-    if (i === 0) return [piece]
-    return [<CircleSep key={`sep-${n.nodeId}`} />, piece]
-  })
+      ))}
+    </div>
+  )
 }
 
 function annotateDiff(nodes: BlizzardNode[], sel1: Map<number, number>, sel2: Map<number, number>): BlizzardNode[] {
@@ -121,18 +124,20 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
   })
   const heroTypes = allHeroTypes.filter(t => heroNodesByType[t].some(n => n.state !== 'neither'))
 
-  const uniformWidth = useMemo(
+  const treeWidths = useMemo(
     () => uniformClassSpecTreeWidth(classNodes, specNodes, NODE_PX, STEP, MAX_TREE_W),
     [classNodes, specNodes]
   )
 
-  const allAnnotated = annotateDiff(allNodes, sel1, sel2)
+  // Exclude subtree-selection meta-nodes (empty-entry CHOICE) from summary chips/counts.
+  const allAnnotated = annotateDiff(
+    allNodes.filter(n => !(n.nodeType === 'CHOICE' && (!n.entries || n.entries.length === 0))),
+    sel1,
+    sel2
+  )
   const p1Only = allAnnotated.filter(n => n.state === 'p1')
   const p2Only = allAnnotated.filter(n => n.state === 'p2')
   const both   = allAnnotated.filter(n => n.state === 'both')
-
-  const className = treeData?.className || ''
-  const specName  = treeData?.specName  || ''
 
   if (!p1Talents && !p2Talents) {
     return (
@@ -145,35 +150,13 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
   return (
     <SpellTooltipProvider>
     <div>
-      {/* Diff summary — row 1: shared; row 2: P1 only count + diffs; row 3: P2 only count + diffs */}
+      {/* Diff summary — each player's unique talents, one per line */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
         <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'var(--dim,#4a5a6a)' }}>
           Shared: <span style={{ color: 'var(--text,#e8edf2)' }}>{both.length}</span>
         </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 6, columnGap: 0 }}>
-          <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'rgba(201,162,39,0.95)' }}>
-            {name1} only: <strong>{p1Only.length}</strong>
-          </span>
-          {p1Only.length > 0 ? (
-            <>
-              <CircleSep key="p1-sep" />
-              {withSeparators(p1Only, 'gold')}
-            </>
-          ) : null}
-        </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 6, columnGap: 0 }}>
-          <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'rgba(90,173,240,0.95)' }}>
-            {name2} only: <strong>{p2Only.length}</strong>
-          </span>
-          {p2Only.length > 0 ? (
-            <>
-              <CircleSep key="p2-sep" />
-              {withSeparators(p2Only, 'blue')}
-            </>
-          ) : null}
-        </div>
+        <OnlyList name={name1} nodes={p1Only} color="gold" />
+        <OnlyList name={name2} nodes={p2Only} color="blue" />
       </div>
 
       {loading && (
@@ -211,22 +194,19 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
           >
             {classNodes.length > 0 && (
               <div style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}>
-                <div style={LABEL}>{className ? `Class — ${className}` : 'Class'}</div>
-                <TalentTreeSection nodes={classNodes} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} forceWidth={uniformWidth} forceGrid />
+                <TalentTreeSection nodes={classNodes} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} forceWidth={treeWidths.classWidth} forceGrid />
               </div>
             )}
 
             {heroTypes.map(ht => (
               <div key={ht} style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}>
-                <div style={LABEL}>{heroTreeShortLabel(ht)}</div>
-                <TalentTreeSection nodes={heroNodesByType[ht] || []} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} maxWidth={200} />
+                <TalentTreeSection nodes={heroNodesByType[ht] || []} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} maxWidth={HERO_TREE_W} />
               </div>
             ))}
 
             {specNodes.length > 0 && (
               <div style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}>
-                <div style={LABEL}>{specName ? `Spec — ${specName}` : 'Spec'}</div>
-                <TalentTreeSection nodes={specNodes} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} forceWidth={uniformWidth} forceGrid />
+                <TalentTreeSection nodes={specNodes} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} forceWidth={treeWidths.specWidth} forceGrid />
               </div>
             )}
           </div>

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { s } from '../../lib/styles'
 
@@ -11,21 +12,21 @@ export function AnalyzeEmptyState(props: { mode: 'solo' | 'compare' }) {
     <div style={s.panel}>
       <div
         style={{
-          fontFamily: 'Rajdhani,sans-serif',
+          fontFamily: 'var(--font-display)',
           fontSize: 13,
           fontWeight: 600,
-          letterSpacing: '1.2px',
-          textTransform: 'uppercase',
+          letterSpacing: 'var(--label-tracking)',
+          textTransform: 'var(--label-transform)' as CSSProperties['textTransform'],
           color: 'var(--gold2)',
           marginBottom: 10,
         }}
       >
-        {mode === 'solo' ? 'Solo — no fight loaded' : 'Compare — two players needed'}
+        {mode === 'solo' ? 'No fight loaded' : 'Compare — two players needed'}
       </div>
-      <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>
         {authNeeded && (
           <p style={{ marginBottom: 10, color: 'var(--red)' }}>
-            Connect Warcraft Logs in the strip above (Client ID → Authenticate) before Load will work.
+            Add your WarcraftLogs client ID in <strong>Settings</strong> (top right) before Load will work.
           </p>
         )}
         {mode === 'solo' ? (
@@ -42,12 +43,6 @@ export function AnalyzeEmptyState(props: { mode: 'solo' | 'compare' }) {
             <p>
               A compare URL also works here — you are <strong style={{ color: 'var(--gold2)' }}>player 1</strong>. Switch
               to Compare after both players load.
-            </p>
-            <p style={{ marginTop: 10, color: 'var(--dim)' }}>
-              If Load sits on “Fetching report metadata…” and never finishes, this app’s server is not answering. Run{' '}
-              <code style={{ color: 'var(--blue)' }}>npm run dev</code> and open http://localhost:3000. GraphQL uses{' '}
-              <code style={{ color: 'var(--blue)' }}>WCL_TOKEN</code> in <code style={{ color: 'var(--blue)' }}>.env.local</code>
-              — the green “connected” badge is OAuth and is not enough by itself.
             </p>
           </>
         ) : (
@@ -69,9 +64,8 @@ export function AnalyzeEmptyState(props: { mode: 'solo' | 'compare' }) {
               1.
             </p>
             <p style={{ marginTop: 10, color: 'var(--dim)' }}>
-              Copy the full URL from the address bar (not a truncated <code style={{ color: 'var(--blue)' }}>compares</code>{' '}
-              fragment). If Load never leaves “Fetching report metadata…”, run{' '}
-              <code style={{ color: 'var(--blue)' }}>npm run dev</code> and retry.
+              Copy the full URL from the address bar (not a truncated{' '}
+              <code style={{ color: 'var(--blue)' }}>compares</code> fragment).
             </p>
           </>
         )}

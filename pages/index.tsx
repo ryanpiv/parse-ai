@@ -5,7 +5,9 @@ import { useFightAnalysis, type AnalysisSubtab } from '../contexts/FightAnalysis
 import { SoloFightView } from '../components/analyze/SoloFightView'
 import { CompareFightView } from '../components/analyze/CompareFightView'
 import { AnalyzeEmptyState } from '../components/analyze/AnalyzeEmptyState'
+import { WclLoadPanel } from '../components/analyze/WclLoadPanel'
 import { WclLoadStatus } from '../components/WclLoadStatus'
+import { PageHeader } from '../components/ui'
 import type { CollapsibleBridgeApi } from '../components/CollapsibleGroup'
 import { pa, s } from '../lib/styles'
 
@@ -89,13 +91,14 @@ export default function HomePage() {
         <title>{title}</title>
       </Head>
       <div style={s.wrap}>
-        <div style={s.hdr}>
-          <div>
-            <div style={s.logo}>PARSE ANALYZER</div>
-            <div style={s.logoSub}>AI-powered fight analysis</div>
-          </div>
-        </div>
+        <PageHeader title="Parse Analyzer" subtitle="AI-powered fight analysis" />
 
+        <WclLoadPanel />
+
+        {!logLoaded ? (
+          <AnalyzeEmptyState mode="solo" />
+        ) : (
+        <>
         <div style={viewBarStyle}>
           <div
             style={{
@@ -178,6 +181,8 @@ export default function HomePage() {
           <AnalyzeEmptyState mode="compare" />
         ) : (
           <SoloFightView collapsibleBridgeRef={soloCollapsibleRef} />
+        )}
+        </>
         )}
       </div>
       <style>{`@keyframes td{0%,60%,100%{opacity:.3;transform:scale(.8)}30%{opacity:1;transform:scale(1)}} input:focus{border-color:var(--golddim)!important;outline:none;}`}</style>

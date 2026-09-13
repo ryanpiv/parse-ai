@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
+import Link from 'next/link'
 import { useFightAnalysis, type FightSpellRow } from '../../contexts/FightAnalysisContext'
 import { wowheadReferenceAvailableForSpec } from '../../lib/knowledge/embeddedWowhead'
 import { icyVeinsReferenceAvailableForSpec } from '../../lib/knowledge/embeddedIcyVeins'
@@ -9,6 +10,8 @@ import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
 import { CollapsibleGroupProvider, type CollapsibleBridgeApi } from '../CollapsibleGroup'
 import { AnalyzeEmptyState } from './AnalyzeEmptyState'
+import { ClaudeKeyPrompt } from './ClaudeKeyPrompt'
+import { useClaudeKeyPresent } from '../../lib/claudeKeyBus'
 import {
   s,
   pa,
@@ -48,6 +51,7 @@ export function CompareFightView(props: {
   const chatRef = useRef<HTMLDivElement>(null)
   const lastUserMsgRef = useRef<HTMLDivElement>(null)
   const [trimToShortestFight, setTrimToShortestFight] = useState(false)
+  const hasClaudeKey = useClaudeKeyPresent()
 
   useEffect(() => {
     const el = chatRef.current
@@ -460,14 +464,25 @@ export function CompareFightView(props: {
               }
               rightSlot={
                 talentDiff.t1?.talentString && talentDiff.t2?.talentString ? (
-                  <a
+                  <Link
                     href={`/compare?b1=${encodeURIComponent(talentDiff.t1.talentString)}&b2=${encodeURIComponent(talentDiff.t2.talentString)}&n1=${encodeURIComponent(talentDiff.name1)}&n2=${encodeURIComponent(talentDiff.name2)}`}
-                    target="_blank"
-                    rel="noreferrer"
                     className={`${pa.btnGhost} ${pa.btnGhostSm} ${pa.btnGhostLink}`}
+                    title="Open these two builds on the Talent compare tab"
                   >
-                    Open shareable diff
-                  </a>
+                    Open in Talent compare
+                  </Link>
+                ) : talentDiff.specId &&
+                  (talentDiff.t1?.talentTree?.length ?? 0) > 0 &&
+                  (talentDiff.t2?.talentTree?.length ?? 0) > 0 ? (
+                  // No export strings in this log — the compare tab rebuilds both builds
+                  // from this fight's talent rows (in-memory Analyze snapshot).
+                  <Link
+                    href="/compare"
+                    className={`${pa.btnGhost} ${pa.btnGhostSm} ${pa.btnGhostLink}`}
+                    title="Open these two builds on the Talent compare tab"
+                  >
+                    Open in Talent compare
+                  </Link>
                 ) : undefined
               }
             >
@@ -490,6 +505,8 @@ export function CompareFightView(props: {
 
       <div style={s.panel}>
             <CollapsibleSection
+              key={hasClaudeKey ? 'claude-ready' : 'claude-locked'}
+              defaultOpen={hasClaudeKey}
               title={
                 <>
                   <div style={s.ptitleBar} />
@@ -507,6 +524,10 @@ export function CompareFightView(props: {
                 ) : undefined
               }
             >
+              {!hasClaudeKey ? (
+                <ClaudeKeyPrompt />
+              ) : (
+                <>
               <div
                 ref={chatRef}
                 style={{
@@ -672,7 +693,6 @@ export function CompareFightView(props: {
                   return (
                     <div
                       style={{
-                        gridColumn: '1 / -1',
                         border: '1px solid var(--border)',
                         borderRadius: 3,
                         padding: '8px 10px',
@@ -762,6 +782,8 @@ export function CompareFightView(props: {
                   Ask
                 </button>
               </div>
+                </>
+              )}
             </CollapsibleSection>
           </div>
     </>

@@ -49,7 +49,10 @@ export async function fetchTalents({
       `,
         { code: reportCode, fightId: fightIdInt }
       )
-      const details = detailsData?.reportData?.report?.playerDetails?.data
+      // WCL nests this JSON blob as playerDetails.data.playerDetails.{tanks,healers,dps}
+      // (some responses use the flatter playerDetails.data.{...} shape).
+      const pdRaw = detailsData?.reportData?.report?.playerDetails
+      const details = pdRaw?.data?.playerDetails ?? pdRaw?.data ?? pdRaw
       const allPlayers = [...(details?.dps || []), ...(details?.healers || []), ...(details?.tanks || [])]
       const pd = allPlayers.find((p: any) => p.name?.toLowerCase() === playerName?.toLowerCase())
       if (pd) playerEvent = events.find((e: any) => e.sourceID === pd.id)

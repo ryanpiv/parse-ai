@@ -1,5 +1,6 @@
 /** Parse JSON from a Next API route; HTML (404 page, proxy error) gives a clear message. */
 import { anthropicClientHeaders } from '../anthropicUserKey'
+import { ANTHROPIC_MODEL } from './anthropicModel'
 
 export async function parseNextApiJson(res: Response, route: string): Promise<Record<string, any>> {
   const text = await res.text()
@@ -105,13 +106,7 @@ export async function gql(query: string, variables: Record<string, unknown> = {}
   return data.data
 }
 
-/**
- * Anthropic model id used by the chat. Sonnet 4.6 is a pinned snapshot id
- * (the 4.6 generation uses dateless ids per Anthropic's naming convention)
- * and provides a 1M-token context window, which matters for the SimC + Wowhead
- * preset that ships a large grounded-reference system prompt.
- */
-export const ANTHROPIC_MODEL = 'claude-sonnet-4-6'
+export { ANTHROPIC_MODEL } from './anthropicModel'
 
 export async function callAI(messages: Array<{ role: string; content: string }>, system: string): Promise<string> {
   const res = await fetch('/api/ai', {
