@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { s } from '../../lib/styles'
+import { WclKeyPrompt } from './WclKeyPrompt'
 
 export function AnalyzeEmptyState(props: { mode: 'solo' | 'compare' }) {
   const { mode } = props
@@ -23,16 +24,12 @@ export function AnalyzeEmptyState(props: { mode: 'solo' | 'compare' }) {
       >
         {mode === 'solo' ? 'No fight loaded' : 'Compare — two players needed'}
       </div>
+      {authNeeded && <WclKeyPrompt />}
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>
-        {authNeeded && (
-          <p style={{ marginBottom: 10, color: 'var(--red)' }}>
-            Add your WarcraftLogs client ID in <strong>Settings</strong> (top right) before Load will work.
-          </p>
-        )}
         {mode === 'solo' ? (
           <>
             <p style={{ marginBottom: 8 }}>
-              Paste a report URL in <strong style={{ color: 'var(--text)' }}>Warcraft Logs</strong> above, then click{' '}
+              Paste a report URL in <strong style={{ color: 'var(--text)' }}>Warcraft Logs</strong> below, then click{' '}
               <strong style={{ color: 'var(--text)' }}>Load</strong>.
             </p>
             <p style={{ marginBottom: 8 }}>

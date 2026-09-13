@@ -6,7 +6,7 @@ import { pa, s } from '../lib/styles'
 import { KeyField } from './ui'
 import { AnthropicKeyPanel } from './AnthropicKeyPanel'
 import { applyVibe, readStoredVibe, VIBES, type VibeId } from '../lib/vibes'
-import { OPEN_CLAUDE_KEY_SETTINGS_EVENT } from '../lib/claudeKeyBus'
+import { OPEN_CLAUDE_KEY_SETTINGS_EVENT, OPEN_WCL_KEY_SETTINGS_EVENT } from '../lib/claudeKeyBus'
 
 const linkStyle = (active: boolean): CSSProperties => ({
   fontFamily: 'var(--font-display)',
@@ -25,16 +25,26 @@ export function AppNav() {
   const path = router.pathname || ''
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [highlightClaudeKey, setHighlightClaudeKey] = useState(false)
+  const [highlightWclKey, setHighlightWclKey] = useState(false)
 
-  // "Add your key" buttons elsewhere open Settings and pulse the Claude key field.
+  // "Add your key" buttons elsewhere open Settings and pulse the matching key field.
   useEffect(() => {
     const onOpenClaudeKey = () => {
       setSettingsOpen(true)
       setHighlightClaudeKey(true)
       window.setTimeout(() => setHighlightClaudeKey(false), 2600)
     }
+    const onOpenWclKey = () => {
+      setSettingsOpen(true)
+      setHighlightWclKey(true)
+      window.setTimeout(() => setHighlightWclKey(false), 2600)
+    }
     window.addEventListener(OPEN_CLAUDE_KEY_SETTINGS_EVENT, onOpenClaudeKey)
-    return () => window.removeEventListener(OPEN_CLAUDE_KEY_SETTINGS_EVENT, onOpenClaudeKey)
+    window.addEventListener(OPEN_WCL_KEY_SETTINGS_EVENT, onOpenWclKey)
+    return () => {
+      window.removeEventListener(OPEN_CLAUDE_KEY_SETTINGS_EVENT, onOpenClaudeKey)
+      window.removeEventListener(OPEN_WCL_KEY_SETTINGS_EVENT, onOpenWclKey)
+    }
   }, [])
 
   const analyzeActive = path === '/' || path === '/analyze'
@@ -73,7 +83,11 @@ export function AppNav() {
       <div className={pa.appNavTabsSpacer} aria-hidden />
 
       {settingsOpen && (
-        <SettingsMenu onClose={() => setSettingsOpen(false)} highlightClaudeKey={highlightClaudeKey} />
+        <SettingsMenu
+          onClose={() => setSettingsOpen(false)}
+          highlightClaudeKey={highlightClaudeKey}
+          highlightWclKey={highlightWclKey}
+        />
       )}
     </header>
   )
@@ -82,9 +96,11 @@ export function AppNav() {
 function SettingsMenu({
   onClose,
   highlightClaudeKey = false,
+  highlightWclKey = false,
 }: {
   onClose: () => void
   highlightClaudeKey?: boolean
+  highlightWclKey?: boolean
 }) {
   const fa = useFightAnalysis()
   const [vibe, setVibe] = useState<VibeId>('slate')
@@ -159,6 +175,7 @@ function SettingsMenu({
           <div style={{ marginBottom: 18 }}>
             <KeyField
               label="WarcraftLogs client ID"
+              highlight={highlightWclKey}
               value={fa.clientId}
               onChange={fa.setClientId}
               onSave={() => void fa.startAuth()}

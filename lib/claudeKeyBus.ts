@@ -1,7 +1,7 @@
 /**
- * Tiny window-event bus around the browser-stored Claude key so distant
- * components (Ask Claude sections ↔ Settings menu in AppNav) stay in sync
- * without threading props through the page tree.
+ * Tiny window-event bus around browser-stored API keys so distant components
+ * (Ask Claude sections / WCL load prompts ↔ Settings menu in AppNav) stay in
+ * sync without threading props through the page tree.
  */
 import { useEffect, useState } from 'react'
 import { readAnthropicUserKey } from './anthropicUserKey'
@@ -19,6 +19,14 @@ export function announceClaudeKeyChanged(): void {
 export function requestClaudeKeySetup(): void {
   if (typeof window === 'undefined') return
   window.dispatchEvent(new Event(OPEN_CLAUDE_KEY_SETTINGS_EVENT))
+}
+
+/** Fired by "add your client ID" buttons; AppNav opens Settings and highlights the WCL field. */
+export const OPEN_WCL_KEY_SETTINGS_EVENT = 'pa:open-wcl-key-settings'
+
+export function requestWclKeySetup(): void {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new Event(OPEN_WCL_KEY_SETTINGS_EVENT))
 }
 
 /** True once a Claude key is saved in this browser; updates live on save/clear. */

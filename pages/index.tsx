@@ -93,11 +93,12 @@ export default function HomePage() {
       <div style={s.wrap}>
         <PageHeader title="Parse Analyzer" subtitle="AI-powered fight analysis" />
 
+        {/* Before anything loads, the how-to reads top-to-bottom into the URL box below it. */}
+        {!logLoaded && <AnalyzeEmptyState mode="solo" />}
+
         <WclLoadPanel />
 
-        {!logLoaded ? (
-          <AnalyzeEmptyState mode="solo" />
-        ) : (
+        {logLoaded && (
         <>
         <div style={viewBarStyle}>
           <div

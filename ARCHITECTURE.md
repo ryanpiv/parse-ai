@@ -62,7 +62,7 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 
 ### Settings (nav dropdown)
 - **Themes** — three vibes as radio buttons: **Slate** (default, `:root` palette), **Gold HUD** (`classic`), **Light**. Selection sets `data-vibe` on `<html>` and persists to `localStorage` (`parse-analyzer-vibe`); a pre-hydration script in `pages/_document.tsx` prevents flash. Definitions: `lib/vibes.ts` (data) + `styles/globals.css` (`html[data-vibe="…"]` overrides).
-- **WarcraftLogs client ID** — password `KeyField`; Save starts the OAuth PKCE flow. Green ✓ Connected when OAuth completed.
+- **WarcraftLogs client ID** — password `KeyField`; Save starts the OAuth PKCE flow. Green ✓ Connected when OAuth completed. When auth is missing, the Analyze empty state shows `WclKeyPrompt`: an "Add client ID in Settings" button (dispatches `pa:open-wcl-key-settings` → dropdown opens, field glows/focuses) plus a toggleable how-to for creating a WCL API client.
 - **Claude API key (BYOK)** — password `KeyField` (`AnthropicKeyPanel`): a Claude **Console** key (`sk-ant-…`) stored only in `localStorage` (`lib/anthropicUserKey.ts`), sent as `x-anthropic-api-key` header to `/api/ai`, which prefers it over the server's `ANTHROPIC_API_KEY` env fallback. **There is no "Sign in with Claude" for third-party apps** — Console API keys are the supported path. Save/clear dispatch `pa:claude-key-changed`, and `pa:open-claude-key-settings` (from "Add key in Settings" buttons) opens this dropdown with the field focused and glowing (`lib/claudeKeyBus.ts`, `.paKeyGlow` in `globals.css`).
 
 ### WCL auth
@@ -109,7 +109,7 @@ components/
   WclLoadStatus.tsx    Load progress/error banners ('nav' and 'viewbar' variants)
   AnthropicKeyPanel.tsx
   analyze/             SoloFightView, CompareFightView, AnalyzeEmptyState, WclLoadPanel,
-                       ClaudeKeyPrompt
+                       ClaudeKeyPrompt, WclKeyPrompt
   AIChat/              Chat list, FormatAI markdown renderer, CopyBtn
   Charts/              All Chart.js wrappers + SpellTimeline + ChartCard
   TalentCompare/       TalentCompare, FullTalentTree, TalentTree (SVG), TalentIcon,
@@ -129,7 +129,7 @@ lib/
   wclReportUrl.ts      URL parsing (compare + single report, fight=last/first,
                        source & comparesource params)
   anthropicUserKey.ts  BYOK storage/validation/headers
-  claudeKeyBus.ts      Key-changed / open-settings window events + useClaudeKeyPresent()
+  claudeKeyBus.ts      Key-changed / open-settings window events (Claude + WCL) + useClaudeKeyPresent()
   vibes.ts             Theme definitions (Settings radios)
   styles.ts            Shared inline styles (s.*) + pa-* class name map
   serverEnv.ts         Server-only env resolution (WCL_TOKEN, ANTHROPIC_API_KEY, Blizzard)
