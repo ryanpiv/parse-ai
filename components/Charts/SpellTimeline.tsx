@@ -35,6 +35,8 @@ interface Props {
   color2?: string
   /** Single-player row per spell (player 1 only). */
   solo?: boolean
+  /** Optional compare window cap in seconds (used by "trim to shorter fight"). */
+  compareWindowSec?: number
 }
 
 function segmentIntersectsView(s: CastTimelineSegment, dur: number, offset: number, windowSec: number): boolean {
@@ -42,8 +44,21 @@ function segmentIntersectsView(s: CastTimelineSegment, dur: number, offset: numb
   return s.tEnd >= offset - pad && s.tStart <= offset + windowSec + pad && s.tStart <= dur + pad
 }
 
-export function SpellTimeline({ groups, name1, name2, dur1, dur2, color1 = GOLD, color2 = BLUE, solo }: Props) {
-  const dur = solo ? dur1 : Math.min(dur1, dur2)
+export function SpellTimeline({
+  groups,
+  name1,
+  name2,
+  dur1,
+  dur2,
+  color1 = GOLD,
+  color2 = BLUE,
+  solo,
+  compareWindowSec,
+}: Props) {
+  const defaultCompareDur = Math.max(dur1, dur2)
+  const dur = solo
+    ? dur1
+    : Math.max(1, Math.min(defaultCompareDur, Number(compareWindowSec) || defaultCompareDur))
   const c1 = color1
   const c2 = color2
 
@@ -196,13 +211,26 @@ export function SpellTimeline({ groups, name1, name2, dur1, dur2, color1 = GOLD,
   const blockH = SPELL_LABEL_H + rowsPerSpell * ROW_PLAYER
   const totalH = HEADER_H + groups.length * blockH + Math.max(0, groups.length - 1) * GROUP_GAP
   const zoomPct = Math.round((dur / windowSec) * 100)
-  const trimmed = !solo && dur < Math.max(dur1, dur2)
+  const trimmed = !solo && dur < defaultCompareDur
 
   const minWin = Math.max(5, Math.round(dur * 0.04))
 
   return (
     <div style={{ width: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          marginBottom: 8,
+          flexWrap: 'wrap',
+          position: 'sticky',
+          top: 6,
+          zIndex: 3,
+          background: BG,
+          padding: '4px 0',
+        }}
+      >
         <div style={{ display: 'flex', gap: 12, fontFamily: 'IBM Plex Mono, monospace', fontSize: 10, color: DIM, flexShrink: 0 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ width: 10, height: 10, background: c1, borderRadius: 2, display: 'inline-block' }} />

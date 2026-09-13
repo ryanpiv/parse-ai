@@ -4,12 +4,15 @@ import '../lib/spellTooltips'
 import { useFightAnalysis, type AnalysisSubtab } from '../contexts/FightAnalysisContext'
 import { SoloFightView } from '../components/analyze/SoloFightView'
 import { CompareFightView } from '../components/analyze/CompareFightView'
+import { AnalyzeEmptyState } from '../components/analyze/AnalyzeEmptyState'
+import { WclLoadStatus } from '../components/WclLoadStatus'
 import type { CollapsibleBridgeApi } from '../components/CollapsibleGroup'
 import { pa, s } from '../lib/styles'
 
 export default function HomePage() {
   const fa = useFightAnalysis()
   const { analysisSubtab, setAnalysisSubtab, p1data, p2data } = fa
+  const viewTab: Exclude<AnalysisSubtab, 'none'> = analysisSubtab === 'compare' ? 'compare' : 'solo'
   const logLoaded = Boolean(p1data)
   const compareReady = Boolean(p1data && p2data && !fa.soloFromReport)
 
@@ -18,8 +21,8 @@ export default function HomePage() {
 
   const [compareMounted, setCompareMounted] = useState(false)
   useEffect(() => {
-    if (compareReady && analysisSubtab === 'compare') setCompareMounted(true)
-  }, [compareReady, analysisSubtab])
+    if (compareReady && viewTab === 'compare') setCompareMounted(true)
+  }, [compareReady, viewTab])
 
   /** Window scroll per tab — toggling panes changes document height and clamps scroll; save before commit in goSub, restore after layout. */
   const scrollYByTabRef = useRef({ solo: 0, compare: 0 })
@@ -31,8 +34,7 @@ export default function HomePage() {
       dualScrollPrimedRef.current = false
       return
     }
-    const tab = analysisSubtab
-    if (tab !== 'solo' && tab !== 'compare') return
+    const tab = viewTab
 
     if (!dualScrollPrimedRef.current) {
       dualScrollPrimedRef.current = true
@@ -41,18 +43,11 @@ export default function HomePage() {
     }
 
     window.scrollTo(0, scrollYByTabRef.current[tab])
-  }, [analysisSubtab, logLoaded, compareReady])
+  }, [viewTab, logLoaded, compareReady])
 
   function goSub(next: Exclude<AnalysisSubtab, 'none'>) {
-    if (!logLoaded) return
-    if (next === 'compare' && !compareReady) return
-    if (
-      compareReady &&
-      (analysisSubtab === 'solo' || analysisSubtab === 'compare') &&
-      (next === 'solo' || next === 'compare') &&
-      next !== analysisSubtab
-    ) {
-      scrollYByTabRef.current[analysisSubtab] = window.scrollY
+    if (compareReady && next !== viewTab) {
+      scrollYByTabRef.current[viewTab] = window.scrollY
     }
     setAnalysisSubtab(next)
   }
@@ -71,22 +66,27 @@ export default function HomePage() {
 
   function expandAllSections() {
     if (!logLoaded) return
-    if (analysisSubtab === 'solo') soloCollapsibleRef.current?.expandAll()
-    else compareCollapsibleRef.current?.expandAll()
+    if (viewTab === 'solo') soloCollapsibleRef.current?.expandAll()
+    else if (compareReady) compareCollapsibleRef.current?.expandAll()
   }
 
   function collapseAllSections() {
     if (!logLoaded) return
-    if (analysisSubtab === 'solo') soloCollapsibleRef.current?.collapseAll()
-    else compareCollapsibleRef.current?.collapseAll()
+    if (viewTab === 'solo') soloCollapsibleRef.current?.collapseAll()
+    else if (compareReady) compareCollapsibleRef.current?.collapseAll()
   }
+
+  const title =
+    !logLoaded
+      ? 'Parse Analyzer'
+      : viewTab === 'solo'
+        ? 'Solo · Parse Analyzer'
+        : 'Compare · Parse Analyzer'
 
   return (
     <>
       <Head>
-        <title>
-          {!logLoaded ? 'Parse Analyzer' : analysisSubtab === 'solo' ? 'Solo · Parse Analyzer' : analysisSubtab === 'compare' ? 'Compare · Parse Analyzer' : 'Parse Analyzer'}
-        </title>
+        <title>{title}</title>
       </Head>
       <div style={s.wrap}>
         <div style={s.hdr}>
@@ -113,32 +113,23 @@ export default function HomePage() {
               </span>
               <button
                 type="button"
-                disabled={!logLoaded}
                 onClick={() => goSub('solo')}
-                className={`${pa.viewTab}${!logLoaded ? '' : analysisSubtab === 'solo' ? ` ${pa.viewTabActive}` : ''}`}
-                title={
-                  logLoaded ? 'Your pull only (player 1 in the compare)' : 'Load a fight from Warcraft Logs first'
-                }
+                className={`${pa.viewTab}${viewTab === 'solo' ? ` ${pa.viewTabActive}` : ''}`}
+                title="Your pull only (player 1 in the compare)"
               >
                 Solo
                 <span className={pa.viewTabSub}>your pull</span>
               </button>
               <button
                 type="button"
-                disabled={!logLoaded || !compareReady}
                 onClick={() => goSub('compare')}
-                className={
-                  pa.viewTab +
-                  (!logLoaded || !compareReady ? '' : analysisSubtab === 'compare' ? ` ${pa.viewTabActive}` : '')
-                }
+                className={`${pa.viewTab}${viewTab === 'compare' ? ` ${pa.viewTabActive}` : ''}`}
                 title={
-                  !logLoaded
-                    ? 'Load a Warcraft Logs fight first'
-                    : compareReady
-                      ? 'You vs comparison player — side-by-side'
-                      : fa.soloFromReport
-                        ? 'Compare needs a two-player Warcraft Logs compare URL'
-                        : 'Load a Warcraft Logs compare URL (two players) first'
+                  compareReady
+                    ? 'You vs comparison player — side-by-side'
+                    : fa.soloFromReport
+                      ? 'This load is a single-player report. Load a two-player compare URL to fill this view.'
+                      : 'Load a Warcraft Logs compare URL (two players), or read how below'
                 }
               >
                 Compare
@@ -148,7 +139,7 @@ export default function HomePage() {
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', gap: 8 }}>
               <button
                 type="button"
-                disabled={!logLoaded}
+                disabled={!logLoaded || (viewTab === 'compare' && !compareReady)}
                 onClick={expandAllSections}
                 className={`${pa.btnGhost} ${pa.btnGhostViewBar}`}
                 title={logLoaded ? 'Open every collapsible section' : 'Load a fight first'}
@@ -157,7 +148,7 @@ export default function HomePage() {
               </button>
               <button
                 type="button"
-                disabled={!logLoaded}
+                disabled={!logLoaded || (viewTab === 'compare' && !compareReady)}
                 onClick={collapseAllSections}
                 className={`${pa.btnGhost} ${pa.btnGhostViewBar}`}
                 title={logLoaded ? 'Close every collapsible section' : 'Load a fight first'}
@@ -166,22 +157,25 @@ export default function HomePage() {
               </button>
             </div>
           </div>
+          <WclLoadStatus variant="viewbar" />
         </div>
 
-        {logLoaded && compareReady ? (
+        {compareReady ? (
           <>
-            <div style={{ display: analysisSubtab === 'solo' ? 'block' : 'none' }} aria-hidden={analysisSubtab !== 'solo'}>
+            <div style={{ display: viewTab === 'solo' ? 'block' : 'none' }} aria-hidden={viewTab !== 'solo'}>
               <SoloFightView collapsibleBridgeRef={soloCollapsibleRef} />
             </div>
-            {compareMounted || analysisSubtab === 'compare' ? (
+            {compareMounted || viewTab === 'compare' ? (
               <div
-                style={{ display: analysisSubtab === 'compare' ? 'block' : 'none' }}
-                aria-hidden={analysisSubtab !== 'compare'}
+                style={{ display: viewTab === 'compare' ? 'block' : 'none' }}
+                aria-hidden={viewTab !== 'compare'}
               >
                 <CompareFightView collapsibleBridgeRef={compareCollapsibleRef} />
               </div>
             ) : null}
           </>
+        ) : viewTab === 'compare' ? (
+          <AnalyzeEmptyState mode="compare" />
         ) : (
           <SoloFightView collapsibleBridgeRef={soloCollapsibleRef} />
         )}

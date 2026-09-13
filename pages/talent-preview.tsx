@@ -10,6 +10,7 @@ import Head from 'next/head'
 import { useRouter, type NextRouter } from 'next/router'
 import { useMemo, useState } from 'react'
 import { TalentTreeSection, type BlizzardNode } from '../components/TalentCompare/TalentTree'
+import { TalentSourceForm } from '../components/TalentCompare/TalentSourceForm'
 import { SpellTooltipProvider } from '../components/TalentCompare/SpellTooltip'
 import { uniformClassSpecTreeWidth } from '../components/TalentCompare/uniformClassSpecTreeWidth'
 import { useBlizzardTalentTree } from '../components/TalentCompare'
@@ -71,7 +72,7 @@ export default function TalentPreviewPage() {
   const loading = !router.isReady || (!hydrated && !specFromQuery) || treeLoading
   const noSpecMessage =
     router.isReady && hydrated && !specFromQuery && !effectiveSpecId
-      ? 'No specialization id. Pass ?specId=… or load a fight on Analyze so we can remember your spec.'
+      ? 'No specialization id. Paste an export string or load a report below, or pass ?specId=…'
       : null
   const error = noSpecMessage ?? treeFetchError
 
@@ -330,9 +331,10 @@ export default function TalentPreviewPage() {
           </h1>
           <p style={{ fontSize: 13, color: '#8899aa', margin: '0 0 16px', lineHeight: 1.5 }}>
             {usingSavedP1
-              ? 'Compare player 1 only — uses WCL node rows when available (same as /compare), otherwise the saved export string.'
-              : 'Synthetic or demo fill. Load a fight on Analyze or run Compare to save player 1 data, then open this page again — or set ?preset=budget.'}
+              ? 'Uses WCL node rows when available, otherwise the export string.'
+              : 'Load a report or paste an export string below. Synthetic fills still work via ?preset=budget.'}
           </p>
+          <TalentSourceForm />
           <p style={{ fontSize: 11, color: '#556', marginBottom: 14, fontFamily: 'IBM Plex Mono, monospace' }}>
             specId={effectiveSpecId || '—'} · preset={presetMode}
             {hydrated && session.p1TalentTreeJson ? ' · session has WCL rows' : ''}

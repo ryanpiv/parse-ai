@@ -27,6 +27,12 @@ export const PRESET_CASTS_VS_SIMC_WOWHEAD =
 /** Short tile — sends a question; solo mode’s SimC context toggle is separate. */
 export const PRESET_CASTS_VS_SIMC_WOWHEAD_LABEL = 'Ask: log casts vs SimC + Wowhead'
 
+/** Ask for proc/buff-to-cast harmony derived from log + optional SimC/Wowhead references. */
+export const PRESET_PROC_HARMONY =
+  'Analyze proc/buff harmony with casts. Derive expected behavior from SimC + Wowhead references first (if present), then evaluate timestamped log evidence. In compare mode, critique both players against that same baseline, call out positive patterns one player executes better, and explicitly say when both players miss the expected pattern.'
+
+export const PRESET_PROC_HARMONY_LABEL = 'Ask: proc & buff harmony'
+
 /** Compare: both players vs SimC APL (guides via rotation rows). */
 export const PRESET_COMPARE_CASTS_VS_SIMC =
   "Compare BOTH players' cast sequences and counts in these logs to the SimulationCraft default APL for this spec. For each player, cite timestamps; note where each matches or diverges from sim priorities and whether the log context (movement, timing, fight length) explains it. Do not treat SimC as a perfect script for either pull."
@@ -99,6 +105,7 @@ export function resolvePresetPrompt(p: PresetPromptItem): { label: string; promp
 export const PRESET_QUESTIONS_COMPARE: PresetPromptItem[] = [
   'How do our openers compare?',
   { label: PRESET_COMPARE_CASTS_VS_SIMC_LABEL, prompt: PRESET_COMPARE_CASTS_VS_SIMC },
+  { label: PRESET_PROC_HARMONY_LABEL, prompt: PRESET_PROC_HARMONY },
   { label: PRESET_SHOW_YOUR_WORK_LABEL, prompt: PRESET_SHOW_YOUR_WORK_COMPARE },
   'Where does my rotation differ from the other player and why does it matter?',
   'Am I using procs as efficiently as the other player? Where am I falling behind?',
@@ -114,6 +121,7 @@ export const PRESET_QUESTIONS_COMPARE: PresetPromptItem[] = [
 export const PRESET_QUESTIONS_SOLO: PresetPromptItem[] = [
   'How is my opener this pull?',
   { label: PRESET_CASTS_VS_SIMC_WOWHEAD_LABEL, prompt: PRESET_CASTS_VS_SIMC_WOWHEAD },
+  { label: PRESET_PROC_HARMONY_LABEL, prompt: PRESET_PROC_HARMONY },
   { label: PRESET_SHOW_YOUR_WORK_LABEL, prompt: PRESET_SHOW_YOUR_WORK },
   'Using crit %, cast spacing, damage taken, downtime, and add death times from this extract, what are the 2–3 strongest play signals in this pull — and what is probably just variance?',
   'Where am I mistiming globals around movement, add spawns, or burst windows (use npc deaths and timelines, not same-spell spacing alone)?',

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&family=Rajdhani:wght@400;500;600;700&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -19,6 +19,14 @@
   --red:     #d44040;
   --green:   #40a060;
   --purple:  #a855f7;
+  --on-accent: #0a0c0f;
+  --font-ui: 'IBM Plex Sans', sans-serif;
+  --font-display: 'Rajdhani', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --radius: 6px;
+  --radius-sm: 4px;
+  --label-tracking: 0.08em;
+  --label-transform: uppercase;
 
   /*
    * Fixed route-tab strip height, in-flow spacer, and Analyze view bar sticky `top` — one value stays aligned.
@@ -27,10 +35,122 @@
   --pa-sticky-app-nav-offset: 52px;
 }
 
+/* Warm, round, less HUD. Terracotta accent. */
+html[data-vibe="linen"] {
+  --bg: #161310;
+  --bg2: #1f1b18;
+  --bg3: #28221d;
+  --bg4: #322c26;
+  --border: #3f362e;
+  --text: #f4ebe3;
+  --muted: #b6a898;
+  --dim: #7c6f64;
+  --gold: #d4784a;
+  --gold2: #e8a070;
+  --golddim: #6e3d28;
+  --blue: #8eb4c8;
+  --bluedim: #2a3338;
+  --red: #e07070;
+  --green: #6aaa78;
+  --purple: #c4a484;
+  --on-accent: #1a120e;
+  --font-ui: 'Outfit', 'IBM Plex Sans', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --label-tracking: 0.01em;
+  --label-transform: none;
+}
+
+/* Cool product dark (Linear-ish). Blue accent, no gold. */
+html[data-vibe="slate"] {
+  --bg: #0c0d10;
+  --bg2: #13141a;
+  --bg3: #1a1b24;
+  --bg4: #22232e;
+  --border: #2c2e3a;
+  --text: #eceef4;
+  --muted: #9aa3b5;
+  --dim: #6b7384;
+  --gold: #5b8def;
+  --gold2: #8eb0ff;
+  --golddim: #2a4570;
+  --blue: #7eb8ff;
+  --bluedim: #1a2a48;
+  --red: #e06a6a;
+  --green: #5bb98a;
+  --purple: #8b9cff;
+  --on-accent: #0c0d10;
+  --font-ui: 'DM Sans', 'IBM Plex Sans', sans-serif;
+  --font-display: 'DM Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --radius: 10px;
+  --radius-sm: 7px;
+  --label-tracking: 0.01em;
+  --label-transform: none;
+}
+
+/* Soft violet, quieter black. */
+html[data-vibe="orchid"] {
+  --bg: #0e0e12;
+  --bg2: #16161c;
+  --bg3: #1c1c26;
+  --bg4: #242430;
+  --border: #2e2e3c;
+  --text: #f0eef6;
+  --muted: #a8a4b8;
+  --dim: #6e6a7c;
+  --gold: #a78bfa;
+  --gold2: #c4b5fd;
+  --golddim: #4c3d7a;
+  --blue: #93c5fd;
+  --bluedim: #243044;
+  --red: #e07a8a;
+  --green: #6aba9a;
+  --purple: #a78bfa;
+  --on-accent: #120e18;
+  --font-ui: 'Outfit', 'IBM Plex Sans', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --label-tracking: 0.02em;
+  --label-transform: none;
+}
+
+/* Calm blue-gray, teal accent. */
+html[data-vibe="harbor"] {
+  --bg: #11161a;
+  --bg2: #171d22;
+  --bg3: #1e262c;
+  --bg4: #253039;
+  --border: #2f3b44;
+  --text: #e6eef2;
+  --muted: #93a4b0;
+  --dim: #5d6f7a;
+  --gold: #3d9b8f;
+  --gold2: #6ec4b4;
+  --golddim: #2a5550;
+  --blue: #7eb6d4;
+  --bluedim: #1e3340;
+  --red: #d07070;
+  --green: #5aaa88;
+  --purple: #7a9bb0;
+  --on-accent: #0e1614;
+  --font-ui: 'DM Sans', 'IBM Plex Sans', sans-serif;
+  --font-display: 'DM Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --radius: 10px;
+  --radius-sm: 7px;
+  --label-tracking: 0.01em;
+  --label-transform: none;
+}
+
 html, body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'IBM Plex Sans', sans-serif;
+  font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.6;
   min-height: 100vh;
@@ -82,13 +202,13 @@ a:hover { text-decoration: underline; }
 /* --- Shared UI (Analyze view bar + reusable controls) --- */
 
 .pa-view-tab {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-display);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-transform);
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   cursor: pointer;
   background: var(--bg3);
@@ -111,6 +231,28 @@ a:hover { text-decoration: underline; }
   cursor: not-allowed;
 }
 
+.pa-load-err {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  margin-top: 8px;
+  line-height: 1.7;
+  background: #3a1010;
+  color: #f07070;
+  border: 2px solid var(--red);
+}
+
+.pa-load-err__title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-transform);
+  margin-bottom: 6px;
+  color: #ff8a8a;
+}
+
 .pa-view-tab:not(.pa-view-tab--active):not(:disabled):hover {
   border-color: var(--golddim);
   color: var(--gold);
@@ -123,7 +265,7 @@ a:hover { text-decoration: underline; }
 
 .pa-view-tab__sub {
   display: block;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 400;
   letter-spacing: 0;
@@ -135,13 +277,13 @@ a:hover { text-decoration: underline; }
 
 
 .pa-btn-ghost {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-transform);
   padding: 6px 14px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   cursor: pointer;
   background: transparent;
@@ -165,9 +307,9 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: center;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 12px;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--label-tracking);
 }
 
 a.pa-btn-ghost,
@@ -196,9 +338,9 @@ a.pa-btn-ghost:hover {
 /* Same visual scale as .pa-btn-gold for outlined buttons in one row (border → slightly less vertical padding). */
 .pa-btn-ghost--primary-row {
   font-size: 13px;
-  letter-spacing: 1px;
+  letter-spacing: var(--label-tracking);
   padding: 8px 22px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 a.pa-btn-ghost--link:hover {
@@ -206,17 +348,17 @@ a.pa-btn-ghost--link:hover {
 }
 
 .pa-btn-gold {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-transform);
   padding: 9px 22px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
   background: var(--gold);
-  color: #0a0c0f;
+  color: var(--on-accent);
   white-space: nowrap;
 }
 
@@ -227,12 +369,12 @@ a.pa-btn-ghost--link:hover {
 }
 
 .pa-quick-tile {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   padding: 7px 10px;
   background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   color: var(--muted);
   cursor: pointer;
   text-align: left;
@@ -264,10 +406,10 @@ a.pa-btn-ghost--link:hover {
 }
 
 .pa-guide-chip {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   padding: 5px 8px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--bg3);
   color: var(--muted);
@@ -289,11 +431,11 @@ a.pa-btn-ghost--link:hover {
 }
 
 .pa-collapsible-trigger {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-display);
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-transform);
   color: var(--muted);
   display: flex;
   align-items: center;
@@ -320,13 +462,13 @@ a.pa-btn-ghost--link:hover {
 }
 
 .pa-btn-copy {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-transform);
   padding: 4px 10px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   cursor: pointer;
   background: var(--bg4);
@@ -347,15 +489,15 @@ a.pa-btn-ghost--link:hover {
 }
 
 .pa-btn-timeline {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-transform);
   padding: 3px 8px;
   background: transparent;
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   color: var(--dim);
   cursor: pointer;
   white-space: nowrap;
@@ -373,10 +515,10 @@ a.pa-btn-ghost--link:hover {
   padding: 8px 12px;
   background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   color: var(--muted);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   text-align: left;
 }
@@ -388,4 +530,58 @@ a.pa-btn-ghost--link:hover {
 
 .pa-roster-pick:disabled {
   cursor: not-allowed;
+}
+
+.pa-vibe-dock {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-width: 220px;
+}
+
+.pa-vibe-dock__label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.pa-vibe-dock__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pa-vibe-chip {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pa-vibe-chip--on {
+  border-color: var(--gold);
+  color: var(--gold2);
+  background: var(--bg2);
+}
+
+.pa-vibe-dock__blurb {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.45;
 }

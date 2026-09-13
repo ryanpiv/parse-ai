@@ -3,13 +3,15 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useFightAnalysis } from '../contexts/FightAnalysisContext'
 import { pa, s } from '../lib/styles'
+import { WclLoadStatus } from './WclLoadStatus'
+import { AnthropicKeyPanel } from './AnthropicKeyPanel'
 
 const linkStyle = (active: boolean): CSSProperties => ({
-  fontFamily: 'Rajdhani, sans-serif',
+  fontFamily: 'var(--font-display)',
   fontSize: 11,
   fontWeight: 600,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
+  letterSpacing: 'var(--label-tracking)',
+  textTransform: 'var(--label-transform)' as CSSProperties['textTransform'],
   textDecoration: 'none',
   color: active ? 'var(--gold2)' : 'var(--dim)',
   borderBottom: active ? '2px solid var(--gold)' : '2px solid transparent',
@@ -22,6 +24,7 @@ export function AppNav() {
   const fa = useFightAnalysis()
 
   const analyzeActive = path === '/' || path === '/analyze'
+  const lookPage = path === '/look'
 
   return (
     <header style={{ marginBottom: 0 }}>
@@ -36,10 +39,14 @@ export function AppNav() {
           <Link href="/talent-preview" style={linkStyle(path === '/talent-preview')}>
             Talents
           </Link>
+          <Link href="/look" style={linkStyle(path === '/look')}>
+            Look
+          </Link>
         </nav>
       </div>
       <div className={pa.appNavTabsSpacer} aria-hidden />
 
+      {!lookPage && (
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 20px 14px' }}>
         {fa.authStatus === 'checking' && (
           <div style={s.panel}>
@@ -130,24 +137,12 @@ export function AppNav() {
               />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-              <button type="button" className={pa.btnGold} disabled={fa.loading} onClick={fa.loadCompare}>
+              <button type="button" className={pa.btnGold} disabled={fa.loading} aria-busy={fa.loading} onClick={fa.loadCompare}>
                 {fa.loading ? fa.loadStep || 'Loading...' : 'Load'}
               </button>
             </div>
           </div>
-          {fa.status && (
-            <div
-              style={
-                fa.status.type === 'err'
-                  ? s.alertErr
-                  : fa.status.type === 'ok'
-                    ? s.alertOk
-                    : s.alertInfo
-              }
-            >
-              {fa.status.msg}
-            </div>
-          )}
+          <WclLoadStatus variant="nav" />
           {fa.soloPlayerChoices.length > 0 && (
             <div style={{ marginTop: 12 }}>
               <div
@@ -208,7 +203,9 @@ export function AppNav() {
             </div>
           )}
         </div>
+        <AnthropicKeyPanel />
       </div>
+      )}
     </header>
   )
 }

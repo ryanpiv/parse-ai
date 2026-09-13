@@ -16,6 +16,7 @@ import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
 import { CollapsibleGroupProvider, type CollapsibleBridgeApi } from '../CollapsibleGroup'
+import { AnalyzeEmptyState } from './AnalyzeEmptyState'
 import { buildInitialSoloUserPrompt } from '../../lib/buildContext/initialComparePrompt'
 import {
   s,
@@ -89,17 +90,7 @@ export function SoloFightView(props: {
 
   return (
     <>
-        {!p1data && (
-          <div style={s.panel}>
-            <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 13, color: 'var(--muted)', lineHeight: 1.6 }}>
-              Paste a Warcraft Logs <strong style={{ color: 'var(--text)' }}>report</strong> URL{' '}
-              (<code style={{ color: 'var(--blue)' }}>?fight=…</code>) or a <strong style={{ color: 'var(--text)' }}>compare</strong>{' '}
-              URL, then click <strong style={{ color: 'var(--text)' }}>Load</strong>. For a compare link you are{' '}
-              <strong style={{ color: 'var(--gold2)' }}>player 1</strong> — use <strong style={{ color: 'var(--text)' }}>Solo</strong> for
-              your pull only, or <strong style={{ color: 'var(--text)' }}>Compare</strong> when two players are loaded.
-            </div>
-          </div>
-        )}
+        {!p1data && <AnalyzeEmptyState mode="solo" />}
 
         {p1data && p2data && (
           <CollapsibleGroupProvider bridgeRef={collapsibleBridgeRef}>

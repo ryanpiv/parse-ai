@@ -17,6 +17,21 @@ describe('parseWclUrl', () => {
     })
   })
 
+  it('parses source + comparesource as the two players', () => {
+    const p = parseWclUrl(
+      'https://www.warcraftlogs.com/reports/compare/Ab1cdEf2/XYz9wVu8?fight=32,5&source=10&comparesource=22'
+    )
+    expect(p).toEqual({
+      kind: 'compare',
+      r1: 'Ab1cdEf2',
+      r2: 'XYz9wVu8',
+      f1id: 32,
+      f2id: 5,
+      src1: '10',
+      src2: '22',
+    })
+  })
+
   it('parses single-report URLs with fight and source', () => {
     const p = parseWclUrl('https://www.warcraftlogs.com/reports/aBcDeFg1?fight=7&source=123')
     expect(p).toEqual({ kind: 'report', code: 'aBcDeFg1', fightQuery: '7', source: '123' })

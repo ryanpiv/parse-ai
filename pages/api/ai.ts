@@ -7,14 +7,33 @@ export const config = {
   },
 }
 
+function userAnthropicKey(req: NextApiRequest): { key?: string; invalid?: boolean } {
+  const raw = req.headers?.['x-anthropic-api-key']
+  const v = (Array.isArray(raw) ? raw[0] : raw)?.trim() || ''
+  if (!v) return {}
+  if (!v.startsWith('sk-ant-') || v.length < 24) return { invalid: true }
+  return { key: v }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const apiKey = anthropicApiKey()
+  const fromUser = userAnthropicKey(req)
+  if (fromUser.invalid) {
+    return res.status(400).json({
+      error:
+        'That does not look like a Claude Console API key (should start with sk-ant-). Create one at https://console.anthropic.com/settings/keys',
+    })
+  }
+
+  const apiKey = fromUser.key || anthropicApiKey()
   if (!apiKey) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set (Vercel env or .env.local)' })
+    return res.status(401).json({
+      error:
+        'No Claude API key. Paste a Console key in the Claude API key panel (console.anthropic.com). Claude.ai / Pro login is not available for third-party apps.',
+    })
   }
 
   const body = req.body && typeof req.body === 'object' ? req.body : {}

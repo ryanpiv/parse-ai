@@ -1,5 +1,7 @@
 /** Stream Claude via `/api/ai` (SSE). Parses Anthropic messages SSE events. */
 
+import { anthropicClientHeaders } from '../anthropicUserKey'
+
 export type StreamedAIMessage = { role: string; content: string }
 
 export type AIStreamUsage = { input_tokens: number; output_tokens: number }
@@ -44,7 +46,7 @@ export async function callAIStream(
 ): Promise<{ text: string; usage?: AIStreamUsage }> {
   const res = await fetch('/api/ai', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: anthropicClientHeaders(),
     body: JSON.stringify({
       model: opts.model ?? 'claude-sonnet-4-20250514',
       max_tokens: opts.maxTokens ?? 2000,

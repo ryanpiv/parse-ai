@@ -24,6 +24,39 @@ export type BuildRichContextOptions = KillStatus & {
   icyVeinsGroundedAnalysis?: boolean
 }
 
+function procHarmonyPromptSection(specLabel: string, playerLabel: string, mode: 'compare' | 'solo'): string {
+  let out = `=== PROC/BUFF HARMONY FOCUS (${mode === 'solo' ? 'SOLO' : 'COMPARE'}) ===\n`
+  out += `Build a short list (3-6) of the most important **proc/buff -> follow-up cast** pairings for ${specLabel}.\n`
+  out += `Example pattern (if present): Brain Freeze -> Flurry windows for Frost Mage.\n\n`
+
+  if (mode === 'solo') {
+    out += `SOLO PRIORITY ORDER:\n`
+    out += `1) Derive expected proc/buff usage truth from SIMULATIONCRAFT and WOWHEAD sections (when present)\n`
+    out += `2) Validate against this player's log timestamps and buff-state evidence\n`
+    out += `3) Call out encounter exceptions where literal reference behavior should be adapted\n\n`
+    out += `For each pairing, report:\n`
+    out += `- Trigger proc/buff (spell ID when available)\n`
+    out += `- Reference expectation (SimC/Wowhead), and whether they agree\n`
+    out += `- Timestamped evidence for ${playerLabel}: aligned, delayed, overcapped, missed, or unclear\n`
+    out += `- Confidence note when evidence is limited\n\n`
+  } else {
+    out += `COMPARE PRIORITY ORDER:\n`
+    out += `1) Derive expected proc/buff usage truth from SIMULATIONCRAFT and WOWHEAD sections first (when present)\n`
+    out += `2) Evaluate both players against that same baseline using timestamp + buff-state evidence\n`
+    out += `3) Compare players to each other to surface both mistakes and positive patterns worth copying\n`
+    out += `4) If both players diverge from references, say so plainly (do not assume one is always correct)\n\n`
+    out += `For each pairing, report:\n`
+    out += `- Trigger proc/buff (spell ID when available)\n`
+    out += `- Reference expectation (SimC/Wowhead), and whether they agree\n`
+    out += `- Player-by-player timestamped evidence: aligned, delayed, overcapped, missed, or unclear\n`
+    out += `- Positive pattern callout when one player executes the pairing better\n`
+    out += `- Confidence note when evidence is limited\n\n`
+  }
+
+  out += `Do not infer proc misuse from cast totals alone; require timestamp + buff-state evidence.\n\n`
+  return out
+}
+
 export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: BuildRichContextOptions): string {
   const { name: n1, spec: s1 } = p1
   const { name: n2 } = p2
@@ -56,6 +89,8 @@ export function buildRichContext(p1: any, p2: any, talentDiff: any, options?: Bu
 
   const icyExtra = getIcyVeinsReferenceSupplement(talentDiff?.specId, icyGrounded, 'compare')
   if (icyExtra) ctx += icyExtra
+
+  ctx += procHarmonyPromptSection(s1, n1, 'compare')
 
   if (!isKill1 || !isKill2) {
     ctx += `=== FIGHT COMPLETION STATUS ===\n`
@@ -202,6 +237,8 @@ export function buildRichContextPlayerOne(p1: any, talentDiff: any, options: Bui
 
   const icyExtra = getIcyVeinsReferenceSupplement(talentDiff?.specId, icyGrounded, 'solo')
   if (icyExtra) ctx += icyExtra
+
+  ctx += procHarmonyPromptSection(s1, n1, 'solo')
 
   if (!isKill1) {
     ctx += `=== FIGHT COMPLETION STATUS ===\n`

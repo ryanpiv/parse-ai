@@ -149,8 +149,13 @@ export function CooldownTimelineChart(props: {
   p2data: { name: string; dur: number }
   spellRows: SpellRow[]
   solo?: boolean
+  compareWindowSec?: number
 }) {
-  const { p1data, p2data, spellRows, solo } = props
+  const { p1data, p2data, spellRows, solo, compareWindowSec } = props
+  const effectiveCompareDur = Math.max(
+    1,
+    Math.min(Math.max(p1data.dur, p2data.dur), Number(compareWindowSec) || Math.max(p1data.dur, p2data.dur))
+  )
 
   const idSig = useMemo(() => collectSpellIdsForApiLookup(spellRows, solo).join(','), [spellRows, solo])
 
@@ -190,11 +195,11 @@ export function CooldownTimelineChart(props: {
     return pickCooldownChartSpells(
       spellRows,
       blizzardCooldownMs,
-      p1data.dur,
-      solo ? p1data.dur : p2data.dur,
+      solo ? p1data.dur : effectiveCompareDur,
+      solo ? p1data.dur : effectiveCompareDur,
       14
     )
-  }, [spellRows, blizzardCooldownMs, p1data.dur, p2data.dur, solo])
+  }, [spellRows, blizzardCooldownMs, p1data.dur, p2data.dur, solo, effectiveCompareDur])
 
   if (blizzardCooldownMs === null) {
     return (

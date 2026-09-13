@@ -14,7 +14,7 @@ import { fetchFightPlayerRows } from '../lib/wclFightPlayers'
 import { parseWclUrl, resolveReportFightQuery } from '../lib/wclReportUrl'
 import { useAppSession } from './AppSessionContext'
 import { useAnalyzePageCache } from './AnalyzePageCacheContext'
-import { gql, callAIStream } from '../lib/wclClient'
+import { gql, callAIStream, formatLoadError } from '../lib/wclClient'
 import {
   collectNames,
   resolveNames,
@@ -151,7 +151,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
   const [fightKill1, setFightKill1] = useState(true)
   const [fightKill2, setFightKill2] = useState(true)
   const [simcCompareEnabled, setSimcCompareEnabled] = useState(false)
-  const [analysisSubtab, setAnalysisSubtab] = useState<AnalysisSubtab>('none')
+  const [analysisSubtab, setAnalysisSubtab] = useState<AnalysisSubtab>('solo')
   const [soloFromReport, setSoloFromReport] = useState(false)
   const [soloPlayerChoices, setSoloPlayerChoices] = useState<FightPlayerRow[]>([])
   const [soloRosterSelectedPlayerId, setSoloRosterSelectedPlayerId] = useState<number | null>(null)
@@ -223,7 +223,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     if (s.analysisSubtab === 'compare' || s.analysisSubtab === 'solo') {
       setAnalysisSubtab(s.analysisSubtab)
     } else {
-      setAnalysisSubtab('none')
+      setAnalysisSubtab('solo')
     }
   }, [analyzeCache])
 
@@ -323,22 +323,12 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     if (!simcAplAvailableForSpec(talentDiff?.specId)) setSimcCompareEnabled(false)
   }, [talentDiff?.specId])
 
-  useEffect(() => {
-    if (analysisSubtab === 'compare' && (!p1data || !p2data || soloFromReport)) {
-      setAnalysisSubtab(p1data ? 'solo' : 'none')
-    }
-  }, [analysisSubtab, p1data, p2data, soloFromReport])
-
   /** After a completed load from cache without a stored subtab, pick solo vs compare. */
   useEffect(() => {
     if (!p1data || analysisSubtab !== 'none') return
     const dualReal = Boolean(p2data && !soloFromReport)
     setAnalysisSubtab(dualReal ? 'compare' : 'solo')
   }, [p1data, p2data, soloFromReport, analysisSubtab])
-
-  useEffect(() => {
-    if (!p1data && analysisSubtab !== 'none') setAnalysisSubtab('none')
-  }, [p1data, analysisSubtab])
 
   const startAuth = useCallback(async () => {
     if (!clientId.trim()) {
@@ -800,7 +790,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         const fightIdResolved = resolveReportFightQuery(fightsResolve, parsed.fightQuery)
         await executeSoloReportFullRef.current(parsed.code, fightIdResolved, sourceToken)
       } catch (e: any) {
-        setStatus({ type: 'err', msg: 'Error: ' + e.message })
+        setStatus({ type: 'err', msg: formatLoadError(e) })
         console.error(e)
         setSoloRosterSelectedPlayerId(null)
       } finally {
@@ -891,6 +881,8 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         gql(`query($c:String!){reportData{report(code:$c){title fights{id name startTime endTime kill} masterData{actors{id name type subType}}}}}`, { c: r2 }),
       ])
 
+      if (!(m1 as any).reportData?.report) throw new Error(`Report ${r1} not found or inaccessible.`)
+      if (!(m2 as any).reportData?.report) throw new Error(`Report ${r2} not found or inaccessible.`)
       const fight1 = (m1 as any).reportData.report.fights.find((f: FightMeta) => f.id === f1id)
       const fight2 = (m2 as any).reportData.report.fights.find((f: FightMeta) => f.id === f2id)
       if (!fight1)
@@ -1102,7 +1094,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
 
       setMessagesCompare([])
     } catch (e: any) {
-      setStatus({ type: 'err', msg: 'Error: ' + e.message })
+      setStatus({ type: 'err', msg: formatLoadError(e) })
       console.error(e)
     } finally {
       setLoading(false)

@@ -1,5 +1,11 @@
 export { fetchTalents, type WclGqlFn } from './fetchTalents'
 export {
+  loadTalentsFromWclUrl,
+  confirmTalentPlayer,
+  type TalentLoadPick,
+  type TalentLoadReady,
+} from './loadTalentsFromWclUrl'
+export {
   decodeTalentString,
   encodeTalentString,
   parseTalentStringHeader,

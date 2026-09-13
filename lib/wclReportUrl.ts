@@ -85,7 +85,13 @@ export function parseWclUrl(raw: string): WclParsedUrl {
     if (!Number.isFinite(f1id) || !Number.isFinite(f2id)) {
       throw new Error('Compare URL needs fight IDs (?fight=1,2 or ?fight=1).')
     }
-    const srcs = (u.searchParams.get('source') || '').split(',').map(s => s.trim())
+    const srcs = [
+      ...u.searchParams.getAll('source'),
+      ...u.searchParams.getAll('comparesource'),
+    ]
+      .flatMap(s => s.split(','))
+      .map(s => s.trim())
+      .filter(Boolean)
     const src1 = srcs[0] || ''
     const src2 = srcs[1] || srcs[0] || ''
     return { kind: 'compare', r1, r2, f1id, f2id, src1, src2 }

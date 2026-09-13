@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, type MutableRefObject } from 'react'
-import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
+import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
+import { useFightAnalysis, type FightSpellRow } from '../../contexts/FightAnalysisContext'
 import { wowheadReferenceAvailableForSpec } from '../../lib/knowledge/embeddedWowhead'
 import { icyVeinsReferenceAvailableForSpec } from '../../lib/knowledge/embeddedIcyVeins'
 import { TalentCompare } from '../TalentCompare'
@@ -8,6 +8,7 @@ import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
 import { CollapsibleGroupProvider, type CollapsibleBridgeApi } from '../CollapsibleGroup'
+import { AnalyzeEmptyState } from './AnalyzeEmptyState'
 import {
   s,
   pa,
@@ -46,6 +47,7 @@ export function CompareFightView(props: {
 
   const chatRef = useRef<HTMLDivElement>(null)
   const lastUserMsgRef = useRef<HTMLDivElement>(null)
+  const [trimToShortestFight, setTrimToShortestFight] = useState(false)
 
   useEffect(() => {
     const el = chatRef.current
@@ -83,21 +85,73 @@ export function CompareFightView(props: {
       .slice(0, 22)
   }, [p1data, p2data])
 
+  const compareWindowSec = useMemo(() => {
+    if (!p1data || !p2data) return null
+    return trimToShortestFight ? Math.min(p1data.dur, p2data.dur) : Math.max(p1data.dur, p2data.dur)
+  }, [trimToShortestFight, p1data, p2data])
+
+  const effectiveSpellRows = useMemo(() => {
+    if (!p1data || !p2data || !trimToShortestFight) return spellRows
+    const windowSec = Math.min(p1data.dur, p2data.dur)
+    if (!Number.isFinite(windowSec) || windowSec <= 0) return spellRows
+    const eps = 0.01
+    return spellRows
+      .map((row) => {
+        const ts1 = (row.ts1 || []).filter((t) => Number.isFinite(t) && t <= windowSec + eps)
+        const ts2 = (row.ts2 || []).filter((t) => Number.isFinite(t) && t <= windowSec + eps)
+        const count1 = ts1.length
+        const count2 = ts2.length
+        const ppm1 = count1 > 0 ? Number(((count1 / windowSec) * 60).toFixed(2)) : 0
+        const ppm2 = count2 > 0 ? Number(((count2 / windowSec) * 60).toFixed(2)) : 0
+        return {
+          ...row,
+          ts1,
+          ts2,
+          count1,
+          count2,
+          ppm1,
+          ppm2,
+          first1: ts1.length ? Number(ts1[0].toFixed(1)) : null,
+          first2: ts2.length ? Number(ts2[0].toFixed(1)) : null,
+        } satisfies FightSpellRow
+      })
+      .filter((row) => row.count1 > 0 || row.count2 > 0)
+  }, [spellRows, trimToShortestFight, p1data, p2data])
+
   if (!p1data || !p2data) {
-    return (
-      <div style={s.panel}>
-        <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 13, color: 'var(--muted)', lineHeight: 1.6 }}>
-          Paste a Warcraft Logs compare URL above and click <strong style={{ color: 'var(--text)' }}>Load</strong> to see
-          side-by-side stats, talents, and compare-mode chat.
-        </div>
-      </div>
-    )
+    return <AnalyzeEmptyState mode="compare" />
   }
 
   return (
     <CollapsibleGroupProvider bridgeRef={collapsibleBridgeRef}>
       <>
       <div style={s.panel}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 10,
+                marginBottom: 12,
+                cursor: 'pointer',
+                fontFamily: 'IBM Plex Mono,monospace',
+                fontSize: 11,
+                color: 'var(--muted)',
+                lineHeight: 1.45,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={trimToShortestFight}
+                onChange={e => setTrimToShortestFight(e.target.checked)}
+                style={{ marginTop: 2, flexShrink: 0 }}
+              />
+              <span>
+                <strong style={{ color: 'var(--text)' }}>Trim to shorter fight (all cast-based views)</strong>
+                {' — '}
+                when enabled, compare charts/tables use only the shared window from pull start to the shorter fight length.
+                Default is off (no trim).
+              </span>
+            </label>
             <CollapsibleSection
               title={
                 <>
@@ -227,7 +281,7 @@ export function CompareFightView(props: {
                     </tr>
                   </thead>
                   <tbody>
-                    {spellRows
+                    {effectiveSpellRows
                       .filter(r => r.count1 > 0 || r.count2 > 0)
                       .map((r, i) => {
                         const rawDelta = r.count1 - r.count2
@@ -345,10 +399,10 @@ export function CompareFightView(props: {
             >
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <ChartCard title="Spell usage — casts/min" height={240}>
-                  <SpellUsageChart spellRows={spellRows} name1={p1data.name} name2={p2data.name} />
+                  <SpellUsageChart spellRows={effectiveSpellRows} name1={p1data.name} name2={p2data.name} />
                 </ChartCard>
                 <ChartCard title="Cast rate over time (30s windows)" height={240}>
-                  <CastTimelineChart p1data={p1data} p2data={p2data} />
+                  <CastTimelineChart p1data={p1data} p2data={p2data} compareWindowSec={compareWindowSec ?? undefined} />
                 </ChartCard>
               </div>
             </CollapsibleSection>
@@ -365,7 +419,12 @@ export function CompareFightView(props: {
                   <ProcEfficiencyChart p1data={p1data} p2data={p2data} />
                 </ChartCard>
                 <ChartCard title="Major cooldowns (Blizzard CD length + usage vs partner)" height={220}>
-                  <CooldownTimelineChart p1data={p1data} p2data={p2data} spellRows={spellRows} />
+                  <CooldownTimelineChart
+                    p1data={p1data}
+                    p2data={p2data}
+                    spellRows={effectiveSpellRows}
+                    compareWindowSec={compareWindowSec ?? undefined}
+                  />
                 </ChartCard>
               </div>
             </CollapsibleSection>
@@ -384,6 +443,7 @@ export function CompareFightView(props: {
                   name2={p2data.name}
                   dur1={p1data.dur}
                   dur2={p2data.dur}
+                  compareWindowSec={compareWindowSec ?? undefined}
                 />
               </div>
             </CollapsibleSection>
