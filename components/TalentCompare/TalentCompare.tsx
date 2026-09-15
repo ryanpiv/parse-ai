@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { partitionBlizzardTalentNodes } from '../../lib/talents/partitionBlizzardTree'
 import { TalentTreeSection, type BlizzardNode, type DiffState } from './TalentTree'
 import { SpellTooltipProvider } from './SpellTooltip'
@@ -22,6 +22,28 @@ const NODE_PX = 33
 const STEP = 55
 const MAX_TREE_W = 400
 const HERO_TREE_W = 270
+// Fixed chrome inside the scroll container: its own padding + per-section padding + flex gaps.
+const CONTAINER_PAD = 40
+const SECTION_PADS = 48
+const SECTION_GAPS = 48
+// TalentTreeSection renders LAYOUT_PAD (12px/side) *around* its forced width, so each of the
+// three trees can exceed its nominal cap by up to 24px.
+const TREE_LAYOUT_PADS = 72
+// Headroom for scrollbars appearing after the measurement (classic reflow feedback loop).
+const MEASURE_SLACK = 16
+
+/**
+ * Tree widths sized to the measured container so all three trees fit on one
+ * row without horizontal scrolling on desktop. Clamps keep icons readable on
+ * narrow windows (where the container falls back to scrolling).
+ */
+function fitTreeWidths(availW: number | null): { maxTree: number; heroW: number } {
+  if (!availW) return { maxTree: MAX_TREE_W, heroW: HERO_TREE_W }
+  const budget = availW - CONTAINER_PAD - SECTION_PADS - SECTION_GAPS - TREE_LAYOUT_PADS - MEASURE_SLACK
+  const heroW = Math.min(HERO_TREE_W, Math.max(190, Math.round(budget * 0.24)))
+  const maxTree = Math.min(MAX_TREE_W, Math.max(280, Math.floor((budget - heroW) / 2)))
+  return { maxTree, heroW }
+}
 
 function TalentDiffLink({ spellId, name, color }: { spellId: number; name: string; color: 'gold' | 'blue' }) {
   const { show, hide } = useSpellTooltip()
@@ -104,6 +126,18 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
     skip: !specId,
   })
 
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const [availW, setAvailW] = useState<number | null>(null)
+  useEffect(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    const measure = () => setAvailW(el.clientWidth)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [treeData, loading, error])
+
   // Build WCL selection maps: nodeId → rank (empty maps when both players missing — hooks below still run)
   const sel1 = new Map<number, number>()
   const sel2 = new Map<number, number>()
@@ -124,9 +158,12 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
   })
   const heroTypes = allHeroTypes.filter(t => heroNodesByType[t].some(n => n.state !== 'neither'))
 
+  // Widths depend only on the tree layout + available space (not selections).
+  const { maxTree, heroW } = fitTreeWidths(availW)
   const treeWidths = useMemo(
-    () => uniformClassSpecTreeWidth(classNodes, specNodes, NODE_PX, STEP, MAX_TREE_W),
-    [classNodes, specNodes]
+    () => uniformClassSpecTreeWidth(classNodes, specNodes, NODE_PX, STEP, maxTree),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [treeData, maxTree]
   )
 
   // Exclude subtree-selection meta-nodes (empty-entry CHOICE) from summary chips/counts.
@@ -172,6 +209,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
 
       {!loading && !error && treeData && (
         <div
+          ref={scrollerRef}
           style={{
             width: '100%',
             maxHeight: 'min(72vh, 900px)',
@@ -200,7 +238,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
 
             {heroTypes.map(ht => (
               <div key={ht} style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}>
-                <TalentTreeSection nodes={heroNodesByType[ht] || []} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} maxWidth={HERO_TREE_W} />
+                <TalentTreeSection nodes={heroNodesByType[ht] || []} edges={edges} name1={name1} name2={name2} nodePx={NODE_PX} stepPx={STEP} maxWidth={heroW} />
               </div>
             ))}
 

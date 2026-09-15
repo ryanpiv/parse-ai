@@ -457,18 +457,18 @@ export function computeLayout(
   return { px, W, H }
 }
 
-/** True if this node is part of player 1’s taken build (ranked + p1 or shared). */
+/**
+ * True if this node is part of player 1’s taken build (p1 or shared).
+ * State only — WCL reports rank 0 for many taken single-rank talents, so a
+ * rank>0 gate here erases most legitimate gold/blue/gray connections.
+ */
 function nodeTakenByP1(n: BlizzardNode): boolean {
-  const r = n.rank ?? 0
-  if (r <= 0) return false
   const s = n.state ?? 'neither'
   return s === 'p1' || s === 'both'
 }
 
-/** True if this node is part of player 2’s taken build (ranked + p2 or shared). */
+/** True if this node is part of player 2’s taken build (p2 or shared). */
 function nodeTakenByP2(n: BlizzardNode): boolean {
-  const r = n.rank ?? 0
-  if (r <= 0) return false
   const s = n.state ?? 'neither'
   return s === 'p2' || s === 'both'
 }
@@ -528,11 +528,13 @@ export function TalentTreeSection({ nodes, edges, name1, name2, renderMode = 'di
             : p1Edge ? 'p1'
             : p2Edge ? 'p2'
             : 'neither'
+          // In dense trees (1-unit column steps) icons hide most of each line, so
+          // shared/skeleton edges need real width + opacity to stay readable.
           const color = lineState === 'p1'  ? '#e8b020'
             : lineState === 'p2'            ? '#4cb0f0'
-            : lineState === 'both'          ? 'rgba(140,152,168,0.45)'
-            :                                 'rgba(40,50,62,0.25)'
-          const sw = lineState === 'p1' || lineState === 'p2' ? 3.5 : lineState === 'both' ? 1.35 : 1.25
+            : lineState === 'both'          ? 'rgba(158,170,186,0.85)'
+            :                                 'rgba(88,100,118,0.5)'
+          const sw = lineState === 'p1' || lineState === 'p2' ? 3.5 : lineState === 'both' ? 2.25 : 1.5
           return <line key={i} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y} stroke={color} strokeWidth={sw} strokeLinecap="round" />
         })}
       </svg>

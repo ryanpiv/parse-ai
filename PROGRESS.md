@@ -34,6 +34,24 @@ How it works now:
 
 ## Verified this session
 
+- **Talent compare tree fixes (2026-09-15, uncommitted)**: (1) edge tinting in
+  `TalentTree.tsx` no longer requires `rank > 0` on both ends — WCL reports
+  rank 0 for many taken single-rank talents, which was erasing nearly all
+  gold/blue/gray connections (state p1/p2/both is the taken signal; the
+  both-ends rule still blocks paths through untaken nodes). (2)
+  `TalentCompare.tsx` now measures its container (ResizeObserver) and sizes the
+  three trees to fit without horizontal scroll on desktop; budget accounts for
+  container/section padding, flex gaps, per-tree LAYOUT_PAD and scrollbar
+  slack. Verified live at 1440/1200px emulated widths (no h-scroll, 0 edge
+  color mismatches via DOM audit). (3) Edge strokes brightened — shared 'both'
+  lines 2.25px @0.85, untaken skeleton 1.5px @0.5 — because in dense spec trees
+  (1-unit column steps) icons hide most of each line and the old faint strokes
+  read as "missing connections". Data itself verified complete: Blizzard
+  unlocks edges match wago.tools TraitEdge DBC exactly for spec 62 (72 class /
+  53 spec); only Prismatic Bolt is genuinely standalone. Prod env vars fixed same night: Blizzard
+  keys were scoped "pre-production" in Vercel → moved to Production +
+  redeploy; `/api/blizzard-tree` healthy in prod.
+
 - `npm test` — 16 suites / 86 tests pass (includes new `/api/auth`, `/api/wcl`
   401 + user-endpoint routing, and `serverWclToken` cache tests).
 - `npm run build` — clean.
