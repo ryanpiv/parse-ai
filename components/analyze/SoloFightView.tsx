@@ -345,6 +345,11 @@ export function SoloFightView(props: {
                 }
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }}>
+                  {hasMetricSeriesData(p1data) && (
+                    <ChartCard title="Output over time" height={280}>
+                      <MetricTimelineChart p1data={p1data} p2data={p2data} solo />
+                    </ChartCard>
+                  )}
                   <ChartCard title="Spell usage — casts/min" height={260}>
                     <SpellUsageChart spellRows={spellRows} name1={p1data.name} name2={p2data.name} solo />
                   </ChartCard>
@@ -356,11 +361,6 @@ export function SoloFightView(props: {
                   <ChartCard title="Cast rate over time (30s windows)" height={240}>
                     <CastTimelineChart p1data={p1data} p2data={p2data} solo />
                   </ChartCard>
-                  {hasMetricSeriesData(p1data) && (
-                    <ChartCard title="Output over time" height={280}>
-                      <MetricTimelineChart p1data={p1data} p2data={p2data} solo />
-                    </ChartCard>
-                  )}
                 </div>
               </CollapsibleSection>
               <CollapsibleSection

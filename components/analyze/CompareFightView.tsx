@@ -409,6 +409,13 @@ export function CompareFightView(props: {
                 </>
               }
             >
+              {(hasMetricSeriesData(p1data) || hasMetricSeriesData(p2data)) && (
+                <div style={{ marginBottom: 12 }}>
+                  <ChartCard title="Output over time" height={300}>
+                    <MetricTimelineChart p1data={p1data} p2data={p2data} compareWindowSec={compareWindowSec ?? undefined} />
+                  </ChartCard>
+                </div>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <ChartCard title="Spell usage — casts/min" height={240}>
                   <SpellUsageChart spellRows={effectiveSpellRows} name1={p1data.name} name2={p2data.name} />
@@ -417,13 +424,6 @@ export function CompareFightView(props: {
                   <CastTimelineChart p1data={p1data} p2data={p2data} compareWindowSec={compareWindowSec ?? undefined} />
                 </ChartCard>
               </div>
-              {(hasMetricSeriesData(p1data) || hasMetricSeriesData(p2data)) && (
-                <div style={{ marginBottom: 12 }}>
-                  <ChartCard title="Output over time" height={300}>
-                    <MetricTimelineChart p1data={p1data} p2data={p2data} compareWindowSec={compareWindowSec ?? undefined} />
-                  </ChartCard>
-                </div>
-              )}
             </CollapsibleSection>
             <CollapsibleSection
               title={

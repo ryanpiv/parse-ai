@@ -154,6 +154,14 @@ Phase ideas, in order:
       (failure-tolerant, chart hides if absent) and stores them as
       `AnalyzedFightData.metricSeries`; players are resampled into common
       buckets, and `compareWindowSec` (trim toggle) is honored.
+- [x] **Duplicate-load skip** — done 2026-09-15, verified live. `loadCompare`
+      keeps `loadedUrlKeysRef` (raw input + canonical URL of the current
+      session); re-requesting either form returns "✓ Already loaded" instantly
+      (~100ms), still bumps the history entry, and switches to the Compare view
+      for compare sessions. A full page reload clears the in-memory session, so
+      the next request after a reload correctly does a real load.
+- [x] Analyze "No fight loaded" empty state now leads with a link to the
+      Reports browser ("easiest way in"), pasting a URL is the fallback.
 - [ ] Character portraits on player cards (Blizzard character-media API) — only
       if the grid feels flat without them.
 

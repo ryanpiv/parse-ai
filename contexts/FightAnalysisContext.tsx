@@ -162,6 +162,13 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
   const [wclClientId, setWclClientId] = useState<string | null>(null)
 
   const compareUrlRestoredRef = useRef(false)
+  /**
+   * Identifies the currently loaded session (raw input + canonical URL) so
+   * re-requesting the same fight skips the whole fetch pipeline.
+   */
+  const loadedUrlKeysRef = useRef<{ raw: string; canonical: string } | null>(null)
+  /** Raw URL of the load in flight — success handlers pair it with the canonical URL. */
+  const pendingRawRef = useRef('')
   const executeSoloReportFullRef = useRef<(code: string, fightId: number, srcRaw: string) => Promise<void>>(
     async () => {}
   )
@@ -712,13 +719,15 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       type: 'ok',
       msg: `✓ Loaded solo — ${name1} (${spec1}) on ${fight1.name}${wipeWarning}`,
     })
+    const soloCanonical = buildSoloUrl(code, fightId, Number(pid))
     recordHistory({
-      url: buildSoloUrl(code, fightId, Number(pid)),
+      url: soloCanonical,
       kind: 'solo',
       name1,
       spec1,
       boss: fight1.name,
     })
+    loadedUrlKeysRef.current = { raw: pendingRawRef.current, canonical: soloCanonical }
     setMessagesCompare([])
 
     setLoadStep('Fetching talent data...')
@@ -826,6 +835,31 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       setStatus({ type: 'err', msg: e.message || 'Could not parse URL.' })
       return
     }
+
+    // Same fight already loaded? Skip the whole pipeline — just surface the
+    // session (and bump its history entry).
+    const loadedKeys = loadedUrlKeysRef.current
+    if (!loading && p1data && loadedKeys && (raw === loadedKeys.raw || raw === loadedKeys.canonical)) {
+      const isCompare = !soloFromReport && Boolean(p2data)
+      if (isCompare) setAnalysisSubtab('compare')
+      setStatus({
+        type: 'ok',
+        msg: `✓ Already loaded — ${isCompare && p2data ? `${p1data.name} vs ${p2data.name}` : p1data.name} on ${
+          p1data.boss || 'this fight'
+        }`,
+      })
+      recordHistory({
+        url: loadedKeys.canonical,
+        kind: isCompare ? 'compare' : 'solo',
+        name1: p1data.name,
+        spec1: p1data.spec,
+        ...(isCompare && p2data ? { name2: p2data.name, spec2: p2data.spec } : {}),
+        boss: p1data.boss || '',
+      })
+      return
+    }
+    loadedUrlKeysRef.current = null
+    pendingRawRef.current = raw
 
     patchSession({ wclCompareUrl: raw })
 
@@ -1055,10 +1089,11 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         type: 'ok',
         msg: `✓ Loaded — ${name1} (${spec1}) vs ${name2} (${spec2}) on ${fight1.name}${wipeWarning}`,
       })
+      const compareCanonical = `https://www.warcraftlogs.com/reports/compare/${r1}/${r2}?fight=${f1id},${f2id}&source=${encodeURIComponent(
+        String(actor1?.id ?? src1)
+      )},${encodeURIComponent(String(actor2?.id ?? src2))}`
       recordHistory({
-        url: `https://www.warcraftlogs.com/reports/compare/${r1}/${r2}?fight=${f1id},${f2id}&source=${encodeURIComponent(
-          String(actor1?.id ?? src1)
-        )},${encodeURIComponent(String(actor2?.id ?? src2))}`,
+        url: compareCanonical,
         kind: 'compare',
         name1,
         spec1,
@@ -1066,6 +1101,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         spec2,
         boss: fight1.name,
       })
+      loadedUrlKeysRef.current = { raw: pendingRawRef.current, canonical: compareCanonical }
       setAnalysisSubtab('compare')
 
       setLoadStep('Fetching talent data...')
@@ -1127,7 +1163,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       setLoading(false)
       setLoadStep('')
     }
-  }, [compareUrl, patchSession, simcCompareEnabled])
+  }, [compareUrl, patchSession, simcCompareEnabled, loading, p1data, p2data, soloFromReport])
 
   const value = useMemo<FightAnalysisCtx>(
     () => ({

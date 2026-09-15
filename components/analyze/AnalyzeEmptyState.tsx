@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import Link from 'next/link'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { s } from '../../lib/styles'
 import { WclKeyPrompt } from './WclKeyPrompt'
@@ -29,8 +30,15 @@ export function AnalyzeEmptyState(props: { mode: 'solo' | 'compare' }) {
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>
         {mode === 'solo' ? (
           <>
+            <p style={{ marginBottom: 10 }}>
+              Easiest way in:{' '}
+              <Link href="/reports" style={{ color: 'var(--gold2)', fontWeight: 600 }}>
+                browse your logs on the Reports tab
+              </Link>{' '}
+              — pick a pull, click a player, done. No URL needed.
+            </p>
             <p style={{ marginBottom: 8 }}>
-              Paste a report URL in <strong style={{ color: 'var(--text)' }}>Warcraft Logs</strong> below, then click{' '}
+              Or paste a report URL in <strong style={{ color: 'var(--text)' }}>Warcraft Logs</strong> below, then click{' '}
               <strong style={{ color: 'var(--text)' }}>Load</strong>.
             </p>
             <p style={{ marginBottom: 8 }}>
