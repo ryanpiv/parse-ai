@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { wclClientCredentials } from '../../lib/serverWclToken'
+import { wclClientCredentials, wclPublicClientId } from '../../lib/serverWclToken'
 
 const WCL_USER_ENDPOINT = 'https://www.warcraftlogs.com/api/v2/user'
 const WCL_TOKEN_ENDPOINT = 'https://www.warcraftlogs.com/oauth/token'
@@ -9,17 +9,18 @@ const WCL_TOKEN_ENDPOINT = 'https://www.warcraftlogs.com/oauth/token'
  * report data.
  *
  * GET — `{ clientId }`: the app's public WCL client id, which the browser needs
- * to build the "Sign in with WarcraftLogs" URL (null = operator hasn't
- * configured WCL_CLIENT_ID/WCL_CLIENT_SECRET, so sign-in is unavailable).
+ * to build the "Sign in with WarcraftLogs" URL (null = operator hasn't set
+ * WCL_CLIENT_ID, so sign-in is unavailable).
  *
  * POST `{ action: 'user-exchange', code, verifier, redirectUri }` — finish the
  * per-user OAuth flow: exchange the authorization code and hand the resulting
  * token BACK to the browser (`{ token, expiresIn, userName }`). It is stored in
- * the user's localStorage only — never on the server.
+ * the user's localStorage only — never on the server. WCL "public" (PKCE)
+ * clients have no secret, so the exchange sends one only when configured.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    return res.status(200).json({ clientId: wclClientCredentials()?.id ?? null })
+    return res.status(200).json({ clientId: wclPublicClientId() ?? null })
   }
 
   if (req.method === 'POST' && req.body?.action === 'user-exchange') {
@@ -28,10 +29,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       verifier?: string
       redirectUri?: string
     }
-    const creds = wclClientCredentials()
-    if (!creds) {
+    const clientId = wclPublicClientId()
+    if (!clientId) {
       return res.status(400).json({
-        error: 'Server has no WCL_CLIENT_ID/WCL_CLIENT_SECRET — sign-in is unavailable.',
+        error: 'Server has no WCL_CLIENT_ID — sign-in is unavailable.',
       })
     }
     if (!code || !redirectUri) {
@@ -39,13 +40,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
+      const secret = wclClientCredentials()?.secret
       const response = await fetch(WCL_TOKEN_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           grant_type: 'authorization_code',
-          client_id: creds.id,
-          client_secret: creds.secret,
+          client_id: clientId,
+          ...(secret ? { client_secret: secret } : {}),
           redirect_uri: redirectUri,
           code,
           ...(verifier ? { code_verifier: verifier } : {}),

@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { s } from '../../lib/styles'
 import { WclKeyPrompt } from './WclKeyPrompt'
+import { TopParseCompare } from './TopParseCompare'
 
 export function AnalyzeEmptyState(props: { mode: 'solo' | 'compare' }) {
   const { mode } = props
@@ -45,10 +46,13 @@ export function AnalyzeEmptyState(props: { mode: 'solo' | 'compare' }) {
         ) : (
           <>
             {soloLoaded && (
-              <p style={{ marginBottom: 10, color: 'var(--text)' }}>
-                This session is a <strong>single-player report</strong>. Compare stays empty until you Load a two-player
-                compare URL.
-              </p>
+              <>
+                <p style={{ marginBottom: 10, color: 'var(--text)' }}>
+                  This session is a <strong>single-player report</strong>. Compare them against a world-ranked parse of
+                  the same spec, or Load a two-player compare URL.
+                </p>
+                <TopParseCompare />
+              </>
             )}
             <p style={{ marginBottom: 8 }}>
               Use a Warcraft Logs <strong style={{ color: 'var(--text)' }}>compare</strong> URL, then Load. It looks like:

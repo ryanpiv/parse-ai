@@ -19,7 +19,7 @@ export function WclLoadPanel() {
               className={pa.btnGold}
               disabled={fa.loading}
               aria-busy={fa.loading}
-              onClick={fa.loadCompare}
+              onClick={() => void fa.loadCompare()}
             >
               {fa.loading ? fa.loadStep || 'Loading...' : 'Load'}
             </button>

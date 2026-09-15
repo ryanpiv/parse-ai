@@ -4,7 +4,7 @@
 > `ARCHITECTURE.md` and `.cursor/rules/parse-analyzer.mdc` for the full picture.
 > Update or prune this file as items get done.
 
-_Last updated: 2026-09-13_
+_Last updated: 2026-09-14_
 
 ## Current state
 
@@ -43,22 +43,26 @@ How it works now:
 
 ## NOT yet tested — do this next
 
-The full OAuth round-trip has **never been exercised with real credentials**.
-This dev machine's `.env.local` only has the legacy `WCL_TOKEN` — no
-`WCL_CLIENT_ID` / `WCL_CLIENT_SECRET` — so the UI currently shows the
-"sign-in unavailable / server owner setup" fallback (correct behavior, but it
-means the happy path is unverified).
+Sign-in itself now works locally (`WCL_CLIENT_ID` is in `.env.local`; the
+`*_VERCEL` variables there are the production client — copy those into Vercel's
+env settings as `WCL_CLIENT_ID`/`WCL_CLIENT_SECRET` when deploying, since the
+`_VERCEL` names aren't read by code). Remaining items below.
 
 Setup first:
 
 1. Create a client at <https://www.warcraftlogs.com/api/clients> with redirect URL
    `http://localhost:3000/auth/callback` (add the production origin when deploying).
-2. Put `WCL_CLIENT_ID=` and `WCL_CLIENT_SECRET=` in `.env.local`, restart `npm run dev`.
+2. Put `WCL_CLIENT_ID=` in `.env.local`, restart `npm run dev`. Public/PKCE
+   clients have no secret — the ID alone enables sign-in. Add `WCL_CLIENT_SECRET=`
+   only if the client is confidential (also enables client-credentials game data,
+   though legacy `WCL_TOKEN` covers that too).
 
 Then test:
 
-- [ ] "Sign in with WarcraftLogs" from Settings → WCL consent → redirected back to
-      `/auth/callback` → Settings shows "✓ Signed in as {name}".
+- [x] "Sign in with WarcraftLogs" → WCL consent → `/auth/callback` exchange → signed in.
+      _Verified 2026-09-14 with a public/PKCE client (id only, no secret). Gotcha found:
+      a stray character in `WCL_CLIENT_ID` makes WCL's authorize page render blank
+      (`invalid_client`) — first UUID block must be 8 chars._
 - [ ] Load a report on Analyze while signed in (solo + compare URLs).
 - [ ] Load a **private** log from the signed-in account (the whole point of user auth).
 - [ ] Sign out → prompt returns, loads blocked again.
@@ -80,6 +84,78 @@ Then test:
   unrelated; `npm test` and the build are the gates.
 - `WCL_TOKEN` (static legacy env) is still honored by `lib/serverWclToken.ts` as a
   fallback for game-data routes only — it no longer enables report loading.
+
+## Reports browser (added 2026-09-14, phase 1 done)
+
+New **Reports** nav tab (`pages/reports.tsx` → `components/reports/ReportBrowser.tsx`):
+source chips (My uploads / each guild from `currentUser.guilds`) → paginated report
+list (`reportData.reports`, 20/page) → boss pulls (difficulty + kill/wipe% badges)
+→ WoWAnalyzer-style player grid (role sections, class-colored cards — colors in
+`lib/wowClassColors.ts`, queries in `lib/wclReports.ts`). Picking 1 player = solo,
+2 = compare (first pick is player 1); it builds the WCL URL and calls
+`fa.loadCompare(url)` (now accepts a URL override) then routes to Analyze.
+Verified end-to-end in-browser against live data (compare of two mages loaded).
+
+Also fixed: `lib/wclFightPlayers.ts` now unwraps the nested
+`playerDetails.data.playerDetails` shape (was silently falling back to ranking
+tables → everyone showed as DPS with class-name specs).
+
+Phase ideas, in order:
+- [x] "Compare vs a top parse" — done 2026-09-14. With exactly one player picked,
+      a section fetches `worldData.encounter.characterRankings`
+      (same class/spec/difficulty, dps or hps by role, cached per key in
+      `lib/wclReports.ts`) and lists the top 10; clicking loads a cross-report
+      compare (me vs their ranked pull). Verified live incl. a CJK player name
+      (encodeURIComponent + name-based source resolution both fine).
+- [x] Top-parse polish round — done 2026-09-14 (all verified live in-browser):
+      - Extracted **`components/reports/TopParseSection.tsx`** — prominent
+        gold-labelled panel (was a tiny ghost toggle).
+      - **Analyze Compare tab entry** — when a solo report is loaded, the Compare
+        empty state shows the same section
+        (`components/analyze/TopParseCompare.tsx` resolves fight/roster from the
+        loaded URL first).
+      - **Reports tab state survives navigation** — module-scope `remembered`
+        snapshot (source/page/report/fight) + effect-driven refetch; "⟲ All
+        reports" reset button in the player grid header.
+      - **Last character auto-pick** — name stored in localStorage
+        (`parse-analyzer-last-player`) on analyze/compare, auto-picked as P1 when
+        present in a roster (with an "Auto-picked …" note; any manual click clears it).
+- [x] "Similar" instead of "top 10 list" — done 2026-09-14 after user feedback
+      (they wanted WCL's find-similar-parses behavior, not a literal top-10):
+      - `TopParseSection` is now **one click**: fetch rankings →
+        `pickSimilarRank()` (`lib/wclReports.ts`) picks the highest-ranked parse
+        with a kill time within 10s → 30s → 60s of the pull (else closest) and
+        the cross-report compare loads immediately. The v2 API has no
+        similar-parse search endpoint, so this approximates WCL's fight-length
+        filter over the top rankings page. Verified live: 23:34 pull matched a
+        23:33 ranked kill.
+      - "More options" now links to **WCL's compare-search modal for the exact
+        pull** (`wclCompareSearchLink()`: `?fight=N&view=replay&modal=compare`)
+        instead of the zone rankings page (`wclRankingsLink` removed).
+      - Fixed the Reports source chips: the active chip was getting only the
+        `--active` modifier class without the `pa-roster-pick` base → rendered
+        as an unstyled browser button.
+      - Fixed cramped spacing around the Analyze Compare-tab button.
+      - Unit tests for `pickSimilarRank` + `wclCompareSearchLink`
+        (`__tests__/lib/wclReports.test.ts`); 92 tests total.
+- [x] **History tab** — done 2026-09-14, verified live. `lib/analysisHistory.ts`
+      keeps a localStorage list (`parse-analyzer-history`, cap 50) of every
+      successful solo/compare load: canonical URL (dedupe key — reload bumps to
+      top, no duplicates) + names/specs/boss/timestamp. Recorded at the success
+      points in `FightAnalysisContext`; `pages/history.tsx` renders a scrollable
+      list (Solo/Compare badges, relative timestamps, Clear button); click →
+      `loadCompare(url)` → Analyze. Nav tab sits between Reports and Talent compare.
+- [x] **Output over time chart** — done 2026-09-14, verified live. New
+      `components/Charts/MetricTimelineChart.tsx` on both Solo and Compare views
+      ("Spell usage & cast rate" section): damage done / healing done / damage
+      taken, one visible at a time via chip filter (default damage done).
+      Data from WCL's pre-bucketed `graph` endpoint — `lib/metricGraphs.ts`
+      fetches all three metrics in one aliased query per player at load
+      (failure-tolerant, chart hides if absent) and stores them as
+      `AnalyzedFightData.metricSeries`; players are resampled into common
+      buckets, and `compareWindowSec` (trim toggle) is honored.
+- [ ] Character portraits on player cards (Blizzard character-media API) — only
+      if the grid feels flat without them.
 
 ## Ideas / not started
 

@@ -16,6 +16,15 @@ const EXPIRY_MARGIN_MS = 5 * 60_000
 
 let cached: { token: string; expiresAt: number } | null = null
 
+/**
+ * Just the public client id — enough for per-user PKCE sign-in. WCL "public"
+ * clients have no secret at all, so don't require one here.
+ */
+export function wclPublicClientId(): string | undefined {
+  return serverEnv('WCL_CLIENT_ID', 'WCL_CLIENT_ID_LOCAL')
+}
+
+/** Id + secret pair — only needed for the client-credentials game-data token. */
 export function wclClientCredentials(): { id: string; secret: string } | null {
   const id = serverEnv('WCL_CLIENT_ID', 'WCL_CLIENT_ID_LOCAL')
   const secret = serverEnv('WCL_CLIENT_SECRET', 'WCL_CLIENT_SECRET_LOCAL')

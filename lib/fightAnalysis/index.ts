@@ -106,6 +106,8 @@ export interface AnalyzedFightData {
   spellRows?: any[]
   /** Paired begincast→cast segments + instant casts (seconds from fight start) */
   castTimeline: CastTimelineSegment[]
+  /** WCL graph curves (dmg/heal/taken per second) for the metric timeline chart; absent if the fetch failed. */
+  metricSeries?: import('../metricGraphs').MetricSeries
 }
 
 export async function processFightData({ raw, fightStart, fightEnd, playerId, playerName, spec, dps, takenTotal, nameMap }: ProcessFightDataParams): Promise<AnalyzedFightData> {

@@ -52,7 +52,10 @@ async function fetchFightPlayerRowsFromPlayerDetails(
     }`,
     { code: reportCode, fightId }
   )
-  const details = data?.reportData?.report?.playerDetails?.data
+  // WCL nests this JSON blob as playerDetails.data.playerDetails.{tanks,healers,dps}
+  // (some responses use the flatter playerDetails.data.{...} shape) — same as fetchTalents.
+  const pdRaw = data?.reportData?.report?.playerDetails
+  const details = pdRaw?.data?.playerDetails ?? pdRaw?.data ?? pdRaw
   const map = new Map<number, FightPlayerRow>()
   ingestBucket(map, details?.dps, 'dps')
   ingestBucket(map, details?.healers, 'healer')

@@ -43,7 +43,7 @@ BLIZZARD_CLIENT_SECRET=<Battle.net client secret>
 ANTHROPIC_API_KEY=<Anthropic API key>
 ```
 
-- **WCL_CLIENT_ID / SECRET** — Create a client at https://www.warcraftlogs.com/api/clients with redirect URL `http://localhost:3000/auth/callback` (add your production URL when deploying). These power **"Sign in with WarcraftLogs"** — every user must sign in with their own WCL account to load reports (their permissions, their rate limit; token stored in that browser only). The server also uses them (client-credentials) for game-data lookups like spell names in `/api/talents`.
+- **WCL_CLIENT_ID** (+ optional **WCL_CLIENT_SECRET**) — Create a client at https://www.warcraftlogs.com/api/clients with redirect URL `http://localhost:3000/auth/callback` (add your production URL when deploying). This powers **"Sign in with WarcraftLogs"** — every user must sign in with their own WCL account to load reports (their permissions, their rate limit; token stored in that browser only). **Public/PKCE clients have no secret and the ID alone is enough for sign-in.** The secret is only needed for confidential clients and for the server's client-credentials token used by game-data lookups (`/api/talents`); a legacy `WCL_TOKEN` also covers those.
 - **BLIZZARD_CLIENT_ID / SECRET** — Register an app at https://develop.battle.net
 - **ANTHROPIC_API_KEY** — https://console.anthropic.com (optional server fallback; users can bring their own key in Settings)
 

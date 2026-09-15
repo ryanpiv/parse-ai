@@ -6,6 +6,8 @@ import { icyVeinsReferenceAvailableForSpec } from '../../lib/knowledge/embeddedI
 import {
   SpellUsageChart,
   CastTimelineChart,
+  MetricTimelineChart,
+  hasMetricSeriesData,
   ProcEfficiencyChart,
   CooldownTimelineChart,
   ChartCard,
@@ -354,6 +356,11 @@ export function SoloFightView(props: {
                   <ChartCard title="Cast rate over time (30s windows)" height={240}>
                     <CastTimelineChart p1data={p1data} p2data={p2data} solo />
                   </ChartCard>
+                  {hasMetricSeriesData(p1data) && (
+                    <ChartCard title="Output over time" height={280}>
+                      <MetricTimelineChart p1data={p1data} p2data={p2data} solo />
+                    </ChartCard>
+                  )}
                 </div>
               </CollapsibleSection>
               <CollapsibleSection

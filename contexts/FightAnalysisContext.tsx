@@ -42,6 +42,9 @@ import {
 } from '../lib/styles'
 import { fetchTalents } from '../lib/talents'
 import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
+import { fetchMetricGraphs } from '../lib/metricGraphs'
+import { recordHistory } from '../lib/analysisHistory'
+import { buildSoloUrl } from '../lib/wclReports'
 
 export type FightSpellRow = {
   id: string
@@ -83,7 +86,8 @@ type FightAnalysisCtx = {
   status: { type: string; msg: string } | null
   loading: boolean
   loadStep: string
-  loadCompare: () => Promise<void>
+  /** Loads `compareUrl` from state; pass a URL to load it immediately (also stored). */
+  loadCompare: (urlOverride?: string) => Promise<void>
   p1data: AnalyzedFightData | null
   p2data: AnalyzedFightData | null
   spellRows: FightSpellRow[]
@@ -635,7 +639,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       setStep: setLoadStep,
     })
 
-    const [d1, t1] = await Promise.all([
+    const [d1, t1, ms1] = await Promise.all([
       gql(`query($c:String!,$s:Float!,$e:Float!){reportData{report(code:$c){table(dataType:DamageDone,startTime:$s,endTime:$e)}}}`, {
         c: code,
         s: fight1.startTime,
@@ -646,6 +650,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         s: fight1.startTime,
         e: fight1.endTime,
       }),
+      fetchMetricGraphs(gql, code, fight1.startTime, fight1.endTime, name1).catch(() => undefined),
     ])
 
     const dmgE1 = (d1 as any)?.reportData?.report?.table?.data?.entries || []
@@ -675,6 +680,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     })
     ;(p1 as any).isKill = isKill1
     p1.boss = fight1.name
+    p1.metricSeries = ms1
 
     const pStub = createSoloAnalysisPartnerStub(p1)
 
@@ -705,6 +711,13 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     setStatus({
       type: 'ok',
       msg: `✓ Loaded solo — ${name1} (${spec1}) on ${fight1.name}${wipeWarning}`,
+    })
+    recordHistory({
+      url: buildSoloUrl(code, fightId, Number(pid)),
+      kind: 'solo',
+      name1,
+      spec1,
+      boss: fight1.name,
     })
     setMessagesCompare([])
 
@@ -797,21 +810,24 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
     [compareUrl]
   )
 
-  const loadCompare = useCallback(async () => {
-    if (!compareUrl.trim()) {
+  const loadCompare = useCallback(async (urlOverride?: unknown) => {
+    // Guard the override: onClick handlers pass a MouseEvent here.
+    const raw = typeof urlOverride === 'string' && urlOverride.trim() ? urlOverride.trim() : compareUrl.trim()
+    if (!raw) {
       setStatus({ type: 'err', msg: 'Paste a Warcraft Logs report or compare URL.' })
       return
     }
+    if (raw !== compareUrl.trim()) setCompareUrl(raw)
 
     let parsed: ReturnType<typeof parseWclUrl>
     try {
-      parsed = parseWclUrl(compareUrl.trim())
+      parsed = parseWclUrl(raw)
     } catch (e: any) {
       setStatus({ type: 'err', msg: e.message || 'Could not parse URL.' })
       return
     }
 
-    patchSession({ wclCompareUrl: compareUrl.trim() })
+    patchSession({ wclCompareUrl: raw })
 
     setLoading(true)
     setP1data(null)
@@ -936,7 +952,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         setStep: setLoadStep,
       })
 
-      const [d1, d2, t1, t2] = await Promise.all([
+      const [d1, d2, t1, t2, ms1, ms2] = await Promise.all([
         gql(`query($c:String!,$s:Float!,$e:Float!){reportData{report(code:$c){table(dataType:DamageDone,startTime:$s,endTime:$e)}}}`, {
           c: r1,
           s: fight1.startTime,
@@ -957,6 +973,8 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
           s: fight2.startTime,
           e: fight2.endTime,
         }),
+        fetchMetricGraphs(gql, r1, fight1.startTime, fight1.endTime, name1).catch(() => undefined),
+        fetchMetricGraphs(gql, r2, fight2.startTime, fight2.endTime, name2).catch(() => undefined),
       ])
       const dmgE1 = (d1 as any)?.reportData?.report?.table?.data?.entries || []
       const dmgE2 = (d2 as any)?.reportData?.report?.table?.data?.entries || []
@@ -1007,6 +1025,8 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
 
       p1.boss = fight1.name
       p2.boss = fight2.name
+      p1.metricSeries = ms1
+      p2.metricSeries = ms2
       const allSpellIds = new Set([...Object.keys(p1.spellMap), ...Object.keys(p2.spellMap)])
       const rows: FightSpellRow[] = [...allSpellIds].map(id => ({
         id,
@@ -1034,6 +1054,17 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
       setStatus({
         type: 'ok',
         msg: `✓ Loaded — ${name1} (${spec1}) vs ${name2} (${spec2}) on ${fight1.name}${wipeWarning}`,
+      })
+      recordHistory({
+        url: `https://www.warcraftlogs.com/reports/compare/${r1}/${r2}?fight=${f1id},${f2id}&source=${encodeURIComponent(
+          String(actor1?.id ?? src1)
+        )},${encodeURIComponent(String(actor2?.id ?? src2))}`,
+        kind: 'compare',
+        name1,
+        spec1,
+        name2,
+        spec2,
+        boss: fight1.name,
       })
       setAnalysisSubtab('compare')
 

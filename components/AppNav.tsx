@@ -46,6 +46,12 @@ export function AppNav() {
           <Link href="/" style={linkStyle(analyzeActive)}>
             Analyze
           </Link>
+          <Link href="/reports" style={linkStyle(path === '/reports')}>
+            Reports
+          </Link>
+          <Link href="/history" style={linkStyle(path === '/history')}>
+            History
+          </Link>
           <Link href="/compare" style={linkStyle(path === '/compare')}>
             Talent compare
           </Link>
@@ -209,12 +215,12 @@ function WclAccountRow() {
         color: 'var(--muted)',
       }}
     >
-      Sign-in unavailable: the server owner must set <code>WCL_CLIENT_ID</code> /{' '}
-      <code>WCL_CLIENT_SECRET</code> (from{' '}
+      Sign-in unavailable: the server owner must set <code>WCL_CLIENT_ID</code> (from{' '}
       <a href="https://www.warcraftlogs.com/api/clients" target="_blank" rel="noreferrer">
         warcraftlogs.com/api/clients
       </a>
-      ) in the server environment.
+      ) in the server environment. <code>WCL_CLIENT_SECRET</code> is only needed for
+      confidential clients.
     </p>
   )
 }

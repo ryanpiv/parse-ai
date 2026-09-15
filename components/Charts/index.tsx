@@ -1,6 +1,7 @@
 export { SpellUsageChart } from './SpellUsageChart'
 export { CritRateChart, hasCritRateChartData } from './CritRateChart'
 export { CastTimelineChart } from './CastTimelineChart'
+export { MetricTimelineChart, hasMetricSeriesData } from './MetricTimelineChart'
 export { ProcEfficiencyChart } from './ProcEfficiencyChart'
 export { CooldownTimelineChart } from './CooldownTimelineChart'
 export { ChartCard } from './ChartCard'

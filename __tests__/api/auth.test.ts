@@ -32,18 +32,16 @@ describe('/api/auth', () => {
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
-  it('GET returns the public client id when configured', async () => {
+  it('GET returns the public client id when configured (no secret required — PKCE clients)', async () => {
     process.env.WCL_CLIENT_ID = 'client-123'
-    process.env.WCL_CLIENT_SECRET = 'secret-456'
     const res = mockRes()
     await handler(mockReq(), res)
     expect(res.json).toHaveBeenCalledWith({ clientId: 'client-123' })
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
-  it('POST user-exchange returns the user token to the browser (not stored server-side)', async () => {
+  it('POST user-exchange works for a public/PKCE client (id only, no secret sent)', async () => {
     process.env.WCL_CLIENT_ID = 'client-123'
-    process.env.WCL_CLIENT_SECRET = 'secret-456'
 
     // 1st fetch: code exchange; 2nd: currentUser name lookup
     mockFetch.mockResolvedValueOnce({
@@ -75,12 +73,35 @@ describe('/api/auth', () => {
     const body = String((mockFetch.mock.calls[0][1] as RequestInit).body)
     expect(body).toContain('grant_type=authorization_code')
     expect(body).toContain('client_id=client-123')
+    expect(body).toContain('code_verifier=pkce-verifier')
+    expect(body).not.toContain('client_secret')
     expect(res.status).toHaveBeenCalledWith(200)
     expect(res.json).toHaveBeenCalledWith({
       token: 'user-token-789',
       expiresIn: 1209600,
       userName: 'Smaktat',
     })
+  })
+
+  it('POST user-exchange includes the secret when the client is confidential', async () => {
+    process.env.WCL_CLIENT_ID = 'client-123'
+    process.env.WCL_CLIENT_SECRET = 'secret-456'
+    mockFetch.mockResolvedValueOnce({
+      json: async () => ({ access_token: 't', expires_in: 3600 }),
+    } as Response)
+    mockFetch.mockResolvedValueOnce({ json: async () => ({}) } as Response)
+
+    const res = mockRes()
+    await handler(
+      mockReq({
+        method: 'POST',
+        body: { action: 'user-exchange', code: 'c', verifier: 'v', redirectUri: 'r' },
+      }),
+      res
+    )
+    const body = String((mockFetch.mock.calls[0][1] as RequestInit).body)
+    expect(body).toContain('client_secret=secret-456')
+    expect(res.status).toHaveBeenCalledWith(200)
   })
 
   it('POST user-exchange fails cleanly without server credentials', async () => {

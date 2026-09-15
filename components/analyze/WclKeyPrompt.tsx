@@ -73,10 +73,11 @@ export function WclKeyPrompt() {
             production URL too when deploying).
           </li>
           <li>
-            Add <code style={{ color: 'var(--blue)' }}>WCL_CLIENT_ID</code> and{' '}
-            <code style={{ color: 'var(--blue)' }}>WCL_CLIENT_SECRET</code> to{' '}
+            Add <code style={{ color: 'var(--blue)' }}>WCL_CLIENT_ID</code> to{' '}
             <code style={{ color: 'var(--blue)' }}>.env.local</code> (or your host&apos;s environment
-            variables).
+            variables). Public/PKCE clients have no secret; add{' '}
+            <code style={{ color: 'var(--blue)' }}>WCL_CLIENT_SECRET</code> too only if your client is
+            confidential.
           </li>
           <li>
             Restart the server. Every user then signs in with their own WarcraftLogs account (here or

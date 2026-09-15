@@ -42,10 +42,20 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 - **Flow**: page heading → **Warcraft Logs panel** (`components/analyze/WclLoadPanel.tsx`: URL input, Load, status alerts, roster picker) → view tabs + charts/chat, which stay hidden until a fight is loaded (empty state shows instead). WCL OAuth setup lives in the Settings dropdown.
 - **Solo | Compare view tabs** — always clickable. When nothing is loaded, each shows an instructional empty state (`AnalyzeEmptyState`) explaining what URL format to paste. Solo works from any single report (`?fight=<id|last|first>`) or a compare URL (you are player 1). Compare needs a two-player compare URL.
 - **Multi-player reports** — if a single report fight has several players and no `?source=`, a roster picker appears (class icons, spec labels).
-- **Charts** — spell usage bars, cast timeline, proc efficiency, cooldown timeline, compact spell timeline with sticky zoom, crit rate. Compare mode has a "trim to shorter fight" toggle windowing all charts (`compareWindowSec`).
+- **Charts** — spell usage bars, cast timeline, proc efficiency, cooldown timeline, compact spell timeline with sticky zoom, crit rate. **Output over time** (`components/Charts/MetricTimelineChart.tsx`) plots damage done / healing done / damage taken (one at a time via chip filter, default damage done); series come from WCL's pre-bucketed `graph` endpoint (`lib/metricGraphs.ts`, one aliased query per player at load, stored as `AnalyzedFightData.metricSeries`) and both players are resampled into common buckets before overlaying. Compare mode has a "trim to shorter fight" toggle windowing all charts (`compareWindowSec`).
 - **AI chat** — two independent threads (solo/analyze vs compare), streaming responses with live token counts, preset question tiles, markdown rendering with Wowhead links, copy buttons. The "Ask Claude" section is **gated on a saved Claude key**: without one it renders collapsed with a prompt (`ClaudeKeyPrompt`) whose button opens Settings and glows/focuses the key field (window-event bus in `lib/claudeKeyBus.ts`); saving a key unlocks and expands the chat live. The model id is the single constant in `lib/wclClient/anthropicModel.ts` — both `callAI` and `callAIStream` use it.
 - **Chat presets** (`lib/prompts/chatPresets.ts`) — canned prompts; some force extra knowledge context (SimC APL, Wowhead scrape, Icy Veins scrape) for that message. SimC block is otherwise opt-in via a UI toggle (`simcCompareEnabled`).
 - **Load errors are loud** — red "Could not load this log" banner in both the WCL panel and the sticky view bar; `/api/wcl` fetches time out after 60s and network failures map to "is `npm run dev` running?" guidance.
+
+### Reports (`/reports`)
+- **In-app WCL report browser** (`components/reports/ReportBrowser.tsx`, queries in `lib/wclReports.ts`) — requires sign-in (shows `WclKeyPrompt` otherwise). Drill-down: source chips (**My uploads** + each guild from `currentUser.guilds`) → paginated report list (`reportData.reports`, 20/page, Newer/Older) → boss pulls (difficulty + Kill/Wipe-% badges, durations; trash filtered by `encounterID > 0`) → player grid.
+- **Player grid** — role sections (Tanks/Healers/DPS) of class-colored cards (`lib/wowClassColors.ts`, zamimg class icons via `lib/wclFightPlayers.ts`). Picking **1** player = "Analyze {name}" (solo), **2** = "Compare {a} vs {b}" (first pick is player 1). Builds the WCL URL and calls `loadCompare(url)` (accepts a URL override), then routes to Analyze.
+- **Compare vs a similar top parse** — with exactly one player picked, a prominent gold-labelled section (`components/reports/TopParseSection.tsx`, shared with Analyze) offers a **one-click** compare: it fetches `worldData.encounter.characterRankings` (same class/spec/difficulty; `hps` for healers), picks the highest-ranked parse with a kill time close to this pull (`pickSimilarRank()`: 10s → 30s → 60s tolerance, then closest — the v2 API has no similar-parse search, so this approximates WCL's fight-length filter), and immediately loads the **cross-report** compare. Rankings are point-expensive → fetched only on click, cached per encounter+spec+difficulty+metric for the session. For full control (fight length / raid size / ilvl filters), `wclCompareSearchLink()` links to WCL's own compare-search modal for the exact pull (`?fight=N&view=replay&modal=compare`). The same section appears on **Analyze's Compare tab** when a solo report is loaded (`components/analyze/TopParseCompare.tsx` resolves fight + player from the loaded URL, then auto-runs the search).
+- **Sticky state** — drill-down position (source, page, report, fight) survives route changes via a module-scope snapshot, so "Analyze {name}" → back to Reports lands where you left off; a "⟲ All reports" reset button in the player grid jumps back to the top. The last analyzed character's name is kept in localStorage (`parse-analyzer-last-player`) and auto-picked as player 1 when seen in a roster.
+- "Open on WCL ↗" links at report and fight level for anything the browser doesn't cover.
+
+### History (`/history`)
+- **Load history** (`pages/history.tsx`, store in `lib/analysisHistory.ts`) — every successful solo/compare load is recorded to localStorage (`parse-analyzer-history`, capped at 50): canonical WCL URL + kind/names/specs/boss/timestamp, **no fight data**. Deduped by URL — re-loading bumps the entry to the top instead of duplicating. Recorded at the success points in `FightAnalysisContext` (solo URL rebuilt via `buildSoloUrl`, compare URL rebuilt canonically from resolved actor ids, so `fight=last`-style inputs collapse into the same entry). Scrollable list with Solo/Compare badges and relative timestamps; clicking re-runs `loadCompare(url)` and routes to Analyze; same-tab reactivity via a `parse-analyzer-history-changed` window event.
 
 ### Talent compare (`/compare`)
 - Paste two talent export strings (in-game `/etl`, Wowhead, Raidbots), or fetch both builds from a WCL compare URL (`action: 'compare-talents'` on `/api/wcl`).
@@ -66,7 +76,7 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 - **Claude API key (BYOK)** — password `KeyField` (`AnthropicKeyPanel`): a Claude **Console** key (`sk-ant-…`) stored only in `localStorage` (`lib/anthropicUserKey.ts`), sent as `x-anthropic-api-key` header to `/api/ai`, which prefers it over the server's `ANTHROPIC_API_KEY` env fallback. **There is no "Sign in with Claude" for third-party apps** — Console API keys are the supported path. Save/clear dispatch `pa:claude-key-changed`, and `pa:open-claude-key-settings` (from "Add key in Settings" buttons) opens this dropdown with the field focused and glowing (`lib/claudeKeyBus.ts`, `.paKeyGlow` in `globals.css`).
 
 ### WCL auth (per-user sign-in, required)
-- **"Sign in with WarcraftLogs" is mandatory for report loading** (`lib/wclUserToken.ts`): authorization code + PKCE using the operator's client id (served by `/api/auth` GET as `{ clientId }`). `/auth/callback` POSTs the code to `/api/auth` (`action: 'user-exchange'`); the resulting **user token is returned to the browser and stored in localStorage only** (`parse-analyzer-wcl-user`, with expiry + user name) — never on the server. `wclClientHeaders()` adds `x-wcl-user-token` to `/api/wcl` calls; the route **requires it (401 otherwise)** and targets WCL's **`/api/v2/user`** endpoint — each user gets their own permissions (private logs) and rate-limit budget. Sign-out clears localStorage. The WCL client's **redirect URL must include** `http://localhost:3000/auth/callback` (plus the production origin).
+- **"Sign in with WarcraftLogs" is mandatory for report loading** (`lib/wclUserToken.ts`): authorization code + PKCE using the operator's client id (served by `/api/auth` GET as `{ clientId }`; `WCL_CLIENT_ID` alone is enough — WCL **public/PKCE clients have no secret**, and the exchange sends `client_secret` only when configured). `/auth/callback` POSTs the code to `/api/auth` (`action: 'user-exchange'`); the resulting **user token is returned to the browser and stored in localStorage only** (`parse-analyzer-wcl-user`, with expiry + user name) — never on the server. `wclClientHeaders()` adds `x-wcl-user-token` to `/api/wcl` calls; the route **requires it (401 otherwise)** and targets WCL's **`/api/v2/user`** endpoint — each user gets their own permissions (private logs) and rate-limit budget. Sign-out clears localStorage. The WCL client's **redirect URL must include** `http://localhost:3000/auth/callback` (plus the production origin).
 - **Server client-credentials token** (`lib/serverWclToken.ts`, `getWclToken()`): now only for game-data lookups (`/api/talents`, `/api/debug-tree`) — cached in module memory, auto-refreshed. A static `WCL_TOKEN` env is a legacy fallback for those routes only.
 - `FightAnalysisContext.authStatus` is 'ok' only when the user is signed in; `wclClientId` feeds the sign-in buttons (Settings row and `WclKeyPrompt`, which shows operator setup steps when no client id is configured).
 
@@ -81,6 +91,7 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 pages/
   index.tsx            Analyze: heading → WCL panel → view tabs (gated on load)
   analyze.tsx          Redirect → /
+  reports.tsx          Report browser: my/guild logs → pulls → player picker → Analyze
   compare.tsx          Talent diff page (2 strings OR WCL compare URL; diff/full-tree toggle)
   talent-preview.tsx   Full single-player tree (Raidbots-style)
   _app.tsx             AppErrorBoundary → provider stack (AppSession → AnalyzePageCache →
@@ -89,7 +100,7 @@ pages/
   auth/callback.tsx    Sign-in landing: exchanges code, stores user token in localStorage
   api/
     ai.ts              Claude proxy (JSON + SSE streaming; BYOK header > env key)
-    wcl.ts             WCL GraphQL proxy (user token header > shared token); compare-talents
+    wcl.ts             WCL GraphQL proxy (requires x-wcl-user-token, 401 otherwise); compare-talents
     auth.ts            GET public clientId; POST user-exchange (code → user token)
     blizzard-tree.ts   Blizzard talent tree per specId (24h cache)
     talents.ts         Batch node-ID → spell info
@@ -137,6 +148,8 @@ lib/
   serverEnv.ts         Server-only env resolution (WCL/Blizzard/Anthropic keys)
   serverWclToken.ts    WCL client-credentials token cache (getWclToken)
   wclUserToken.ts      Per-user WCL sign-in (localStorage token, headers, PKCE redirect)
+  wclReports.ts        Report browser queries (currentUser, reports, fights, rankings) + URL builders
+  wowClassColors.ts    Blizzard class colors for the player grid
   blizzardClient.ts, pkce.ts, wclFightPlayers.ts, spellTooltips/
 
 knowledge/             Source-of-truth corpora (see §6)
@@ -200,8 +213,9 @@ Prompt precedence rule baked into the prompts: **the log data always wins** over
 `.env.local` (never commit):
 
 ```
-WCL_CLIENT_ID=        # warcraftlogs.com/api/clients — powers required user sign-in + game data
-WCL_CLIENT_SECRET=    # (register redirect URL http://localhost:3000/auth/callback + prod)
+WCL_CLIENT_ID=        # warcraftlogs.com/api/clients — powers required user sign-in
+WCL_CLIENT_SECRET=    # optional: confidential clients only + game-data client-credentials
+                      # (register redirect URL http://localhost:3000/auth/callback + prod)
 ANTHROPIC_API_KEY=    # optional server fallback; users can BYOK in the UI instead
 BLIZZARD_CLIENT_ID=   # Battle.net app (talent trees)
 BLIZZARD_CLIENT_SECRET=

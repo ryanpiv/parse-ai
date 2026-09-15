@@ -4,7 +4,15 @@ import { useFightAnalysis, type FightSpellRow } from '../../contexts/FightAnalys
 import { wowheadReferenceAvailableForSpec } from '../../lib/knowledge/embeddedWowhead'
 import { icyVeinsReferenceAvailableForSpec } from '../../lib/knowledge/embeddedIcyVeins'
 import { TalentCompare } from '../TalentCompare'
-import { SpellUsageChart, CastTimelineChart, ProcEfficiencyChart, CooldownTimelineChart, ChartCard } from '../Charts'
+import {
+  SpellUsageChart,
+  CastTimelineChart,
+  MetricTimelineChart,
+  hasMetricSeriesData,
+  ProcEfficiencyChart,
+  CooldownTimelineChart,
+  ChartCard,
+} from '../Charts'
 import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
 import { CollapsibleSection } from '../CollapsibleSection'
@@ -409,6 +417,13 @@ export function CompareFightView(props: {
                   <CastTimelineChart p1data={p1data} p2data={p2data} compareWindowSec={compareWindowSec ?? undefined} />
                 </ChartCard>
               </div>
+              {(hasMetricSeriesData(p1data) || hasMetricSeriesData(p2data)) && (
+                <div style={{ marginBottom: 12 }}>
+                  <ChartCard title="Output over time" height={300}>
+                    <MetricTimelineChart p1data={p1data} p2data={p2data} compareWindowSec={compareWindowSec ?? undefined} />
+                  </ChartCard>
+                </div>
+              )}
             </CollapsibleSection>
             <CollapsibleSection
               title={
