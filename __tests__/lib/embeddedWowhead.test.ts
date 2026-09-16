@@ -3,7 +3,7 @@ import {
   wowheadReferenceAvailableForSpec,
 } from '../../lib/knowledge/embeddedWowhead'
 
-/** All 39 retail ChrSpecialization ids the corpus must cover. */
+/** All 40 retail (Midnight) ChrSpecialization ids the corpus must cover. */
 const ALL_SPEC_IDS = [
   62, 63, 64, // Mage
   65, 66, 70, // Paladin
@@ -16,7 +16,7 @@ const ALL_SPEC_IDS = [
   262, 263, 264, // Shaman
   265, 266, 267, // Warlock
   268, 269, 270, // Monk
-  577, 581, // Demon Hunter
+  577, 581, 1480, // Demon Hunter (incl. Midnight's Devourer)
   1467, 1468, 1473, // Evoker
 ]
 
@@ -25,7 +25,7 @@ describe('embeddedWowhead corpus', () => {
     for (const id of ALL_SPEC_IDS) {
       expect(wowheadReferenceAvailableForSpec(id)).toBe(true)
     }
-    expect(ALL_SPEC_IDS).toHaveLength(39)
+    expect(ALL_SPEC_IDS).toHaveLength(40)
   })
 
   it('is unavailable for unknown or missing spec ids', () => {

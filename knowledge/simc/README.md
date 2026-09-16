@@ -6,29 +6,22 @@ Vendored **default action priority lists** from [SimulationCraft](https://github
 
 SimulationCraft is **GPL-3.0**. This repo includes **copies** of upstream APL text for prompt context only; the full project and `COPYING` live at the SimC GitHub. Do not strip license headers if you paste larger upstream excerpts elsewhere.
 
-## Bundled specs (Mage + Death Knight)
+## Bundled specs (all 34 with an upstream default APL)
 
-| File | Wow specId | Upstream (`midnight`) |
-|------|------------|-------------------------|
-| `mage_arcane.midnight.simc` | 62 (Arcane Mage) | `ActionPriorityLists/default/mage_arcane.simc` |
-| `mage_fire.midnight.simc` | 63 (Fire Mage) | `ActionPriorityLists/default/mage_fire.simc` |
-| `mage_frost.midnight.simc` | 64 (Frost Mage) | `ActionPriorityLists/default/mage_frost.simc` |
-| `deathknight_blood.midnight.simc` | 250 (Blood DK) | `ActionPriorityLists/default/deathknight_blood.simc` |
-| `deathknight_frost.midnight.simc` | 251 (Frost DK) | `ActionPriorityLists/default/deathknight_frost.simc` |
-| `deathknight_unholy.midnight.simc` | 252 (Unholy DK) | `ActionPriorityLists/default/deathknight_unholy.simc` |
+Every `ActionPriorityLists/default/<file>.simc` on `midnight` is mirrored here as `<file>.midnight.simc` — 34 of Midnight's 40 specs. The six without upstream APLs (SimC does not sim healing) are: Holy Paladin, Discipline Priest, Holy Priest, Restoration Shaman, Mistweaver Monk, and Preservation Evoker. Restoration Druid **does** have a (DPS) APL upstream and is included. Midnight's new Devourer Demon Hunter (specId 1480) is included.
+
+The file → WoW specId mapping lives in the `SPECS` table in [`scripts/embed-simc.mjs`](../../scripts/embed-simc.mjs) — that table is the single source of truth.
 
 ## Updating / embedding
 
-1. Refresh mirrors from GitHub (same paths on `midnight`):
+1. Refresh mirrors from GitHub (same basenames on `midnight`):
 
    ```bash
    base='https://raw.githubusercontent.com/simulationcraft/simc/midnight/ActionPriorityLists/default'
-   curl -sL "$base/mage_arcane.simc" -o knowledge/simc/mage_arcane.midnight.simc
-   curl -sL "$base/mage_fire.simc" -o knowledge/simc/mage_fire.midnight.simc
-   curl -sL "$base/mage_frost.simc" -o knowledge/simc/mage_frost.midnight.simc
-   curl -sL "$base/deathknight_blood.simc" -o knowledge/simc/deathknight_blood.midnight.simc
-   curl -sL "$base/deathknight_frost.simc" -o knowledge/simc/deathknight_frost.midnight.simc
-   curl -sL "$base/deathknight_unholy.simc" -o knowledge/simc/deathknight_unholy.midnight.simc
+   for f in knowledge/simc/*.midnight.simc; do
+     name=$(basename "$f" .midnight.simc)
+     curl -sf "$base/$name.simc" -o "$f" || echo "FAILED: $name"
+   done
    ```
 
 2. Regenerate the bundled TypeScript (required for the Next.js bundle):
@@ -37,18 +30,19 @@ SimulationCraft is **GPL-3.0**. This repo includes **copies** of upstream APL te
    npm run embed-simc
    ```
 
-3. Commit the `.simc` files and `lib/knowledge/embeddedSimc.ts`.
+   This rewrites `lib/knowledge/embeddedSimcData.ts` in full (auto-generated — never edit by hand). The prompt-building logic stays in `lib/knowledge/embeddedSimc.ts`.
 
-## Adding another class/spec
+3. Commit the `.simc` files and `lib/knowledge/embeddedSimcData.ts`.
 
-1. Vendor `ActionPriorityLists/default/<file>.simc` into `knowledge/simc/` (name it `<something>.midnight.simc`).
-2. Add `SIMC_BUNDLE_BY_SPEC_ID` entry (correct **WoW `specId`**) and `APL_BY_SPEC_ID` mapping in `lib/knowledge/embeddedSimc.ts`.
-3. Append `{ constName: '…', file: 'knowledge/simc/….midnight.simc' }` to `BUNDLES` in `scripts/embed-simc.mjs`.
-4. Run `npm run embed-simc`.
+## Adding another spec (e.g. a future expansion spec)
+
+1. Vendor `ActionPriorityLists/default/<file>.simc` into `knowledge/simc/<file>.midnight.simc`.
+2. Add `{ specId, file, displayName }` to the `SPECS` table in `scripts/embed-simc.mjs` (correct **WoW `specId`** from Blizzard's playable-specialization index).
+3. Run `npm run embed-simc`.
 
 ## Relationship to Wowhead corpus
 
-- **Wowhead** (`knowledge/guides/`): human summaries + links.
+- **Wowhead** (`knowledge/guides/`, `knowledge/wowhead/scraped/`): human summaries + scraped guide data.
 - **SimC** (this folder): machine-readable default APL.
 
 In the app, the SimC block is **opt-in** on Analyze; when enabled, Claude uses the APL as a primary reference for divergences, but still prefers **log data** when SimC assumptions do not match the report.

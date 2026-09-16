@@ -48,6 +48,7 @@ const SPECS = {
   'death-knight-blood': spec('death-knight', 'blood', 250, 'Blood Death Knight', 'tank'),
   'death-knight-frost': spec('death-knight', 'frost', 251, 'Frost Death Knight'),
   'death-knight-unholy': spec('death-knight', 'unholy', 252, 'Unholy Death Knight'),
+  'demon-hunter-devourer': spec('demon-hunter', 'devourer', 1480, 'Devourer Demon Hunter'),
   'demon-hunter-havoc': spec('demon-hunter', 'havoc', 577, 'Havoc Demon Hunter'),
   'demon-hunter-vengeance': spec('demon-hunter', 'vengeance', 581, 'Vengeance Demon Hunter', 'tank'),
   'druid-balance': spec('druid', 'balance', 102, 'Balance Druid'),

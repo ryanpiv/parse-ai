@@ -1,8 +1,13 @@
 /**
- * Embeds vendored knowledge/simc/*.midnight.simc files into lib/knowledge/embeddedSimc.ts
- * as string constants. Run after updating any .simc mirror from SimulationCraft midnight.
+ * Generates lib/knowledge/embeddedSimcData.ts from the vendored
+ * knowledge/simc/*.midnight.simc mirrors. Run after refreshing any mirror
+ * from SimulationCraft's midnight branch:
  *
  *   npm run embed-simc
+ *
+ * Refreshing a mirror (per knowledge/simc/README.md):
+ *   curl -sf https://raw.githubusercontent.com/simulationcraft/simc/midnight/ActionPriorityLists/default/<file>.simc \
+ *     -o knowledge/simc/<file>.midnight.simc
  *
  * License: bundled APL text is from SimulationCraft (GPL-3.0).
  */
@@ -13,40 +18,104 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
 
-/** Order must match export const order in embeddedSimc.ts */
-const BUNDLES = [
-  { constName: 'MAGE_ARCANE_DEFAULT_APL', file: 'knowledge/simc/mage_arcane.midnight.simc' },
-  { constName: 'MAGE_FIRE_DEFAULT_APL', file: 'knowledge/simc/mage_fire.midnight.simc' },
-  { constName: 'MAGE_FROST_DEFAULT_APL', file: 'knowledge/simc/mage_frost.midnight.simc' },
-  { constName: 'DEATH_KNIGHT_BLOOD_DEFAULT_APL', file: 'knowledge/simc/deathknight_blood.midnight.simc' },
-  { constName: 'DEATH_KNIGHT_FROST_DEFAULT_APL', file: 'knowledge/simc/deathknight_frost.midnight.simc' },
-  { constName: 'DEATH_KNIGHT_UNHOLY_DEFAULT_APL', file: 'knowledge/simc/deathknight_unholy.midnight.simc' },
+/**
+ * Every spec with a default APL upstream (34 of Midnight's 40 — the five
+ * healers plus Preservation Evoker have none; SimC does not sim healing).
+ * `file` is the upstream basename under ActionPriorityLists/default/.
+ */
+const SPECS = [
+  { specId: 62, file: 'mage_arcane', displayName: 'Arcane Mage' },
+  { specId: 63, file: 'mage_fire', displayName: 'Fire Mage' },
+  { specId: 64, file: 'mage_frost', displayName: 'Frost Mage' },
+  { specId: 66, file: 'paladin_protection', displayName: 'Protection Paladin' },
+  { specId: 70, file: 'paladin_retribution', displayName: 'Retribution Paladin' },
+  { specId: 71, file: 'warrior_arms', displayName: 'Arms Warrior' },
+  { specId: 72, file: 'warrior_fury', displayName: 'Fury Warrior' },
+  { specId: 73, file: 'warrior_protection', displayName: 'Protection Warrior' },
+  { specId: 102, file: 'druid_balance', displayName: 'Balance Druid' },
+  { specId: 103, file: 'druid_feral', displayName: 'Feral Druid' },
+  { specId: 104, file: 'druid_guardian', displayName: 'Guardian Druid' },
+  { specId: 105, file: 'druid_restoration', displayName: 'Restoration Druid' },
+  { specId: 250, file: 'deathknight_blood', displayName: 'Blood Death Knight' },
+  { specId: 251, file: 'deathknight_frost', displayName: 'Frost Death Knight' },
+  { specId: 252, file: 'deathknight_unholy', displayName: 'Unholy Death Knight' },
+  { specId: 253, file: 'hunter_beast_mastery', displayName: 'Beast Mastery Hunter' },
+  { specId: 254, file: 'hunter_marksmanship', displayName: 'Marksmanship Hunter' },
+  { specId: 255, file: 'hunter_survival', displayName: 'Survival Hunter' },
+  { specId: 258, file: 'priest_shadow', displayName: 'Shadow Priest' },
+  { specId: 259, file: 'rogue_assassination', displayName: 'Assassination Rogue' },
+  { specId: 260, file: 'rogue_outlaw', displayName: 'Outlaw Rogue' },
+  { specId: 261, file: 'rogue_subtlety', displayName: 'Subtlety Rogue' },
+  { specId: 262, file: 'shaman_elemental', displayName: 'Elemental Shaman' },
+  { specId: 263, file: 'shaman_enhancement', displayName: 'Enhancement Shaman' },
+  { specId: 265, file: 'warlock_affliction', displayName: 'Affliction Warlock' },
+  { specId: 266, file: 'warlock_demonology', displayName: 'Demonology Warlock' },
+  { specId: 267, file: 'warlock_destruction', displayName: 'Destruction Warlock' },
+  { specId: 268, file: 'monk_brewmaster', displayName: 'Brewmaster Monk' },
+  { specId: 269, file: 'monk_windwalker', displayName: 'Windwalker Monk' },
+  { specId: 577, file: 'demonhunter_havoc', displayName: 'Havoc Demon Hunter' },
+  { specId: 581, file: 'demonhunter_vengeance', displayName: 'Vengeance Demon Hunter' },
+  { specId: 1467, file: 'evoker_devastation', displayName: 'Devastation Evoker' },
+  { specId: 1473, file: 'evoker_augmentation', displayName: 'Augmentation Evoker' },
+  { specId: 1480, file: 'demonhunter_devourer', displayName: 'Devourer Demon Hunter' },
 ]
 
-const outPath = path.join(root, 'lib/knowledge/embeddedSimc.ts')
+const outPath = path.join(root, 'lib/knowledge/embeddedSimcData.ts')
 
-let content = fs.readFileSync(outPath, 'utf8')
-content = content.replace(/\r\n/g, '\n')
+const metaEntries = []
+const aplEntries = []
 
-for (const { constName, file } of BUNDLES) {
-  const fullPath = path.join(root, file)
-  if (!fs.existsSync(fullPath)) {
-    console.error(`embed-simc: missing ${fullPath}`)
+for (const { specId, file, displayName } of SPECS) {
+  const mirror = path.join(root, `knowledge/simc/${file}.midnight.simc`)
+  if (!fs.existsSync(mirror)) {
+    console.error(`embed-simc: missing ${mirror}`)
     process.exit(1)
   }
-  const simc = fs.readFileSync(fullPath, 'utf8')
-  const aplLiteral = JSON.stringify(simc)
-  const aplExportLine = `export const ${constName}: string = ${aplLiteral}`
-  const re = new RegExp(
-    `export const ${constName}: string = [\\s\\S]*?(?=\\n\\n(?:export const|const ))`,
-    'm'
+  const simc = fs.readFileSync(mirror, 'utf8').replace(/\r\n/g, '\n')
+  if (!/^actions/m.test(simc)) {
+    console.error(`embed-simc: ${mirror} has no actions= lines — wrong file?`)
+    process.exit(1)
+  }
+  const upstreamPath = `ActionPriorityLists/default/${file}.simc`
+  metaEntries.push(
+    `  ${specId}: {\n` +
+      `    specId: ${specId},\n` +
+      `    branch: 'midnight',\n` +
+      `    upstreamPath: '${upstreamPath}',\n` +
+      `    upstreamUrl: 'https://github.com/simulationcraft/simc/blob/midnight/${upstreamPath}',\n` +
+      `    rawUrl: 'https://raw.githubusercontent.com/simulationcraft/simc/midnight/${upstreamPath}',\n` +
+      `    displayName: ${JSON.stringify(displayName)},\n` +
+      `  },`
   )
-  if (!re.test(content)) {
-    console.error(`embed-simc: could not find export block for ${constName} in embeddedSimc.ts`)
-    process.exit(1)
-  }
-  content = content.replace(re, aplExportLine)
+  aplEntries.push(`  ${specId}: ${JSON.stringify(simc)},`)
 }
 
-fs.writeFileSync(outPath, content.endsWith('\n') ? content : content + '\n')
-console.log(`embed-simc: updated ${BUNDLES.length} APL constants → ${path.relative(root, outPath)}`)
+const output = `/**
+ * AUTO-GENERATED by scripts/embed-simc.mjs — do not edit by hand.
+ * Default action priority lists from SimulationCraft, bundled for Claude.
+ * Source mirrors: knowledge/simc/*.midnight.simc — regenerate: npm run embed-simc
+ *
+ * Upstream: https://github.com/simulationcraft/simc/tree/midnight/ActionPriorityLists/default
+ * License: SimulationCraft is GPL-3.0 (see upstream COPYING).
+ */
+
+export type SimcBundleMeta = {
+  specId: number
+  branch: 'midnight'
+  upstreamPath: string
+  upstreamUrl: string
+  rawUrl: string
+  displayName: string
+}
+
+export const SIMC_BUNDLE_BY_SPEC_ID: Record<number, SimcBundleMeta> = {
+${metaEntries.join('\n')}
+}
+
+export const APL_BY_SPEC_ID: Record<number, string> = {
+${aplEntries.join('\n')}
+}
+`
+
+fs.writeFileSync(outPath, output)
+console.log(`embed-simc: wrote ${SPECS.length} specs → ${path.relative(root, outPath)} (${(output.length / 1024).toFixed(0)} KB)`)

@@ -9,6 +9,8 @@ import talent_deathKnightFrost from '../../knowledge/wowhead/scraped/death-knigh
 import rotation_deathKnightFrost from '../../knowledge/wowhead/scraped/death-knight-frost/rotation-cooldowns.json'
 import talent_deathKnightUnholy from '../../knowledge/wowhead/scraped/death-knight-unholy/talent-builds.json'
 import rotation_deathKnightUnholy from '../../knowledge/wowhead/scraped/death-knight-unholy/rotation-cooldowns.json'
+import talent_demonHunterDevourer from '../../knowledge/wowhead/scraped/demon-hunter-devourer/talent-builds.json'
+import rotation_demonHunterDevourer from '../../knowledge/wowhead/scraped/demon-hunter-devourer/rotation-cooldowns.json'
 import talent_demonHunterHavoc from '../../knowledge/wowhead/scraped/demon-hunter-havoc/talent-builds.json'
 import rotation_demonHunterHavoc from '../../knowledge/wowhead/scraped/demon-hunter-havoc/rotation-cooldowns.json'
 import talent_demonHunterVengeance from '../../knowledge/wowhead/scraped/demon-hunter-vengeance/talent-builds.json'
@@ -87,7 +89,7 @@ export type WowheadCoachingMode = 'compare' | 'solo'
 const ROTATION_CHAR_BUDGET = 22_000
 
 /**
- * All 39 retail specs, keyed by ChrSpecialization id. Adding/refreshing one:
+ * All 40 retail (Midnight) specs, keyed by ChrSpecialization id. Adding/refreshing one:
  * `npm run scrape-wowhead -- <folder>` (registry in scripts/wowhead/scrape-wowhead.mjs),
  * then imports + an entry here. heroBranchNote is included in the compare
  * intro when the spec's Wowhead guide splits priorities by hero talent.
@@ -134,6 +136,7 @@ const SPEC_DOCS: Record<number, { label: string; talent: unknown; rotation: unkn
   270: { label: 'Mistweaver Monk', talent: talent_monkMistweaver, rotation: rotation_monkMistweaver },
   577: { label: 'Havoc Demon Hunter', talent: talent_demonHunterHavoc, rotation: rotation_demonHunterHavoc },
   581: { label: 'Vengeance Demon Hunter', talent: talent_demonHunterVengeance, rotation: rotation_demonHunterVengeance },
+  1480: { label: 'Devourer Demon Hunter', talent: talent_demonHunterDevourer, rotation: rotation_demonHunterDevourer },
   1467: { label: 'Devastation Evoker', talent: talent_evokerDevastation, rotation: rotation_evokerDevastation },
   1468: { label: 'Preservation Evoker', talent: talent_evokerPreservation, rotation: rotation_evokerPreservation },
   1473: { label: 'Augmentation Evoker', talent: talent_evokerAugmentation, rotation: rotation_evokerAugmentation },
