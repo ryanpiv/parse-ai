@@ -6,21 +6,25 @@ How to write UI, helpers, and API routes in this app. Stack, deploy, and domain 
 
 ## Layout (Next.js Pages Router)
 
+App code lives under `src/`. Next serves routes from `src/pages/` (`public/`, `knowledge/`, and `scripts/` stay at the repo root).
+
 | Place | What belongs there |
 | --- | --- |
-| `pages/<route>.tsx` | Thin route orchestrators — page state and wiring only. Next owns this folder's naming; no component folders here. Heavy bodies live in `components/`. |
-| `pages/api/<route>.ts` | HTTP adapters only — see **Backend** below. |
-| `components/<Area>/` | Area = product surface (`analyze`, `reports`, `Charts`, `TalentCompare`). |
-| `components/<Area>/<ComponentName>/` | One UI unit: `ComponentName.tsx`, thin `index.tsx`, `styles.module.css`, `__tests__/`. |
-| `lib/<concept>/` | Pure domain helpers used by more than one owner (`fightAnalysis`, `wclClient`, `buildContext`, `knowledge`, …). |
-| `contexts/` | React context providers. |
+| `src/pages/<route>.tsx` | Thin route orchestrators — page state and wiring only. Next owns this folder's naming; no component folders here. Heavy bodies live in `src/components/`. |
+| `src/pages/api/<route>.ts` | HTTP adapters only — see **Backend** below. |
+| `src/components/<Area>/` | Area = product surface (`analyze`, `reports`, `Charts`, `TalentCompare`). |
+| `src/components/<Area>/<ComponentName>/` | One UI unit: `ComponentName.tsx`, thin `index.tsx`, `styles.module.css`, `__tests__/`. |
+| `src/lib/<concept>/` | Pure domain helpers used by more than one owner (`fightAnalysis`, `wclClient`, `buildContext`, `knowledge`, …). |
+| `src/contexts/` | React context providers. |
+| `src/styles/` | Shared atoms (`ui.module.css`), themes (`globals.css`), page chrome (`pages/`). |
+| `src/types/` | Shared `.d.ts` / WCL shapes used across pages and lib. |
 
-- A helper with a single owner lives in that owner's folder. Tests sit next to the file they cover (`lib/__tests__/`, `lib/<concept>/__tests__/`, `components/<Area>/<Name>/__tests__/`). **Exception:** API route tests live in the top-level `__tests__/api/` — Next would serve anything under `pages/` as a route.
-- Context modules (`contexts/`) export a named provider + hook pair (`FightAnalysisProvider`, `useFightAnalysis`) — they are domain modules, not `components/<Name>` units, so the components-default-export rule does not apply.
+- A helper with a single owner lives in that owner's folder. Tests sit next to the file they cover (`src/lib/__tests__/`, `src/lib/<concept>/__tests__/`, `src/components/<Area>/<Name>/__tests__/`). **Exception:** API route tests live in the top-level `__tests__/api/` — Next would serve anything under `src/pages/` as a route.
+- Context modules (`src/contexts/`) export a named provider + hook pair (`FightAnalysisProvider`, `useFightAnalysis`) — they are domain modules, not `src/components/<Name>` units, so the components-default-export rule does not apply.
 - A component gets a folder when it has tests, styles, mocks, or children. Until then a lone `.tsx` in the area folder is fine.
 - A lone `.ts` file in an existing folder is for pure logic, registries, types, or constants.
-- Do **not** add `lib/utils.ts` (or any grab-bag "utils"/"helpers" module). Do not add a one-file folder when the helper belongs next to an existing owner.
-- API route tests stay in `__tests__/api/` (Next would serve anything under `pages/` as a route).
+- Do **not** add `src/lib/utils.ts` (or any grab-bag "utils"/"helpers" module). Do not add a one-file folder when the helper belongs next to an existing owner.
+- API route tests stay in `__tests__/api/` (Next would serve anything under `src/pages/` as a route).
 
 ## Naming
 
@@ -82,14 +86,14 @@ Injected callbacks are required at the UI boundary. Optional extras are clearly 
 - Conditionals: early return for empty (`if (rows.length === 0) return null`), named booleans, `&&` for optional blocks.
 - UI state stays in the component. `useCallback` for handlers passed down. `useMemo` for derived lists.
 - Mapping, parsing, and serialization live in `.ts` files, not inside JSX.
-- **Styling: CSS modules.** Shared atoms live in `styles/ui.module.css` (buttons, fields, alerts, chrome). Component-specific layout lives in that component's `styles.module.css`. Page chrome that isn't a component goes in `styles/pages/<page>.module.css`. Theme values come from CSS custom properties (`var(--gold2)` etc. from `lib/vibes.ts` / `styles/globals.css`). Computed or per-datum values (class colors, SVG coordinates, ResizeObserver widths) stay inline. Do not grow `globals.css` with component classes.
+- **Styling: CSS modules.** Shared atoms live in `src/styles/ui.module.css` (buttons, fields, alerts, chrome). Component-specific layout lives in that component's `styles.module.css`. Page chrome that isn't a component goes in `src/styles/pages/<page>.module.css`. Theme values come from CSS custom properties (`var(--gold2)` etc. from `src/lib/vibes.ts` / `src/styles/globals.css`). Computed or per-datum values (class colors, SVG coordinates, ResizeObserver widths) stay inline. Do not grow `globals.css` with component classes.
 - Do not add a second stylesheet system (styled-components, Tailwind, …).
 - Do not add a mobile layout fork unless the UI actually splits.
 
 ## Types
 
 - Prop types on the component when only that component needs them; re-export public prop types from `index.tsx`.
-- Domain types stay next to their domain (`WclTopRank` in `lib/wclReports.ts`).
+- Domain types stay next to their domain (`WclTopRank` in `src/lib/wclReports.ts`).
 - Request/response contracts for API routes live in the domain module and are pulled into client code with `import type`.
 - Mirror schema or API names in constants and maps (WCL/Blizzard field names, spec ids). Do not invent shortened registry keys.
 
@@ -115,7 +119,7 @@ it('does not render when items is empty', () => { ... })
 - Queries: `getByTestId` first. Test IDs are the component name, optionally indexed: `data-testid="ReportBrowser"`, `ResultRow--${rowId}`. Then `getByText` for user-visible copy.
 - `beforeEach(() => { jest.clearAllMocks() })` when the test uses mocks.
 - Collapsible UI: assert `aria-expanded` / `aria-hidden`, not `toBeVisible()`.
-- Pure `lib/` logic gets plain unit tests; no DOM environment needed.
+- Pure `src/lib/` logic gets plain unit tests; no DOM environment needed.
 
 ## Imports and exports
 
@@ -124,18 +128,18 @@ it('does not render when items is empty', () => { ... })
 - `import type { ... }` for types.
 - Import by direct path. Do not force a barrel for a single consumer.
 
-## Backend (`pages/api/` + server-only `lib/`)
+## Backend (`src/pages/api/` + server-only `src/lib/`)
 
 Next API routes are **thin HTTP adapters**. The shape of every route:
 
 1. Check `req.method`; anything unhandled gets `405 { error: 'Method not allowed' }`. Multi-action POST endpoints (like `/api/auth`) dispatch on a validated `action` string.
-2. Validate the request (body, query, headers) **at this boundary only** — reject early with `400 { error }`. Internal `lib/` code trusts its callers; do not re-validate downstream.
-3. Call a domain function from `lib/`. Business logic lives there, unit-testable without HTTP.
+2. Validate the request (body, query, headers) **at this boundary only** — reject early with `400 { error }`. Internal `src/lib/` code trusts its callers; do not re-validate downstream.
+3. Call a domain function from `src/lib/`. Business logic lives there, unit-testable without HTTP.
 4. Map the result to a status + JSON. Every non-2xx response is `{ error: string }` — human-readable, actionable, no stack traces, no secrets. Upstream failures (WCL, Blizzard, Anthropic) get mapped with which upstream and its status, not passed through raw.
 
 Server-only rules:
 
-- Anything touching `process.env`, secrets, or `fs` lives in a clearly server-only module (`lib/serverEnv.ts`, `lib/serverWclToken.ts` pattern) and is imported **only** from `pages/api/**`. Never from components, contexts, or client-side `lib/` — prompt/context builders run in the browser and must import bundled knowledge modules instead (see `ARCHITECTURE.md`).
+- Anything touching `process.env`, secrets, or `fs` lives in a clearly server-only module (`src/lib/serverEnv.ts`, `src/lib/serverWclToken.ts` pattern) and is imported **only** from `src/pages/api/**`. Never from components, contexts, or client-side `src/lib/` — prompt/context builders run in the browser and must import bundled knowledge modules instead (see `ARCHITECTURE.md`).
 - One module owns each credential flow. Secrets never reach the browser (the WCL *user* token is the deliberate exception — user-scoped, localStorage-only) and never get logged.
 - Upstream fetches use explicit timeouts and no unbounded retries. Cache stable game data server-side (talent trees); never cache user-scoped report data across users.
 - Naming follows the same verb contract; `fetch*` is correct on the BE because it is real network I/O. The route export is `handler` (Next convention); the file name carries the resource name.
@@ -153,7 +157,7 @@ Server-only rules:
 | Test titles as plain sentences | Title Case Labels |
 | Comment the non-obvious constraint | restate the next line |
 | Keep mapping out of JSX | a 200-line inline submit handler |
-| Put a helper next to its owner | `lib/utils.ts` or a one-file folder |
-| CSS module classes (`styles/ui.module.css` + colocated modules) | inline style soup / new globals in `globals.css` |
-| Thin API route → `lib/` domain function | business logic inside `pages/api/` handlers |
+| Put a helper next to its owner | `src/lib/utils.ts` or a one-file folder |
+| CSS module classes (`src/styles/ui.module.css` + colocated modules) | inline style soup / new globals in `globals.css` |
+| Thin API route → `src/lib/` domain function | business logic inside `src/pages/api/` handlers |
 | `{ error: string }` on every non-2xx | raw upstream errors or stack traces to the client |

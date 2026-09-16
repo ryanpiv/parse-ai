@@ -1,5 +1,5 @@
 /**
- * Generates lib/knowledge/embeddedSimcData.ts from the vendored
+ * Generates src/lib/knowledge/embeddedSimcData.ts from the vendored
  * knowledge/simc/*.midnight.simc mirrors. Run after refreshing any mirror
  * from SimulationCraft's midnight branch:
  *
@@ -60,7 +60,7 @@ const SPECS = [
     { specId: 1480, file: 'demonhunter_devourer', displayName: 'Devourer Demon Hunter' },
 ]
 
-const outPath = path.join(root, 'lib/knowledge/embeddedSimcData.ts')
+const outPath = path.join(root, 'src/lib/knowledge/embeddedSimcData.ts')
 
 const metaEntries = []
 const aplEntries = []

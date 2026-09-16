@@ -12,10 +12,13 @@ _Last updated: 2026-09-16_
   UI now matches: arrow-const default exports, `ComponentNameProps` / `I*` types,
   component folders with CSS modules, tests colocated next to subjects (API
   route tests stay in `__tests__/api/`).
-- Shared atoms live in **`styles/ui.module.css`**. `lib/styles.ts` and the
-  `.pa-*` globals are gone; `styles/globals.css` is themes + resets only.
-  Page chrome is in `styles/pages/`. Computed values (class colors, SVG tree
+- Shared atoms live in **`src/styles/ui.module.css`**. `lib/styles.ts` and the
+  `.pa-*` globals are gone; `src/styles/globals.css` is themes + resets only.
+  Page chrome is in `src/styles/pages/`. Computed values (class colors, SVG tree
   edges, ResizeObserver widths) stay inline on purpose.
+- App code lives under **`src/`** (`src/pages`, `src/components`, `src/lib`,
+  `src/contexts`, `src/styles`, `src/types`). `public/`, `knowledge/`, and
+  `scripts/` stay at the repo root (Next + vendored corpora).
 - Ask Claude chat UI that was duplicated in both fight views is now
   `components/AIChat/AIChat.tsx`.
 - Visual sweep (2026-09-16): empty pages + Settings + all three themes, then a

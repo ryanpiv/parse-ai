@@ -12,7 +12,7 @@ Short, **human-summarized** notes injected into the Analyze AI system prompt whe
 
 1. Add a row to `manifest.json` with Blizzard `specId`, `title`, primary `sourceUrl` (Wowhead), optional `additionalWowheadUrls[]`, and `as_of` (date you re-read the pages).
 2. Add `bodies/<specId>.md` using the section template below (summarize in your own words—no long paste of Wowhead HTML).
-3. Copy the finalized body into `lib/knowledge/embeddedGuides.ts` (`GUIDE_BODY_BY_SPEC_ID` and `GUIDE_META_BY_SPEC_ID`). The app bundles TS only (no runtime `fs` on the client).
+3. Copy the finalized body into `src/lib/knowledge/embeddedGuides.ts` (`GUIDE_BODY_BY_SPEC_ID` and `GUIDE_META_BY_SPEC_ID`). The app bundles TS only (no runtime `fs` on the client).
 4. Run `npm run build` to verify types.
 
 ## Section template (each `.md`)

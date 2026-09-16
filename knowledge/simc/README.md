@@ -30,9 +30,9 @@ The file → WoW specId mapping lives in the `SPECS` table in [`scripts/embed-si
    npm run embed-simc
    ```
 
-   This rewrites `lib/knowledge/embeddedSimcData.ts` in full (auto-generated — never edit by hand). The prompt-building logic stays in `lib/knowledge/embeddedSimc.ts`.
+   This rewrites `src/lib/knowledge/embeddedSimcData.ts` in full (auto-generated — never edit by hand). The prompt-building logic stays in `src/lib/knowledge/embeddedSimc.ts`.
 
-3. Commit the `.simc` files and `lib/knowledge/embeddedSimcData.ts`.
+3. Commit the `.simc` files and `src/lib/knowledge/embeddedSimcData.ts`.
 
 ## Adding another spec (e.g. a future expansion spec)
 

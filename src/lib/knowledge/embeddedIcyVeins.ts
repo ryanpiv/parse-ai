@@ -3,8 +3,8 @@
  * Client-safe: imported by buildContext. Keep payloads bounded.
  */
 
-import rotationFrost64 from '../../knowledge/icy-veins/scraped/mage-frost/rotation-cooldowns-abilities.json'
-import rotationUnholy252 from '../../knowledge/icy-veins/scraped/death-knight-unholy/rotation-cooldowns-abilities.json'
+import rotationFrost64 from '../../../knowledge/icy-veins/scraped/mage-frost/rotation-cooldowns-abilities.json'
+import rotationUnholy252 from '../../../knowledge/icy-veins/scraped/death-knight-unholy/rotation-cooldowns-abilities.json'
 
 export type IcyVeinsCoachingMode = 'compare' | 'solo'
 

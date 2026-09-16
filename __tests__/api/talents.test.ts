@@ -1,6 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import handler from '../../pages/api/talents'
+import handler from '../../src/pages/api/talents'
 
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>
 global.fetch = mockFetch

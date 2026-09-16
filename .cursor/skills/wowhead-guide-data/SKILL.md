@@ -13,7 +13,7 @@ disable-model-invocation: true
 
 - **Scraper:** `scripts/wowhead/scrape-wowhead.mjs` — table-driven (`SPECS` registry maps folder → classSlug/specSlug/ChrSpecialization id); helpers `extractGuideMarkup.mjs`, `parseTalentBbCode.mjs`, `extractWowheadChrome.mjs`, `talentExportHeader.mjs`
 - **Snapshots (committed):** `knowledge/wowhead/scraped/<spec-folder>/*.json` — **all 40 retail specs** incl. Midnight's Devourer DH (folders like `mage-frost`, `priest-holy`, `demon-hunter-devourer`). `markupBbCode` is intentionally not written (sections carry the content; halves the client bundle cost).
-- **AI bundle:** `lib/knowledge/embeddedWowhead.ts` `SPEC_DOCS` registry (keyed by ChrSpecialization id) imports those JSON files into Claude context when the user uses the **SimC + Wowhead** preset (`PRESET_CASTS_VS_SIMC_WOWHEAD` in `lib/prompts/chatPresets.ts`). Coverage is locked by `lib/knowledge/__tests__/embeddedWowhead.test.ts`.
+- **AI bundle:** `src/lib/knowledge/embeddedWowhead.ts` `SPEC_DOCS` registry (keyed by ChrSpecialization id) imports those JSON files into Claude context when the user uses the **SimC + Wowhead** preset (`PRESET_CASTS_VS_SIMC_WOWHEAD` in `src/lib/prompts/chatPresets.ts`). Coverage is locked by `src/lib/knowledge/__tests__/embeddedWowhead.test.ts`.
 
 ## Refresh workflow
 
@@ -38,4 +38,4 @@ disable-model-invocation: true
 
 1. Add one entry to `SPECS` in `scripts/wowhead/scrape-wowhead.mjs` (folder key, `classSlug`/`specSlug`, `wowSpecId` ChrSpecialization id, `urlSuffix` — dps specs use `pve-dps`; check the actual Wowhead guide URL for healers/tanks).
 2. Run `npm run scrape-wowhead -- <folder>`; confirm `snapshot.fetch.ok` and that BBCode extraction found `[copy]` rows / sections.
-3. Extend `lib/knowledge/embeddedWowhead.ts`: import the two JSON files and add a `SPEC_DOCS` entry (label + optional `heroBranchNote`). Nothing else branches on spec id.
+3. Extend `src/lib/knowledge/embeddedWowhead.ts`: import the two JSON files and add a `SPEC_DOCS` entry (label + optional `heroBranchNote`). Nothing else branches on spec id.

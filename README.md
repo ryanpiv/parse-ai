@@ -52,7 +52,7 @@ ANTHROPIC_API_KEY=<Anthropic API key>
 ## Project Structure
 
 ```
-pages/
+src/pages/
   index.tsx               # Main app — URL parsing, data fetching, charts, AI chat
   talent-preview.tsx      # Dev/QA page for testing talent tree rendering
   _app.tsx                # App wrapper, global CSS
@@ -66,7 +66,7 @@ pages/
     tooltip.ts            # GET spell icon from Wowhead (avoids CORS)
     debug-tree.ts         # Debug: raw hero_talent_trees + node ranks
 
-lib/
+src/lib/
   wclClient/              # gql() helper and callAI() helper
   fightAnalysis/          # collectNames, resolveNames, fetchFullFightData, buildAnalyzedFightData
   gameState/
@@ -87,12 +87,12 @@ lib/
   pkce.ts                 # PKCE helpers (genVerifier, genChallenge)
   prompts/chatPresets.ts  # Ask Claude preset questions
 
-styles/
+src/styles/
   globals.css             # Themes + resets (CSS custom properties)
   ui.module.css           # Shared design atoms
   pages/                  # Page-level CSS modules
 
-components/
+src/components/
   AIChat/
     AIChat.tsx            # Chat message list, input, preset question buttons
     FormatAI/             # Markdown → React renderer for AI responses

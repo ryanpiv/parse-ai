@@ -88,7 +88,7 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 ## 4. Directory map
 
 ```
-pages/
+src/pages/
   index.tsx            Analyze: heading → WCL panel → view tabs (gated on load)
   analyze.tsx          Redirect → /
   reports.tsx          Report browser: my/guild logs → pulls → player picker → Analyze
@@ -107,13 +107,13 @@ pages/
     tooltip.ts         Wowhead icon proxy (never add ?dataEnv=11)
     spell-cooldowns.ts, debug-tree.ts
 
-contexts/
+src/contexts/
   AppSessionContext.tsx        localStorage-backed session (talent strings, specId, URLs)
   AnalyzePageCacheContext.tsx  In-memory snapshot so Analyze survives route changes
   FightAnalysisContext.tsx     THE core: WCL URL, loadCompare/solo pipeline, chat threads,
                                analysisSubtab, auth state (~1200 lines)
 
-components/
+src/components/
   AppNav/              Fixed route tabs + Settings dropdown (theme radios, WCL + Claude keys)
   AppErrorBoundary/    Last-resort catch for uncaught render errors (brief message + Reload)
   ui/                  Shared primitives: PageHeader, Panel, FieldRow, KeyField, OrDivider,
@@ -128,7 +128,7 @@ components/
                        SpellTooltip, TalentSourceForm
   reports/             ReportBrowser, TopParseSection
 
-lib/
+src/lib/
   wclClient/           gql() with timeout + formatted errors; callAI / callAIStream;
                        anthropicModel.ts = the single ANTHROPIC_MODEL constant
   fightAnalysis/       fetchFullFightData, buildAnalyzedFightData, solo partner stub
@@ -154,12 +154,12 @@ lib/
 knowledge/             Source-of-truth corpora (see §6)
 public/                favicon.svg (source) + favicon.ico + apple-touch-icon.png
 scripts/               embed-simc.mjs, wowhead + icy-veins scrapers
-styles/globals.css     CSS variables (:root + html[data-vibe=…]) — themes + resets only
-styles/ui.module.css   Shared design atoms (buttons, fields, alerts, chrome)
-styles/pages/          Page-level CSS modules
-types/                 wcl.ts, global.d.ts
-__tests__/api/         Jest for API routes (cannot live under pages/)
-lib/**/__tests__/      Colocated domain tests
+src/styles/globals.css CSS variables (:root + html[data-vibe=…]) — themes + resets only
+src/styles/ui.module.css Shared design atoms (buttons, fields, alerts, chrome)
+src/styles/pages/      Page-level CSS modules
+src/types/             wcl.ts, global.d.ts
+__tests__/api/         Jest for API routes (cannot live under src/pages/)
+src/lib/**/__tests__/  Colocated domain tests
 ```
 
 ---
