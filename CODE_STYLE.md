@@ -2,7 +2,7 @@
 
 How to write UI, helpers, and API routes in this app. Stack, deploy, and domain behavior live in `ARCHITECTURE.md`; session state lives in `PROGRESS.md`.
 
-**Migration stance:** this guide describes the target. New files follow it fully; existing files converge when substantially reworked (folder structure, CSS modules, export style). Formatting is already uniform: **Prettier owns it** (`.prettierrc.json` — 4-space, single quotes, no semicolons, width 110; `npm run format` / `npm run format-check`).
+**Target, not a backlog:** UI, pages, and tests already follow this guide (component folders, CSS modules, arrow-const default exports, colocated tests). New work matches the same patterns. Formatting is **Prettier-owned** (`.prettierrc.json` — 4-space, single quotes, no semicolons, width 110; `npm run format` / `npm run format-check`).
 
 ## Layout (Next.js Pages Router)
 
@@ -20,7 +20,7 @@ How to write UI, helpers, and API routes in this app. Stack, deploy, and domain 
 - A component gets a folder when it has tests, styles, mocks, or children. Until then a lone `.tsx` in the area folder is fine.
 - A lone `.ts` file in an existing folder is for pure logic, registries, types, or constants.
 - Do **not** add `lib/utils.ts` (or any grab-bag "utils"/"helpers" module). Do not add a one-file folder when the helper belongs next to an existing owner.
-- Legacy note: the top-level `__tests__/` mirror predates this guide. New tests are colocated; move old ones only when their subject moves.
+- API route tests stay in `__tests__/api/` (Next would serve anything under `pages/` as a route).
 
 ## Naming
 
@@ -82,7 +82,7 @@ Injected callbacks are required at the UI boundary. Optional extras are clearly 
 - Conditionals: early return for empty (`if (rows.length === 0) return null`), named booleans, `&&` for optional blocks.
 - UI state stays in the component. `useCallback` for handlers passed down. `useMemo` for derived lists.
 - Mapping, parsing, and serialization live in `.ts` files, not inside JSX.
-- **Styling: new components use CSS modules** (`import styles from './styles.module.css'`). Stop growing the inline-style maps in `lib/styles.ts` and the `pa-*` classes in `styles/globals.css` — they're legacy; migrate a component's styles when you rework it. Theme values still come from the CSS custom properties (`var(--gold2)` etc. from `lib/vibes.ts`).
+- **Styling: CSS modules.** Shared atoms live in `styles/ui.module.css` (buttons, fields, alerts, chrome). Component-specific layout lives in that component's `styles.module.css`. Page chrome that isn't a component goes in `styles/pages/<page>.module.css`. Theme values come from CSS custom properties (`var(--gold2)` etc. from `lib/vibes.ts` / `styles/globals.css`). Computed or per-datum values (class colors, SVG coordinates, ResizeObserver widths) stay inline. Do not grow `globals.css` with component classes.
 - Do not add a second stylesheet system (styled-components, Tailwind, …).
 - Do not add a mobile layout fork unless the UI actually splits.
 
@@ -154,6 +154,6 @@ Server-only rules:
 | Comment the non-obvious constraint | restate the next line |
 | Keep mapping out of JSX | a 200-line inline submit handler |
 | Put a helper next to its owner | `lib/utils.ts` or a one-file folder |
-| CSS module classes on new components | growing `lib/styles.ts` / inline style soup |
+| CSS module classes (`styles/ui.module.css` + colocated modules) | inline style soup / new globals in `globals.css` |
 | Thin API route → `lib/` domain function | business logic inside `pages/api/` handlers |
 | `{ error: string }` on every non-2xx | raw upstream errors or stack traces to the client |

@@ -13,7 +13,7 @@ disable-model-invocation: true
 
 - **Scraper:** `scripts/wowhead/scrape-wowhead.mjs` — table-driven (`SPECS` registry maps folder → classSlug/specSlug/ChrSpecialization id); helpers `extractGuideMarkup.mjs`, `parseTalentBbCode.mjs`, `extractWowheadChrome.mjs`, `talentExportHeader.mjs`
 - **Snapshots (committed):** `knowledge/wowhead/scraped/<spec-folder>/*.json` — **all 40 retail specs** incl. Midnight's Devourer DH (folders like `mage-frost`, `priest-holy`, `demon-hunter-devourer`). `markupBbCode` is intentionally not written (sections carry the content; halves the client bundle cost).
-- **AI bundle:** `lib/knowledge/embeddedWowhead.ts` `SPEC_DOCS` registry (keyed by ChrSpecialization id) imports those JSON files into Claude context when the user uses the **SimC + Wowhead** preset (`PRESET_CASTS_VS_SIMC_WOWHEAD` in `lib/styles.ts`). Coverage is locked by `__tests__/lib/embeddedWowhead.test.ts`.
+- **AI bundle:** `lib/knowledge/embeddedWowhead.ts` `SPEC_DOCS` registry (keyed by ChrSpecialization id) imports those JSON files into Claude context when the user uses the **SimC + Wowhead** preset (`PRESET_CASTS_VS_SIMC_WOWHEAD` in `lib/prompts/chatPresets.ts`). Coverage is locked by `lib/knowledge/__tests__/embeddedWowhead.test.ts`.
 
 ## Refresh workflow
 

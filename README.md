@@ -85,12 +85,17 @@ lib/
   serverWclToken.ts       # WCL client-credentials token cache (getWclToken)
   wclUserToken.ts         # Per-user WCL sign-in: localStorage token, headers, PKCE redirect
   pkce.ts                 # PKCE helpers (genVerifier, genChallenge)
-  styles.ts               # Shared inline style constants
+  prompts/chatPresets.ts  # Ask Claude preset questions
+
+styles/
+  globals.css             # Themes + resets (CSS custom properties)
+  ui.module.css           # Shared design atoms
+  pages/                  # Page-level CSS modules
 
 components/
   AIChat/
-    index.tsx             # Chat message list, input, preset question buttons
-    FormatAI.tsx          # Markdown → React renderer for AI responses
+    AIChat.tsx            # Chat message list, input, preset question buttons
+    FormatAI/             # Markdown → React renderer for AI responses
     CopyBtn.tsx           # Copy-to-clipboard
   Charts/
     SpellUsageChart.tsx   # Bar chart: cast counts + DPM comparison

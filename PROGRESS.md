@@ -6,18 +6,21 @@
 
 _Last updated: 2026-09-16_
 
-## Code style guide adopted (2026-09-16)
+## Code style retrofit complete (2026-09-16)
 
-- **`CODE_STYLE.md`** now defines structure/naming/component/test/API-route rules
-  (adapted from the user's frontend style guide + general BE design for
-  `pages/api/`). Condensed always-on version in `.cursor/rules/code-style.mdc`.
-- Migration stance: **new files follow it fully; existing files keep their local
-  style until substantially reworked.** Biggest deltas vs current code: CSS
-  modules instead of `lib/styles.ts` inline maps / `pa-*` globals (both now
-  frozen as legacy), component folders with colocated tests, arrow-fn default
-  exports, `I`-prefixed local interfaces. Formatting: one-shot Prettier
-  reformat landed right after (4-space, single quotes, no semi, width 110;
-  `npm run format` / `format-check`; generated + vendored files ignored).
+- **`CODE_STYLE.md`** + `.cursor/rules/code-style.mdc` define the rules. Existing
+  UI now matches: arrow-const default exports, `ComponentNameProps` / `I*` types,
+  component folders with CSS modules, tests colocated next to subjects (API
+  route tests stay in `__tests__/api/`).
+- Shared atoms live in **`styles/ui.module.css`**. `lib/styles.ts` and the
+  `.pa-*` globals are gone; `styles/globals.css` is themes + resets only.
+  Page chrome is in `styles/pages/`. Computed values (class colors, SVG tree
+  edges, ResizeObserver widths) stay inline on purpose.
+- Ask Claude chat UI that was duplicated in both fight views is now
+  `components/AIChat/AIChat.tsx`.
+- Visual sweep (2026-09-16): empty pages + Settings + all three themes, then a
+  loaded solo fight (stats, metric timeline chip filter, spell timeline, Ask
+  Claude key prompt, Compare empty-state / similar-parse button) looked correct.
 
 ## Latest session (2026-09-16): SimC APL parity + WCL token refresh
 

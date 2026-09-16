@@ -73,15 +73,15 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 ### Settings (nav dropdown)
 - **Themes** — three vibes as radio buttons: **Slate** (default, `:root` palette), **Gold HUD** (`classic`), **Light**. Selection sets `data-vibe` on `<html>` and persists to `localStorage` (`parse-analyzer-vibe`); a pre-hydration script in `pages/_document.tsx` prevents flash. Definitions: `lib/vibes.ts` (data) + `styles/globals.css` (`html[data-vibe="…"]` overrides).
 - **WarcraftLogs** — "Sign in with WarcraftLogs" button (or "✓ Signed in as {name}" + Sign out). Sign-in is **required** to load reports; see §WCL auth. When signed out, the Analyze empty state shows `WclKeyPrompt` (sign-in button, or operator setup steps if the server has no client id).
-- **Claude API key (BYOK)** — password `KeyField` (`AnthropicKeyPanel`): a Claude **Console** key (`sk-ant-…`) stored only in `localStorage` (`lib/anthropicUserKey.ts`), sent as `x-anthropic-api-key` header to `/api/ai`, which prefers it over the server's `ANTHROPIC_API_KEY` env fallback. **There is no "Sign in with Claude" for third-party apps** — Console API keys are the supported path. Save/clear dispatch `pa:claude-key-changed`, and `pa:open-claude-key-settings` (from "Add key in Settings" buttons) opens this dropdown with the field focused and glowing (`lib/claudeKeyBus.ts`, `.paKeyGlow` in `globals.css`).
+- **Claude API key (BYOK)** — password `KeyField` (`AnthropicKeyPanel`): a Claude **Console** key (`sk-ant-…`) stored only in `localStorage` (`lib/anthropicUserKey.ts`), sent as `x-anthropic-api-key` header to `/api/ai`, which prefers it over the server's `ANTHROPIC_API_KEY` env fallback. **There is no "Sign in with Claude" for third-party apps** — Console API keys are the supported path. Save/clear dispatch `pa:claude-key-changed`, and `pa:open-claude-key-settings` (from "Add key in Settings" buttons) opens this dropdown with the field focused and glowing (`lib/claudeKeyBus.ts`, `ui.keyGlow` in `styles/ui.module.css`).
 
 ### WCL auth (per-user sign-in, required)
 - **"Sign in with WarcraftLogs" is mandatory for report loading** (`lib/wclUserToken.ts`): authorization code + PKCE using the operator's client id (served by `/api/auth` GET as `{ clientId }`; `WCL_CLIENT_ID` alone is enough — WCL **public/PKCE clients have no secret**, and the exchange sends `client_secret` only when configured). `/auth/callback` POSTs the code to `/api/auth` (`action: 'user-exchange'`); the resulting **user token + refresh token are returned to the browser and stored in localStorage only** (`parse-analyzer-wcl-user`, with expiry + user name) — never on the server. `wclClientHeaders()` adds `x-wcl-user-token` to `/api/wcl` calls; the route **requires it (401 otherwise)** and targets WCL's **`/api/v2/user`** endpoint — each user gets their own permissions (private logs) and rate-limit budget. **Silent renewal**: `ensureFreshWclUser()` exchanges the stored refresh token via `/api/auth` (`action: 'user-refresh'`) whenever the access token is expired or within 6h of expiry — called on `useWclUser` mount and before every `gql()`; concurrent calls share one exchange, failures back off 60s, and a rejected refresh token (invalid_grant) falls back to the sign-in prompt. Sign-out clears localStorage. The WCL client's **redirect URL must include** `http://localhost:3000/auth/callback` (plus the production origin).
 - **Server client-credentials token** (`lib/serverWclToken.ts`, `getWclToken()`): now only for game-data lookups (`/api/talents`, `/api/debug-tree`) — cached in module memory, auto-refreshed. A static `WCL_TOKEN` env is a legacy fallback for those routes only.
 - `FightAnalysisContext.authStatus` is 'ok' only when the user is signed in; `wclClientId` feeds the sign-in buttons (Settings row and `WclKeyPrompt`, which shows operator setup steps when no client id is configured).
 
-### Shared UI primitives (`components/ui.tsx`)
-- `PageHeader`, `Panel`, `FieldRow`, `KeyField`, `OrDivider` — every page composes these instead of hand-rolling heading/panel/field markup. New UI goes through them so themes and layout stay uniform.
+### Shared UI primitives (`components/ui/`)
+- `PageHeader`, `Panel`, `FieldRow`, `KeyField`, `OrDivider`, `Accordion` — every page composes these instead of hand-rolling heading/panel/field markup. New UI goes through them so themes and layout stay uniform. Shared atoms (buttons, fields, alerts) live in `styles/ui.module.css`; each primitive's own layout is a colocated CSS module.
 
 ---
 
@@ -114,19 +114,19 @@ contexts/
                                analysisSubtab, auth state (~1200 lines)
 
 components/
-  AppNav.tsx           Fixed route tabs + Settings dropdown (theme radios, WCL + Claude keys;
-                       listens for pa:open-claude-key-settings)
-  AppErrorBoundary.tsx Last-resort catch for uncaught render errors (brief message + Reload)
-  ui.tsx               Shared primitives: PageHeader, Panel, FieldRow, KeyField (highlight/
-                       focus support), OrDivider, Accordion
-  WclLoadStatus.tsx    Load progress/error banners ('nav' and 'viewbar' variants)
+  AppNav/              Fixed route tabs + Settings dropdown (theme radios, WCL + Claude keys)
+  AppErrorBoundary/    Last-resort catch for uncaught render errors (brief message + Reload)
+  ui/                  Shared primitives: PageHeader, Panel, FieldRow, KeyField, OrDivider,
+                       Accordion
+  WclLoadStatus/       Load progress/error banners ('nav' and 'viewbar' variants)
   AnthropicKeyPanel.tsx
   analyze/             SoloFightView, CompareFightView, AnalyzeEmptyState, WclLoadPanel,
-                       ClaudeKeyPrompt, WclKeyPrompt
+                       ClaudeKeyPrompt, WclKeyPrompt, TopParseCompare
   AIChat/              Chat list, FormatAI markdown renderer, CopyBtn
   Charts/              All Chart.js wrappers + SpellTimeline + ChartCard
   TalentCompare/       TalentCompare, FullTalentTree, TalentTree (SVG), TalentIcon,
                        SpellTooltip, TalentSourceForm
+  reports/             ReportBrowser, TopParseSection
 
 lib/
   wclClient/           gql() with timeout + formatted errors; callAI / callAIStream;
@@ -144,7 +144,6 @@ lib/
   anthropicUserKey.ts  BYOK storage/validation/headers
   claudeKeyBus.ts      Key-changed / open-settings window events (Claude + WCL) + useClaudeKeyPresent()
   vibes.ts             Theme definitions (Settings radios)
-  styles.ts            Shared inline styles (s.*) + pa-* class name map
   serverEnv.ts         Server-only env resolution (WCL/Blizzard/Anthropic keys)
   serverWclToken.ts    WCL client-credentials token cache (getWclToken)
   wclUserToken.ts      Per-user WCL sign-in (localStorage token, headers, PKCE redirect)
@@ -155,9 +154,12 @@ lib/
 knowledge/             Source-of-truth corpora (see §6)
 public/                favicon.svg (source) + favicon.ico + apple-touch-icon.png
 scripts/               embed-simc.mjs, wowhead + icy-veins scrapers
-styles/globals.css     CSS variables (:root + html[data-vibe=…]), all .pa-* classes
+styles/globals.css     CSS variables (:root + html[data-vibe=…]) — themes + resets only
+styles/ui.module.css   Shared design atoms (buttons, fields, alerts, chrome)
+styles/pages/          Page-level CSS modules
 types/                 wcl.ts, global.d.ts
-__tests__/             Jest: api routes, lib units (gameState, talents, wclClient, URL parse)
+__tests__/api/         Jest for API routes (cannot live under pages/)
+lib/**/__tests__/      Colocated domain tests
 ```
 
 ---
@@ -231,7 +233,7 @@ BLIZZARD_CLIENT_SECRET=
 
 - Every color/font/radius flows through CSS custom properties defined in `:root` (**Slate**, the default) and overridden per theme in `html[data-vibe="classic|light"]` blocks in `styles/globals.css`. Theme choice is a Settings radio (`lib/vibes.ts`).
 - Semantic variables: `--bg..--bg4`, `--border`, `--text/--muted/--dim`, `--gold/--gold2/--golddim` (the *accent*, regardless of hue), `--blue`, `--red`, `--green`, `--on-accent`, `--font-ui/--font-display/--font-mono`, `--radius/--radius-sm`, `--label-tracking/--label-transform`.
-- **Rule for new UI:** never hardcode hex or font families in components — use the variables (via `lib/styles.ts` `s.*` styles or `.pa-*` classes). Then all five themes keep working.
+- **Rule for new UI:** never hardcode hex or font families in components — use the CSS custom properties (via `styles/ui.module.css` atoms or a colocated CSS module). Then all themes keep working.
 - `--pa-sticky-app-nav-offset` couples the fixed nav height, its spacer, and the Analyze sticky view bar — change together.
 
 ---
@@ -239,7 +241,7 @@ BLIZZARD_CLIENT_SECRET=
 ## 9. Contributing rules (read carefully, AI agents)
 
 1. **Small, focused diffs.** Match the existing patterns of the file you touch. No drive-by refactors, no new dependencies without need.
-2. **Verify before finishing:** `npm test` (Jest) and `npm run build` must pass. Add/extend tests in `__tests__/` when changing logic (gameState, talents, wclClient, URL parsing, API routes all have suites to mirror).
+2. **Verify before finishing:** `npm test` (Jest) and `npm run build` must pass. Add/extend tests next to the subject (`lib/**/__tests__/`, `components/<Area>/<Name>/__tests__/`; API routes in `__tests__/api/`).
 3. **Never commit unless the user explicitly asks.** Leave changes unstaged for review.
 4. **Client-side constraint:** anything reachable from `buildRichContext*` or React components must not use `fs`, Node APIs, or server env. Static knowledge = bundled TS imports.
 5. **After editing `.simc` files:** run `npm run embed-simc`. After editing guide bodies: sync `embeddedGuides.ts` manually.
@@ -255,7 +257,7 @@ BLIZZARD_CLIENT_SECRET=
 - **New chat preset:** add to `lib/prompts/chatPresets.ts`, wire the tile in the relevant view; if it needs a knowledge block, add a prompt section in `lib/buildContext/index.ts`.
 - **New spec knowledge:** follow §6 table + the READMEs in `knowledge/guides/` and `knowledge/simc/`.
 - **New theme:** add a `html[data-vibe="…"]` block in `globals.css` + an entry in `lib/vibes.ts` (both must stay in sync); it appears as a Settings radio automatically.
-- **New page:** add to `pages/`, add a nav link in `AppNav.tsx`, compose the body from `components/ui.tsx` primitives (PageHeader → Panel/FieldRow).
+- **New page:** add to `pages/`, add a nav link in `components/AppNav/`, compose the body from `components/ui/` primitives (PageHeader → Panel/FieldRow).
 
 ---
 
