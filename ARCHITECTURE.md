@@ -131,7 +131,7 @@ components/
 lib/
   wclClient/           gql() with timeout + formatted errors; callAI / callAIStream;
                        anthropicModel.ts = the single ANTHROPIC_MODEL constant
-  fightAnalysis/       fetchFullFightData, processFightData, solo partner stub
+  fightAnalysis/       fetchFullFightData, buildAnalyzedFightData, solo partner stub
   gameState/           Buff/proc timeline tracking, cast annotation, uptimes
   buildContext/        buildRichContext / buildRichContextPlayerOne → Claude system prompt
   prompts/             Chat presets
@@ -170,7 +170,7 @@ User pastes URL → parseWclUrl (lib/wclReportUrl.ts)
   │    fetch metadata (both reports) → resolve actors/fights
   │    fetchFullFightData ×2 (paginated events: casts, buffs, debuffs, damage)
   │    damage tables → DPS; resolveNames for spell IDs
-  │    processFightData ×2 (lib/gameState: annotate casts with buff/proc state,
+  │    buildAnalyzedFightData ×2 (lib/gameState: annotate casts with buff/proc state,
   │                          uptimes, cooldown usage, sequences)
   │    fetchTalents ×2 (WCL CombatantInfo) → talentDiff {t1, t2, specId}
   │    → setP1data/setP2data/spellRows → subtab 'compare'

@@ -1,4 +1,4 @@
-import { pickSimilarRank, wclCompareSearchLink, type WclTopRank } from '../../lib/wclReports'
+import { pickSimilarRank, wclCompareSearchLink, type WclTopRank } from '../wclReports'
 
 function rank(rankNum: number, durationMs: number): WclTopRank {
     return {

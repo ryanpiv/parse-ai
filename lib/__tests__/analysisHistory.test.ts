@@ -1,4 +1,4 @@
-import { clearHistory, readHistory, recordHistory } from '../../lib/analysisHistory'
+import { clearHistory, readHistory, recordHistory } from '../analysisHistory'
 
 function entry(url: string, name1 = 'Smaktat') {
     return { url, kind: 'solo' as const, name1, spec1: 'Mage', boss: 'Some Boss' }

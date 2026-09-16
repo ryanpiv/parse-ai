@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { callAI, formatApiError, formatFetchError, formatLoadError, gql } from '../../lib/wclClient'
+import { callAI, formatApiError, formatFetchError, formatLoadError, gql } from '../index'
 
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>
 global.fetch = mockFetch

@@ -2,7 +2,7 @@ import {
     SIMC_BUNDLE_BY_SPEC_ID,
     simcAplAvailableForSpec,
     getSimcAplSupplement,
-} from '../../lib/knowledge/embeddedSimc'
+} from '../embeddedSimc'
 
 /** Every Midnight spec with an upstream default APL (34 of 40). */
 const SPEC_IDS_WITH_APL = [

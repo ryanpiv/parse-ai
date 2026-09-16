@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { extractSpellCooldownMs } from '../../../lib/cooldownSpells/extractSpellCooldown'
+import { extractSpellCooldownMs } from '../extractSpellCooldown'
 
 describe('extractSpellCooldownMs', () => {
     it('reads nested cooldown.value', () => {

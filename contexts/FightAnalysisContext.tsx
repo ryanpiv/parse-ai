@@ -19,7 +19,7 @@ import {
     collectNames,
     resolveNames,
     fetchFullFightData,
-    processFightData,
+    buildAnalyzedFightData,
     createSoloAnalysisPartnerStub,
 } from '../lib/fightAnalysis'
 import type { AnalyzedFightData } from '../lib/fightAnalysis'
@@ -684,7 +684,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
         setLoadStep('Analyzing game state...')
         setStatus({ type: 'info', msg: 'Analyzing buff windows and cast data...' })
 
-        const p1 = await processFightData({
+        const p1 = await buildAnalyzedFightData({
             raw: raw1,
             fightStart: fight1.startTime,
             fightEnd: fight1.endTime,
@@ -1086,7 +1086,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
                 setLoadStep('Analyzing game state...')
                 setStatus({ type: 'info', msg: 'Analyzing buff windows and cast data...' })
 
-                const p1 = await processFightData({
+                const p1 = await buildAnalyzedFightData({
                     raw: raw1,
                     fightStart: fight1.startTime,
                     fightEnd: fight1.endTime,
@@ -1097,7 +1097,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
                     takenTotal: tkE1.find((e: any) => e.name?.toLowerCase() === name1.toLowerCase())?.total,
                     nameMap: resolvedNames,
                 })
-                const p2 = await processFightData({
+                const p2 = await buildAnalyzedFightData({
                     raw: raw2,
                     fightStart: fight2.startTime,
                     fightEnd: fight2.endTime,

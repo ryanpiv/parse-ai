@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { parseWclUrl, resolveReportFightQuery } from '../../lib/wclReportUrl'
+import { parseWclUrl, resolveReportFightQuery } from '../wclReportUrl'
 
 describe('parseWclUrl', () => {
     it('parses compare URLs', () => {

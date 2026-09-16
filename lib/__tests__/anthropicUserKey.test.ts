@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { looksLikeAnthropicKey, maskAnthropicKey } from '../../lib/anthropicUserKey'
+import { looksLikeAnthropicKey, maskAnthropicKey } from '../anthropicUserKey'
 
 describe('looksLikeAnthropicKey', () => {
     it('accepts Console keys', () => {

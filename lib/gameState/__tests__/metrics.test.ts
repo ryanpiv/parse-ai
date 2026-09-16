@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { computeUptimes, computeCastSpacing } from '../../../lib/gameState/metrics'
+import { computeUptimes, computeCastSpacing } from '../metrics'
 
 describe('computeUptimes', () => {
     it('calculates uptime percentage from buff windows', () => {

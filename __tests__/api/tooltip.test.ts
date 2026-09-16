@@ -1,4 +1,3 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '../../pages/api/tooltip'
 
@@ -19,7 +18,9 @@ function mockRes() {
 }
 
 describe('/api/tooltip', () => {
-    beforeEach(() => jest.clearAllMocks())
+    beforeEach(() => {
+        jest.clearAllMocks()
+    })
 
     it('returns 400 when id is missing', async () => {
         const res = mockRes()

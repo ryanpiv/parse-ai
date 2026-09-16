@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { getWclToken, _resetWclTokenCache } from '../../lib/serverWclToken'
+import { getWclToken, _resetWclTokenCache } from '../serverWclToken'
 
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>
 global.fetch = mockFetch

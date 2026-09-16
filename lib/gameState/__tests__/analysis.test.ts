@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { annotateCasts } from '../../../lib/gameState/analysis'
+import { annotateCasts } from '../analysis'
 
 function makeContext(overrides: Partial<Parameters<typeof annotateCasts>[1]> = {}) {
     return {

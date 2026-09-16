@@ -101,7 +101,7 @@ import {
     type CastTimelineSegment,
 } from '../gameState'
 
-interface ProcessFightDataParams {
+interface IBuildAnalyzedFightDataParams {
     raw: RawFightData
     fightStart: number
     fightEnd: number
@@ -137,7 +137,7 @@ export interface AnalyzedFightData {
     metricSeries?: import('../metricGraphs').MetricSeries
 }
 
-export async function processFightData({
+export async function buildAnalyzedFightData({
     raw,
     fightStart,
     fightEnd,
@@ -147,7 +147,7 @@ export async function processFightData({
     dps,
     takenTotal,
     nameMap,
-}: ProcessFightDataParams): Promise<AnalyzedFightData> {
+}: IBuildAnalyzedFightDataParams): Promise<AnalyzedFightData> {
     const dur = (fightEnd - fightStart) / 1000
     const { casts, buffs, debuffs, damage, deaths } = raw
 

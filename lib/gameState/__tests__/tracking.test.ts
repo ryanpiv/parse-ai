@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { buildStateTracker, buildTargetTracker, buildDamageLookup } from '../../../lib/gameState/tracking'
+import { buildStateTracker, buildTargetTracker, buildDamageLookup } from '../tracking'
 
 describe('buildStateTracker', () => {
     const fightStart = 10000

@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { buildCastTimelineSegments } from '../../../lib/gameState/castTimeline'
+import { buildCastTimelineSegments } from '../castTimeline'
 
 const fightStart = 1_000_000
 const playerId = 7

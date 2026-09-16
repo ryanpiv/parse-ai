@@ -68,7 +68,7 @@ pages/
 
 lib/
   wclClient/              # gql() helper and callAI() helper
-  fightAnalysis/          # collectNames, resolveNames, fetchFullFightData, processFightData
+  fightAnalysis/          # collectNames, resolveNames, fetchFullFightData, buildAnalyzedFightData
   gameState/
     tracking.ts           # Build buff/debuff/proc state timeline per player
     analysis.ts           # Annotate casts, detect sequences, compute uptimes, cast spacing

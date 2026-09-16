@@ -1,6 +1,5 @@
-import { describe, it, expect, jest } from '@jest/globals'
-import { fetchFightData } from '../../lib/fetchFightData'
-import type { GqlFn } from '../../lib/fetchFightData'
+import { fetchFightData } from '../fetchFightData'
+import type { GqlFn } from '../fetchFightData'
 
 function makeGqlResponse(dataType: string, events: unknown[]) {
     return { reportData: { report: { events: { data: events } } } }

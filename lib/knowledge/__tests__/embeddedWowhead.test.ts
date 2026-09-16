@@ -1,7 +1,7 @@
 import {
     getWowheadReferenceSupplement,
     wowheadReferenceAvailableForSpec,
-} from '../../lib/knowledge/embeddedWowhead'
+} from '../embeddedWowhead'
 
 /** All 40 retail (Midnight) ChrSpecialization ids the corpus must cover. */
 const ALL_SPEC_IDS = [

@@ -7,7 +7,7 @@ import {
     wclRowsToDecodedNodes,
     type TreeNodeInfo,
     type DecodedTalentNode,
-} from '../../../lib/talents/decodeTalentString'
+} from '../decodeTalentString'
 
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 

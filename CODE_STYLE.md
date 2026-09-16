@@ -15,7 +15,8 @@ How to write UI, helpers, and API routes in this app. Stack, deploy, and domain 
 | `lib/<concept>/` | Pure domain helpers used by more than one owner (`fightAnalysis`, `wclClient`, `buildContext`, `knowledge`, …). |
 | `contexts/` | React context providers. |
 
-- A helper with a single owner lives in that owner's folder. Tests sit next to the file they cover.
+- A helper with a single owner lives in that owner's folder. Tests sit next to the file they cover (`lib/__tests__/`, `lib/<concept>/__tests__/`, `components/<Area>/<Name>/__tests__/`). **Exception:** API route tests live in the top-level `__tests__/api/` — Next would serve anything under `pages/` as a route.
+- Context modules (`contexts/`) export a named provider + hook pair (`FightAnalysisProvider`, `useFightAnalysis`) — they are domain modules, not `components/<Name>` units, so the components-default-export rule does not apply.
 - A component gets a folder when it has tests, styles, mocks, or children. Until then a lone `.tsx` in the area folder is fine.
 - A lone `.ts` file in an existing folder is for pure logic, registries, types, or constants.
 - Do **not** add `lib/utils.ts` (or any grab-bag "utils"/"helpers" module). Do not add a one-file folder when the helper belongs next to an existing owner.

@@ -17,10 +17,10 @@ function stored(): any {
 
 /** Fresh module per test — refresh dedupe/cooldown state is module-scoped. */
 async function loadModule() {
-    let mod: typeof import('../../lib/wclUserToken')
+    let mod: typeof import('../wclUserToken')
     jest.resetModules()
     await jest.isolateModulesAsync(async () => {
-        mod = await import('../../lib/wclUserToken')
+        mod = await import('../wclUserToken')
     })
     return mod!
 }
