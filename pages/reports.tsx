@@ -1,5 +1,6 @@
 import Head from 'next/head'
-import { PageHeader, Panel } from '../components/ui'
+import PageHeader from '../components/ui/PageHeader'
+import Panel from '../components/ui/Panel'
 import { ReportBrowser } from '../components/reports/ReportBrowser'
 import { WclKeyPrompt } from '../components/analyze/WclKeyPrompt'
 import { useFightAnalysis } from '../contexts/FightAnalysisContext'

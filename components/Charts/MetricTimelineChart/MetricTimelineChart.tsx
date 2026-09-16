@@ -6,8 +6,16 @@
  * common buckets before overlaying.
  */
 import { useRef, useState } from 'react'
-import { useChart, CHART_DEFAULTS, GOLD, GOLD_DIM, BLUE, BLUE_DIM } from './chartDefaults'
-import type { MetricKey, MetricPoints } from '../../lib/metricGraphs'
+import { useChart, CHART_DEFAULTS, GOLD, GOLD_DIM, BLUE, BLUE_DIM } from '../chartDefaults'
+import type { MetricKey, MetricPoints } from '../../../lib/metricGraphs'
+import styles from './styles.module.css'
+
+export type MetricTimelineChartProps = {
+    p1data: any
+    p2data: any
+    solo?: boolean
+    compareWindowSec?: number
+}
 
 const METRICS: Array<{ key: MetricKey; label: string; axis: string }> = [
     { key: 'dmg', label: 'Damage done', axis: 'dps' },
@@ -20,7 +28,7 @@ export function hasMetricSeriesData(pdata: any): boolean {
     return Boolean(ms && (ms.dmg?.length || ms.heal?.length || ms.taken?.length))
 }
 
-function resample(points: MetricPoints, dur: number, bucketSize: number): Array<number | null> {
+const resample = (points: MetricPoints, dur: number, bucketSize: number): Array<number | null> => {
     const n = Math.max(1, Math.ceil(dur / bucketSize))
     const sums = new Array<number>(n).fill(0)
     const counts = new Array<number>(n).fill(0)
@@ -33,8 +41,7 @@ function resample(points: MetricPoints, dur: number, bucketSize: number): Array<
     return sums.map((sum, i) => (counts[i] ? Math.round(sum / counts[i]) : null))
 }
 
-export function MetricTimelineChart(props: any) {
-    const { p1data, p2data, solo, compareWindowSec } = props
+const MetricTimelineChart = ({ p1data, p2data, solo, compareWindowSec }: MetricTimelineChartProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const [metric, setMetric] = useState<MetricKey>('dmg')
 
@@ -85,43 +92,22 @@ export function MetricTimelineChart(props: any) {
     const noData = !pts1.length && !pts2.length
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 8 }}>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {METRICS.map((m) => {
-                    const active = m.key === metric
-                    return (
-                        <button
-                            key={m.key}
-                            type="button"
-                            onClick={() => setMetric(m.key)}
-                            style={{
-                                fontFamily: 'var(--font-ui)',
-                                fontSize: 11,
-                                padding: '3px 10px',
-                                borderRadius: 999,
-                                cursor: 'pointer',
-                                background: 'transparent',
-                                border: `1px solid ${active ? 'var(--gold2)' : 'var(--border)'}`,
-                                color: active ? 'var(--gold2)' : 'var(--muted)',
-                            }}
-                        >
-                            {m.label}
-                        </button>
-                    )
-                })}
-            </div>
-            <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
-                {noData ? (
-                    <p
-                        style={{
-                            fontFamily: 'var(--font-ui)',
-                            fontSize: 12.5,
-                            color: 'var(--dim)',
-                            margin: '20px 0 0',
-                        }}
+        <div className={styles.column}>
+            <div className={styles.chipRow}>
+                {METRICS.map((m) => (
+                    <button
+                        key={m.key}
+                        type="button"
+                        onClick={() => setMetric(m.key)}
+                        className={m.key === metric ? `${styles.chip} ${styles.chipActive}` : styles.chip}
                     >
-                        No {meta.label.toLowerCase()} recorded for this fight.
-                    </p>
+                        {m.label}
+                    </button>
+                ))}
+            </div>
+            <div className={styles.plotArea}>
+                {noData ? (
+                    <p className={styles.noData}>No {meta.label.toLowerCase()} recorded for this fight.</p>
                 ) : (
                     <canvas ref={canvasRef} />
                 )}
@@ -129,3 +115,5 @@ export function MetricTimelineChart(props: any) {
         </div>
     )
 }
+
+export default MetricTimelineChart

@@ -10,7 +10,10 @@ import {
     type TalentLoadPick,
 } from '../../lib/talents/loadTalentsFromWclUrl'
 import { pa, s } from '../../lib/styles'
-import { Accordion, FieldRow, OrDivider, Panel } from '../ui'
+import Accordion from '../ui/Accordion'
+import FieldRow from '../ui/FieldRow'
+import OrDivider from '../ui/OrDivider'
+import Panel from '../ui/Panel'
 import type { FightPlayerRow } from '../../lib/wclFightPlayers'
 
 export function TalentSourceForm() {

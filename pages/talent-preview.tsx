@@ -27,7 +27,7 @@ import {
 import { partitionBlizzardTalentNodes } from '../lib/talents/partitionBlizzardTree'
 import { applyRankMapAsRaidbotsP1, sumRanks } from '../lib/talents/raidbotsRankMap'
 import { pa, s } from '../lib/styles'
-import { PageHeader } from '../components/ui'
+import PageHeader from '../components/ui/PageHeader'
 
 const CANVAS_W = 1100
 const COL_CLASS_W = 410

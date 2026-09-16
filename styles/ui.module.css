@@ -1,0 +1,601 @@
+/*
+ * Shared design atoms — the app-wide buttons, fields, alerts, and chrome that
+ * many components compose. Component-specific layout belongs in that
+ * component's own styles.module.css, not here. Theme values come from the CSS
+ * custom properties in globals.css (see lib/vibes.ts).
+ *
+ * Migrated from the legacy `lib/styles.ts` maps (s.*) and `.pa-*` globals —
+ * keys keep their old names so call sites map 1:1 (s.label -> ui.label,
+ * pa.btnGold -> ui.btnGold).
+ */
+
+/* ---- layout + typography atoms (former s.*) ---- */
+
+.wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px;
+}
+
+.hdr {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 22px;
+}
+
+.logo {
+    font-family: var(--font-display);
+    font-size: 23px;
+    font-weight: 700;
+    letter-spacing: var(--label-tracking);
+    color: var(--gold2);
+}
+
+.logoSub {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 1px;
+}
+
+.badge {
+    font-family: var(--font-ui);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    background: rgba(168, 85, 247, 0.08);
+    color: var(--purple);
+}
+
+.panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+}
+
+.ptitle {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.ptitleBar {
+    width: 3px;
+    height: 12px;
+    background: var(--gold);
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.label {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    color: var(--dim);
+}
+
+.input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 7px 10px;
+    font-family: var(--font-ui);
+    font-size: 12.5px;
+    outline: none;
+    width: 100%;
+}
+
+.note {
+    font-size: 11.5px;
+    color: var(--dim);
+    font-family: var(--font-ui);
+    margin-top: 8px;
+    line-height: 1.65;
+}
+
+.alertInfo,
+.alertErr,
+.alertOk {
+    font-family: var(--font-ui);
+    font-size: 12.5px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    margin-top: 8px;
+    line-height: 1.65;
+}
+
+.alertInfo {
+    background: var(--bluedim);
+    color: var(--blue);
+    border: 1px solid #1e4a70;
+}
+
+.alertErr {
+    background: #3a1010;
+    color: var(--red);
+    border: 1px solid #5a2020;
+}
+
+.alertOk {
+    background: #102a18;
+    color: var(--green);
+    border: 1px solid #1a4a28;
+}
+
+/* ---- app chrome (former .pa-app-nav-*) ---- */
+
+.appNavTabs {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    height: var(--pa-sticky-app-nav-offset);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+}
+
+.appNavTabs nav {
+    max-width: 1200px;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+
+/* In-flow space under fixed route tabs (= strip height above). */
+.appNavTabsSpacer {
+    height: var(--pa-sticky-app-nav-offset);
+    flex-shrink: 0;
+}
+
+/* ---- view tabs (former .pa-view-tab*) ---- */
+
+.viewTab {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: var(--bg3);
+    color: var(--dim);
+    text-align: left;
+    min-height: 56px;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.viewTabActive {
+    border-color: var(--golddim);
+    color: var(--gold2);
+    background: var(--bg2);
+}
+
+.viewTab:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.viewTab:not(.viewTabActive):not(:disabled):hover {
+    border-color: var(--golddim);
+    color: var(--gold);
+    background: var(--bg2);
+}
+
+.viewTab:not(.viewTabActive):not(:disabled):hover .viewTabSub {
+    color: var(--golddim);
+}
+
+.viewTabSub {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--dim);
+    margin-top: 2px;
+    white-space: nowrap;
+}
+
+/* ---- load error box (former .pa-load-err*) ---- */
+
+.loadErr {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    margin-top: 8px;
+    line-height: 1.7;
+    background: #3a1010;
+    color: #f07070;
+    border: 2px solid var(--red);
+}
+
+.loadErrTitle {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    margin-bottom: 6px;
+    color: #ff8a8a;
+}
+
+/* ---- buttons (former .pa-btn-*) ---- */
+
+.btnGhost {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: transparent;
+    color: var(--dim);
+    white-space: nowrap;
+}
+
+.btnGhost:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.btnGhost:hover:not(:disabled) {
+    border-color: var(--golddim);
+    color: var(--gold);
+}
+
+.btnGhost.btnGhostViewBar {
+    min-height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    letter-spacing: var(--label-tracking);
+}
+
+a.btnGhost,
+a.btnGhost:visited {
+    color: var(--dim);
+}
+
+a.btnGhost:hover {
+    border-color: var(--golddim);
+    color: var(--gold);
+    text-decoration: none;
+}
+
+.btnGhostSm {
+    font-size: 10px;
+    padding: 4px 10px;
+    letter-spacing: 0.06em;
+}
+
+.btnGhostLink {
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+}
+
+/* Same visual scale as .btnGold for outlined buttons in one row (border -> slightly less vertical padding). */
+.btnGhostPrimaryRow {
+    font-size: 13px;
+    letter-spacing: var(--label-tracking);
+    padding: 8px 22px;
+    border-radius: var(--radius-sm);
+}
+
+a.btnGhostLink:hover {
+    text-decoration: none;
+}
+
+.btnGold {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    padding: 9px 22px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    background: var(--gold);
+    color: var(--on-accent);
+    white-space: nowrap;
+}
+
+.btnGold:disabled {
+    cursor: not-allowed;
+    background: var(--golddim);
+    color: var(--dim);
+}
+
+.btnCopy {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: var(--bg4);
+    color: var(--dim);
+    transition:
+        background 0.15s,
+        color 0.15s,
+        border-color 0.15s;
+    white-space: nowrap;
+}
+
+.btnCopyCopied {
+    background: #102a18;
+    color: var(--green);
+    border-color: #1a4a28;
+}
+
+.btnCopy:not(:disabled):hover:not(.btnCopyCopied) {
+    border-color: var(--golddim);
+    color: var(--gold);
+}
+
+.btnTimeline {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    padding: 3px 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--dim);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btnTimeline:hover {
+    border-color: var(--golddim);
+    color: var(--gold);
+}
+
+/* ---- tiles + chips (former .pa-quick-tile*, .pa-guide-chip) ---- */
+
+.quickTile {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    padding: 7px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.4;
+}
+
+.quickTile:disabled {
+    cursor: not-allowed;
+}
+
+.quickTile:not(:disabled):hover {
+    border-color: var(--golddim);
+    color: var(--gold);
+}
+
+.quickTileActive {
+    border-color: var(--golddim);
+    color: var(--gold);
+}
+
+.quickTileUnavailable {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.quickTileUnavailable:not(:disabled):hover {
+    border-color: var(--border);
+    color: var(--muted);
+}
+
+.guideChip {
+    font-family: var(--font-ui);
+    font-size: 10px;
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--muted);
+    cursor: pointer;
+    flex: 1 1 auto;
+    min-width: 0;
+    line-height: 1.35;
+}
+
+.guideChip:disabled {
+    background: var(--bg2);
+    color: var(--dim);
+    cursor: not-allowed;
+}
+
+.guideChip:not(:disabled):hover {
+    border-color: var(--golddim);
+    color: var(--gold);
+}
+
+/* ---- collapsible trigger (former .pa-collapsible-trigger*) ---- */
+
+.collapsibleTrigger {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    padding: 0;
+    text-align: left;
+}
+
+.collapsibleTrigger:hover {
+    color: var(--gold);
+}
+
+.collapsibleTriggerChev {
+    font-size: 10px;
+    color: var(--dim);
+    width: 14px;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+/* ---- roster pick (former .pa-roster-pick*) ---- */
+
+.rosterPick {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    text-align: left;
+}
+
+.rosterPickActive {
+    background: var(--bg2);
+    border-color: var(--golddim);
+}
+
+.rosterPick:disabled {
+    cursor: not-allowed;
+}
+
+/* ---- vibe dock (former .pa-vibe-*) ---- */
+
+.vibeDock {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    max-width: 220px;
+}
+
+.vibeDockLabel {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    color: var(--dim);
+}
+
+.vibeDockRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.vibeChip {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.vibeChipOn {
+    border-color: var(--gold);
+    color: var(--gold2);
+    background: var(--bg2);
+}
+
+.vibeDockBlurb {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+/* ---- attention pulse (former .paKeyGlow) ---- */
+
+/* Brief attention pulse on a settings field the user was sent to (e.g. "add your Claude key"). */
+@keyframes keyGlowPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+    }
+    40% {
+        box-shadow: 0 0 0 5px color-mix(in srgb, var(--gold) 45%, transparent);
+    }
+}
+
+.keyGlow {
+    border-color: var(--gold) !important;
+    animation: keyGlowPulse 1.2s ease-in-out 2;
+}

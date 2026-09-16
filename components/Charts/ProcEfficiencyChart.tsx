@@ -1,8 +1,13 @@
 import { useRef } from 'react'
 import { useChart, CHART_DEFAULTS, GOLD, BLUE } from './chartDefaults'
 
-export function ProcEfficiencyChart(props: any) {
-    const { p1data, p2data, solo } = props
+export type ProcEfficiencyChartProps = {
+    p1data: any
+    p2data: any
+    solo?: boolean
+}
+
+const ProcEfficiencyChart = ({ p1data, p2data, solo }: ProcEfficiencyChartProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
 
     const allBuffIds = new Set([
@@ -66,3 +71,5 @@ export function ProcEfficiencyChart(props: any) {
 
     return <canvas ref={canvasRef} />
 }
+
+export default ProcEfficiencyChart

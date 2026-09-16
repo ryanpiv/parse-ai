@@ -1,0 +1,15 @@
+.header,
+.headerOpen {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.header {
+    margin-bottom: 6px;
+}
+
+.headerOpen {
+    margin-bottom: 12px;
+}

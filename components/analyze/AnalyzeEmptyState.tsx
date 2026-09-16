@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { s } from '../../lib/styles'
-import { OrDivider } from '../ui'
+import OrDivider from '../ui/OrDivider'
 import { WclKeyPrompt } from './WclKeyPrompt'
 import { TopParseCompare } from './TopParseCompare'
 

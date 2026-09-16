@@ -3,20 +3,16 @@ import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { simcAplAvailableForSpec } from '../../lib/knowledge/embeddedSimc'
 import { wowheadReferenceAvailableForSpec } from '../../lib/knowledge/embeddedWowhead'
 import { icyVeinsReferenceAvailableForSpec } from '../../lib/knowledge/embeddedIcyVeins'
-import {
-    SpellUsageChart,
-    CastTimelineChart,
-    MetricTimelineChart,
-    hasMetricSeriesData,
-    ProcEfficiencyChart,
-    CooldownTimelineChart,
-    ChartCard,
-    CritRateChart,
-    hasCritRateChartData,
-} from '../Charts'
-import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
+import SpellUsageChart from '../Charts/SpellUsageChart'
+import CastTimelineChart from '../Charts/CastTimelineChart'
+import MetricTimelineChart, { hasMetricSeriesData } from '../Charts/MetricTimelineChart'
+import ProcEfficiencyChart from '../Charts/ProcEfficiencyChart'
+import CooldownTimelineChart from '../Charts/CooldownTimelineChart'
+import ChartCard from '../Charts/ChartCard'
+import CritRateChart, { hasCritRateChartData } from '../Charts/CritRateChart'
+import SpellTimeline, { type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
-import { CollapsibleSection } from '../CollapsibleSection'
+import CollapsibleSection from '../CollapsibleSection'
 import { CollapsibleGroupProvider, type CollapsibleBridgeApi } from '../CollapsibleGroup'
 import { AnalyzeEmptyState } from './AnalyzeEmptyState'
 import { ClaudeKeyPrompt } from './ClaudeKeyPrompt'

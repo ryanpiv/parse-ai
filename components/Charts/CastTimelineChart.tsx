@@ -1,8 +1,14 @@
 import { useRef } from 'react'
 import { useChart, CHART_DEFAULTS, GOLD, GOLD_DIM, BLUE, BLUE_DIM } from './chartDefaults'
 
-export function CastTimelineChart(props: any) {
-    const { p1data, p2data, solo, compareWindowSec } = props
+export type CastTimelineChartProps = {
+    p1data: any
+    p2data: any
+    solo?: boolean
+    compareWindowSec?: number
+}
+
+const CastTimelineChart = ({ p1data, p2data, solo, compareWindowSec }: CastTimelineChartProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
 
     function bucketCasts(annotated: { t: number }[], dur: number, bucketSize = 30) {
@@ -87,3 +93,5 @@ export function CastTimelineChart(props: any) {
 
     return <canvas ref={canvasRef} />
 }
+
+export default CastTimelineChart

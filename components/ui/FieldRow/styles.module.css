@@ -1,0 +1,17 @@
+.row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.rowWithAction {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+}
+
+.actionColumn {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}

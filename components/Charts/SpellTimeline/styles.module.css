@@ -1,0 +1,85 @@
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 6px;
+    z-index: 3;
+    background: #0a0c0f;
+    padding: 4px 0;
+}
+
+.legend {
+    display: flex;
+    gap: 12px;
+    font-family: var(--font-ui);
+    font-size: 10px;
+    color: #4a5a6a;
+    flex-shrink: 0;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.legendSwatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.trimmedNote {
+    color: rgba(212, 64, 64, 0.75);
+}
+
+.spacer {
+    flex: 1;
+}
+
+.zoomControls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.zoomPct {
+    font-family: var(--font-ui);
+    font-size: 10px;
+    color: #4a5a6a;
+    white-space: nowrap;
+}
+
+.zoomSlider {
+    width: 100px;
+    accent-color: rgba(201, 162, 39, 0.95);
+    cursor: pointer;
+}
+
+.canvas {
+    width: 100%;
+    user-select: none;
+    touch-action: pan-y;
+    cursor: grab;
+}
+
+.canvasDragging {
+    cursor: grabbing;
+}
+
+.svg {
+    display: block;
+}
+
+.hint {
+    font-family: var(--font-ui);
+    font-size: 9px;
+    color: #4a5a6a;
+    margin-top: 4px;
+    text-align: right;
+}

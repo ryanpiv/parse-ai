@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { s } from '../lib/styles'
-import { KeyField } from './ui'
+import ui from '../styles/ui.module.css'
+import KeyField from './ui/KeyField'
 import {
     looksLikeAnthropicKey,
     maskAnthropicKey,
@@ -9,8 +9,12 @@ import {
 } from '../lib/anthropicUserKey'
 import { announceClaudeKeyChanged } from '../lib/claudeKeyBus'
 
+export type AnthropicKeyPanelProps = {
+    highlight?: boolean
+}
+
 /** Settings row for the user's Claude Console key — stored in this browser's localStorage only. */
-export function AnthropicKeyPanel({ highlight = false }: { highlight?: boolean }) {
+const AnthropicKeyPanel = ({ highlight = false }: AnthropicKeyPanelProps) => {
     const [draft, setDraft] = useState('')
     const [saved, setSaved] = useState('')
     const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
@@ -19,7 +23,7 @@ export function AnthropicKeyPanel({ highlight = false }: { highlight?: boolean }
         setSaved(readAnthropicUserKey())
     }, [])
 
-    function save() {
+    const save = () => {
         const t = draft.trim()
         if (!t) {
             if (!saved) {
@@ -74,7 +78,9 @@ export function AnthropicKeyPanel({ highlight = false }: { highlight?: boolean }
                     )
                 }
             />
-            {msg && <div style={msg.type === 'err' ? s.alertErr : s.alertOk}>{msg.text}</div>}
+            {msg && <div className={msg.type === 'err' ? ui.alertErr : ui.alertOk}>{msg.text}</div>}
         </div>
     )
 }
+
+export default AnthropicKeyPanel

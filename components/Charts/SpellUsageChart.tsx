@@ -1,8 +1,14 @@
 import { useRef } from 'react'
 import { useChart, CHART_DEFAULTS, GOLD, BLUE } from './chartDefaults'
 
-export function SpellUsageChart(props: any) {
-    const { spellRows, name1, name2, solo } = props
+export type SpellUsageChartProps = {
+    spellRows: any[]
+    name1: string
+    name2?: string
+    solo?: boolean
+}
+
+const SpellUsageChart = ({ spellRows, name1, name2, solo }: SpellUsageChartProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const top = spellRows.filter((r: any) => (solo ? r.ppm1 > 0 : r.ppm1 > 0 || r.ppm2 > 0)).slice(0, 12)
 
@@ -42,3 +48,5 @@ export function SpellUsageChart(props: any) {
 
     return <canvas ref={canvasRef} />
 }
+
+export default SpellUsageChart

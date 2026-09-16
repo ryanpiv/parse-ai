@@ -20,8 +20,11 @@ export function hasCritRateChartData(p1data: any): boolean {
     return topCritSeries(p1data).length > 0
 }
 
-export function CritRateChart(props: { p1data: any }) {
-    const { p1data } = props
+export type CritRateChartProps = {
+    p1data: any
+}
+
+const CritRateChart = ({ p1data }: CritRateChartProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const top = useMemo(() => topCritSeries(p1data), [p1data])
 
@@ -62,3 +65,5 @@ export function CritRateChart(props: { p1data: any }) {
 
     return <canvas ref={canvasRef} />
 }
+
+export default CritRateChart

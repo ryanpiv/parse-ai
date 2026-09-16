@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo, useId } from 'react'
-import { pa } from '../../lib/styles'
-import type { CastTimelineSegment } from '../../lib/gameState/castTimeline'
+import ui from '../../../styles/ui.module.css'
+import styles from './styles.module.css'
+import type { CastTimelineSegment } from '../../../lib/gameState/castTimeline'
 
 const GOLD = 'rgba(201,162,39,0.95)'
 const BLUE = 'rgba(90,173,240,0.95)'
@@ -25,7 +26,7 @@ export type SpellTimelineGroup = {
     segments2: CastTimelineSegment[]
 }
 
-interface Props {
+export type SpellTimelineProps = {
     groups: SpellTimelineGroup[]
     name1: string
     name2: string
@@ -39,17 +40,17 @@ interface Props {
     compareWindowSec?: number
 }
 
-function segmentIntersectsView(
+const segmentIntersectsView = (
     s: CastTimelineSegment,
     dur: number,
     offset: number,
     windowSec: number,
-): boolean {
+): boolean => {
     const pad = 1
     return s.tEnd >= offset - pad && s.tStart <= offset + windowSec + pad && s.tStart <= dur + pad
 }
 
-export function SpellTimeline({
+const SpellTimeline = ({
     groups,
     name1,
     name2,
@@ -59,7 +60,7 @@ export function SpellTimeline({
     color2 = BLUE,
     solo,
     compareWindowSec,
-}: Props) {
+}: SpellTimelineProps) => {
     const defaultCompareDur = Math.max(dur1, dur2)
     const dur = solo
         ? dur1
@@ -128,13 +129,9 @@ export function SpellTimeline({
     const offset = Math.min(offsetSecRef.current, Math.max(0, dur - windowSec))
     const chartW = Math.max(120, containerW - LABEL_W)
 
-    function tx(t: number) {
-        return LABEL_W + ((t - offset) / windowSec) * chartW
-    }
+    const tx = (t: number) => LABEL_W + ((t - offset) / windowSec) * chartW
 
-    function inViewSeg(s: CastTimelineSegment) {
-        return segmentIntersectsView(s, dur, offset, windowSec)
-    }
+    const inViewSeg = (s: CastTimelineSegment) => segmentIntersectsView(s, dur, offset, windowSec)
 
     const tickInterval = windowSec <= 20 ? 5 : windowSec <= 60 ? 10 : windowSec <= 150 ? 20 : 30
     const axisTicks: number[] = []
@@ -216,80 +213,31 @@ export function SpellTimeline({
     const minWin = Math.max(5, Math.round(dur * 0.04))
 
     return (
-        <div style={{ width: '100%' }}>
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    marginBottom: 8,
-                    flexWrap: 'wrap',
-                    position: 'sticky',
-                    top: 6,
-                    zIndex: 3,
-                    background: BG,
-                    padding: '4px 0',
-                }}
-            >
-                <div
-                    style={{
-                        display: 'flex',
-                        gap: 12,
-                        fontFamily: 'var(--font-ui)',
-                        fontSize: 10,
-                        color: DIM,
-                        flexShrink: 0,
-                    }}
-                >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span
-                            style={{
-                                width: 10,
-                                height: 10,
-                                background: c1,
-                                borderRadius: 2,
-                                display: 'inline-block',
-                            }}
-                        />
+        <div>
+            <div className={styles.toolbar}>
+                <div className={styles.legend}>
+                    <span className={styles.legendItem}>
+                        <span className={styles.legendSwatch} style={{ background: c1 }} />
                         {name1}
                     </span>
                     {!solo && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <span
-                                style={{
-                                    width: 10,
-                                    height: 10,
-                                    background: c2,
-                                    borderRadius: 2,
-                                    display: 'inline-block',
-                                }}
-                            />
+                        <span className={styles.legendItem}>
+                            <span className={styles.legendSwatch} style={{ background: c2 }} />
                             {name2}
                         </span>
                     )}
-                    {trimmed && (
-                        <span style={{ color: 'rgba(212,64,64,0.75)' }}>trimmed to shorter fight</span>
-                    )}
+                    {trimmed && <span className={styles.trimmedNote}>trimmed to shorter fight</span>}
                 </div>
-                <div style={{ flex: 1 }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                    <span
-                        style={{
-                            fontFamily: 'var(--font-ui)',
-                            fontSize: 10,
-                            color: DIM,
-                            whiteSpace: 'nowrap',
-                        }}
-                    >
-                        {zoomPct}%
-                    </span>
+                <div className={styles.spacer} />
+                <div className={styles.zoomControls}>
+                    <span className={styles.zoomPct}>{zoomPct}%</span>
                     <input
                         type="range"
                         min={minWin}
                         max={dur}
                         step={1}
                         value={windowSec}
-                        style={{ width: 100, accentColor: GOLD, cursor: 'pointer' }}
+                        className={styles.zoomSlider}
                         onChange={(e) => {
                             const newWin = Number(e.target.value)
                             const centre = offsetSecRef.current + windowSecRef.current / 2
@@ -301,7 +249,7 @@ export function SpellTimeline({
                     />
                     <button
                         type="button"
-                        className={pa.btnTimeline}
+                        className={ui.btnTimeline}
                         onClick={() => {
                             windowSecRef.current = dur
                             offsetSecRef.current = 0
@@ -315,16 +263,11 @@ export function SpellTimeline({
 
             <div
                 ref={containerRef}
-                style={{
-                    width: '100%',
-                    cursor: isDragging ? 'grabbing' : 'grab',
-                    userSelect: 'none',
-                    touchAction: 'pan-y',
-                }}
+                className={isDragging ? `${styles.canvas} ${styles.canvasDragging}` : styles.canvas}
                 onMouseDown={onMouseDown}
                 onWheel={onWheel}
             >
-                <svg width={containerW} height={totalH} style={{ display: 'block' }}>
+                <svg width={containerW} height={totalH} className={styles.svg}>
                     <defs>
                         <clipPath id={clipPathId}>
                             <rect x={LABEL_W} y={HEADER_H} width={chartW} height={totalH - HEADER_H} />
@@ -540,18 +483,12 @@ export function SpellTimeline({
                     })}
                 </svg>
             </div>
-            <div
-                style={{
-                    fontFamily: 'var(--font-ui)',
-                    fontSize: 9,
-                    color: DIM,
-                    marginTop: 4,
-                    textAlign: 'right',
-                }}
-            >
+            <div className={styles.hint}>
                 drag to pan · horizontal scroll (trackpad) or Shift + mouse wheel · ⌘/Ctrl + scroll to zoom ·
                 slider to zoom
             </div>
         </div>
     )
 }
+
+export default SpellTimeline

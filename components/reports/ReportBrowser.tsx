@@ -27,7 +27,7 @@ import {
     type WclReportSummary,
     type WclTopRank,
 } from '../../lib/wclReports'
-import { TopParseSection } from './TopParseSection'
+import TopParseSection from './TopParseSection'
 
 type Source = { kind: 'mine' } | { kind: 'guild'; id: number; label: string }
 

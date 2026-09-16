@@ -39,7 +39,7 @@ import {
     PRESET_SOLO_ROTATION_WOWHEAD,
     PRESET_SOLO_ROTATION_ICY,
     PRESET_SOLO_ROTATION_BOTH,
-} from '../lib/styles'
+} from '../lib/prompts/chatPresets'
 import { fetchTalents } from '../lib/talents'
 import { talentDataToP1RowsJson } from '../lib/talents/p1TalentTreeSession'
 import { fetchMetricGraphs } from '../lib/metricGraphs'

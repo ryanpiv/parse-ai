@@ -4,18 +4,15 @@ import { useFightAnalysis, type FightSpellRow } from '../../contexts/FightAnalys
 import { wowheadReferenceAvailableForSpec } from '../../lib/knowledge/embeddedWowhead'
 import { icyVeinsReferenceAvailableForSpec } from '../../lib/knowledge/embeddedIcyVeins'
 import { TalentCompare } from '../TalentCompare'
-import {
-    SpellUsageChart,
-    CastTimelineChart,
-    MetricTimelineChart,
-    hasMetricSeriesData,
-    ProcEfficiencyChart,
-    CooldownTimelineChart,
-    ChartCard,
-} from '../Charts'
-import { SpellTimeline, type SpellTimelineGroup } from '../Charts/SpellTimeline'
+import SpellUsageChart from '../Charts/SpellUsageChart'
+import CastTimelineChart from '../Charts/CastTimelineChart'
+import MetricTimelineChart, { hasMetricSeriesData } from '../Charts/MetricTimelineChart'
+import ProcEfficiencyChart from '../Charts/ProcEfficiencyChart'
+import CooldownTimelineChart from '../Charts/CooldownTimelineChart'
+import ChartCard from '../Charts/ChartCard'
+import SpellTimeline, { type SpellTimelineGroup } from '../Charts/SpellTimeline'
 import { FormatAI, CopyBtn } from '../AIChat'
-import { CollapsibleSection } from '../CollapsibleSection'
+import CollapsibleSection from '../CollapsibleSection'
 import { CollapsibleGroupProvider, type CollapsibleBridgeApi } from '../CollapsibleGroup'
 import { AnalyzeEmptyState } from './AnalyzeEmptyState'
 import { ClaudeKeyPrompt } from './ClaudeKeyPrompt'

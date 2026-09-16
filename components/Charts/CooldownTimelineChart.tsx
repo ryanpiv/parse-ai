@@ -143,14 +143,21 @@ function CooldownBarInner({
     return <canvas ref={canvasRef} />
 }
 
-export function CooldownTimelineChart(props: {
+export type CooldownTimelineChartProps = {
     p1data: { name: string; dur: number }
     p2data: { name: string; dur: number }
     spellRows: SpellRow[]
     solo?: boolean
     compareWindowSec?: number
-}) {
-    const { p1data, p2data, spellRows, solo, compareWindowSec } = props
+}
+
+const CooldownTimelineChart = ({
+    p1data,
+    p2data,
+    spellRows,
+    solo,
+    compareWindowSec,
+}: CooldownTimelineChartProps) => {
     const effectiveCompareDur = Math.max(
         1,
         Math.min(
@@ -234,3 +241,5 @@ export function CooldownTimelineChart(props: {
         />
     )
 }
+
+export default CooldownTimelineChart

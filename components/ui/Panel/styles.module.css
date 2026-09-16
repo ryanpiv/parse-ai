@@ -1,0 +1,10 @@
+.titleWithActions {
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.titleText {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}

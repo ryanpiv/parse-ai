@@ -1,7 +1,8 @@
 import Head from 'next/head'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { useRouter } from 'next/router'
-import { PageHeader, Panel } from '../components/ui'
+import PageHeader from '../components/ui/PageHeader'
+import Panel from '../components/ui/Panel'
 import { useFightAnalysis } from '../contexts/FightAnalysisContext'
 import { pa, s } from '../lib/styles'
 import {

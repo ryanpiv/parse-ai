@@ -18,7 +18,7 @@ import {
     type WclFightSummary,
     type WclTopRank,
 } from '../../lib/wclReports'
-import { TopParseSection } from '../reports/TopParseSection'
+import TopParseSection from '../reports/TopParseSection'
 
 interface ResolvedMeta {
     fight: WclFightSummary

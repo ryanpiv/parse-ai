@@ -1,7 +1,8 @@
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { pa, s } from '../../lib/styles'
-import { FieldRow, Panel } from '../ui'
-import { WclLoadStatus } from '../WclLoadStatus'
+import FieldRow from '../ui/FieldRow'
+import Panel from '../ui/Panel'
+import WclLoadStatus from '../WclLoadStatus'
 
 /** Analyze entry point: WCL report/compare URL + Load, status alerts, and the solo roster picker. */
 export function WclLoadPanel() {
