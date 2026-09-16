@@ -9,14 +9,15 @@ import {
     loadTalentsFromWclUrl,
     type TalentLoadPick,
 } from '../../lib/talents/loadTalentsFromWclUrl'
-import { pa, s } from '../../lib/styles'
 import Accordion from '../ui/Accordion'
 import FieldRow from '../ui/FieldRow'
 import OrDivider from '../ui/OrDivider'
 import Panel from '../ui/Panel'
 import type { FightPlayerRow } from '../../lib/wclFightPlayers'
+import ui from '../../styles/ui.module.css'
+import styles from './styles.module.css'
 
-export function TalentSourceForm() {
+const TalentSourceForm = () => {
     const fa = useFightAnalysis()
     const { hydrated, session, patchSession } = useAppSession()
     const [stringDraft, setStringDraft] = useState('')
@@ -127,11 +128,11 @@ export function TalentSourceForm() {
 
     return (
         <Panel title="Load talents — a WCL URL or an export string" style={{ marginBottom: 16 }}>
-            <p style={{ ...s.note, marginTop: 0, marginBottom: 12 }}>
+            <p className={`${ui.note} ${styles.formNote}`}>
                 Load from a Warcraft Logs URL (single report with <code>?fight=</code>, or a compare URL —
                 player 1), or paste an export string (<code>/etl</code>, Wowhead, Raidbots).
             </p>
-            <div style={{ marginBottom: 16 }}>
+            <div className={styles.accordionBlock}>
                 <Accordion
                     label="Load from Warcraft Logs"
                     open={wclOpen}
@@ -142,7 +143,7 @@ export function TalentSourceForm() {
                         action={
                             <button
                                 type="button"
-                                className={pa.btnGold}
+                                className={ui.btnGold}
                                 disabled={busy || !fa.compareUrl.trim()}
                                 onClick={() => void loadFromUrl()}
                             >
@@ -151,7 +152,7 @@ export function TalentSourceForm() {
                         }
                     >
                         <input
-                            style={s.input}
+                            className={ui.input}
                             value={fa.compareUrl}
                             onChange={(e) => fa.setCompareUrl(e.target.value)}
                             placeholder="https://www.warcraftlogs.com/reports/… or …/compare/…"
@@ -168,7 +169,7 @@ export function TalentSourceForm() {
                 action={
                     <button
                         type="button"
-                        className={pa.btnGold}
+                        className={ui.btnGold}
                         disabled={busy}
                         onClick={() => void applyString()}
                     >
@@ -178,7 +179,7 @@ export function TalentSourceForm() {
                 style={{ marginBottom: 12 }}
             >
                 <textarea
-                    style={{ ...s.input, resize: 'vertical', minHeight: 56 }}
+                    className={`${ui.input} ${styles.exportTextarea}`}
                     rows={2}
                     value={stringDraft}
                     onChange={(e) => setStringDraft(e.target.value)}
@@ -186,16 +187,16 @@ export function TalentSourceForm() {
                 />
             </FieldRow>
             {pick && pick.players.length > 0 && (
-                <div style={{ marginBottom: 10 }}>
-                    <div style={{ ...s.label, marginBottom: 8 }}>Select character</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <div className={styles.pickSection}>
+                    <div className={`${ui.label} ${styles.pickLabel}`}>Select character</div>
+                    <div className={styles.pickRow}>
                         {pick.players.map((p) => (
                             <button
                                 key={p.id}
                                 type="button"
                                 disabled={busy}
                                 onClick={() => void pickPlayer(p)}
-                                className={pa.rosterPick}
+                                className={ui.rosterPick}
                                 title={`${p.role} · ${p.className}`}
                             >
                                 {p.iconUrl ? (
@@ -204,40 +205,24 @@ export function TalentSourceForm() {
                                         alt=""
                                         width={24}
                                         height={24}
-                                        style={{ borderRadius: 3, flexShrink: 0 }}
+                                        className={styles.pickIcon}
                                     />
                                 ) : (
-                                    <span
-                                        style={{
-                                            width: 24,
-                                            height: 24,
-                                            borderRadius: 3,
-                                            background: 'var(--bg4)',
-                                            flexShrink: 0,
-                                            display: 'inline-block',
-                                        }}
-                                    />
+                                    <span className={styles.pickIconPlaceholder} />
                                 )}
                                 <span>
-                                    <span style={{ color: 'var(--gold2)', fontWeight: 600 }}>{p.name}</span>
-                                    <span
-                                        style={{
-                                            display: 'block',
-                                            fontSize: 10,
-                                            color: 'var(--dim)',
-                                            marginTop: 2,
-                                        }}
-                                    >
-                                        {p.specLabel}
-                                    </span>
+                                    <span className={styles.pickName}>{p.name}</span>
+                                    <span className={styles.pickSpec}>{p.specLabel}</span>
                                 </span>
                             </button>
                         ))}
                     </div>
                 </div>
             )}
-            {error && <div style={s.alertErr}>{error}</div>}
-            {ok && <div style={s.alertOk}>{ok}</div>}
+            {error && <div className={ui.alertErr}>{error}</div>}
+            {ok && <div className={ui.alertOk}>{ok}</div>}
         </Panel>
     )
 }
+
+export default TalentSourceForm

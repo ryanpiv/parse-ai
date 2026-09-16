@@ -1,17 +1,18 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import '../lib/spellTooltips'
+import ui from '../styles/ui.module.css'
+import styles from '../styles/pages/index.module.css'
 import { useFightAnalysis, type AnalysisSubtab } from '../contexts/FightAnalysisContext'
-import { SoloFightView } from '../components/analyze/SoloFightView'
-import { CompareFightView } from '../components/analyze/CompareFightView'
-import { AnalyzeEmptyState } from '../components/analyze/AnalyzeEmptyState'
-import { WclLoadPanel } from '../components/analyze/WclLoadPanel'
+import SoloFightView from '../components/analyze/SoloFightView'
+import CompareFightView from '../components/analyze/CompareFightView'
+import AnalyzeEmptyState from '../components/analyze/AnalyzeEmptyState'
+import WclLoadPanel from '../components/analyze/WclLoadPanel'
 import WclLoadStatus from '../components/WclLoadStatus'
 import PageHeader from '../components/ui/PageHeader'
 import type { CollapsibleBridgeApi } from '../components/CollapsibleGroup'
-import { pa, s } from '../lib/styles'
 
-export default function HomePage() {
+const HomePage = () => {
     const fa = useFightAnalysis()
     const { analysisSubtab, setAnalysisSubtab, p1data, p2data } = fa
     const viewTab: Exclude<AnalysisSubtab, 'none'> = analysisSubtab === 'compare' ? 'compare' : 'solo'
@@ -54,18 +55,6 @@ export default function HomePage() {
         setAnalysisSubtab(next)
     }
 
-    const viewBarStyle: CSSProperties = {
-        marginBottom: 14,
-        paddingTop: 4,
-        paddingBottom: 12,
-        borderBottom: '1px solid var(--border)',
-        position: 'sticky',
-        top: 'var(--pa-sticky-app-nav-offset)',
-        zIndex: 40,
-        background: 'var(--bg)',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-    }
-
     function expandAllSections() {
         if (!logLoaded) return
         if (viewTab === 'solo') soloCollapsibleRef.current?.expandAll()
@@ -89,7 +78,7 @@ export default function HomePage() {
             <Head>
                 <title>{title}</title>
             </Head>
-            <div style={s.wrap}>
+            <div className={ui.wrap}>
                 <PageHeader title="Parse Analyzer" subtitle="AI-powered fight analysis" />
 
                 {/* Before anything loads, the how-to reads top-to-bottom into the URL box below it. */}
@@ -99,48 +88,23 @@ export default function HomePage() {
 
                 {logLoaded && (
                     <>
-                        <div style={viewBarStyle}>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    alignItems: 'stretch',
-                                    gap: 8,
-                                    width: '100%',
-                                    justifyContent: 'space-between',
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        flexWrap: 'wrap',
-                                        alignItems: 'center',
-                                        gap: 8,
-                                    }}
-                                >
-                                    <span
-                                        style={{
-                                            fontFamily: 'var(--font-ui)',
-                                            fontSize: 10,
-                                            color: 'var(--dim)',
-                                            marginRight: 4,
-                                        }}
-                                    >
-                                        View
-                                    </span>
+                        <div className={styles.viewBar}>
+                            <div className={styles.viewBarRow}>
+                                <div className={styles.viewTabGroup}>
+                                    <span className={styles.viewBarLabel}>View</span>
                                     <button
                                         type="button"
                                         onClick={() => goSub('solo')}
-                                        className={`${pa.viewTab}${viewTab === 'solo' ? ` ${pa.viewTabActive}` : ''}`}
+                                        className={`${ui.viewTab}${viewTab === 'solo' ? ` ${ui.viewTabActive}` : ''}`}
                                         title="Your pull only (player 1 in the compare)"
                                     >
                                         Solo
-                                        <span className={pa.viewTabSub}>your pull</span>
+                                        <span className={ui.viewTabSub}>your pull</span>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => goSub('compare')}
-                                        className={`${pa.viewTab}${viewTab === 'compare' ? ` ${pa.viewTabActive}` : ''}`}
+                                        className={`${ui.viewTab}${viewTab === 'compare' ? ` ${ui.viewTabActive}` : ''}`}
                                         title={
                                             compareReady
                                                 ? 'You vs comparison player — side-by-side'
@@ -150,22 +114,15 @@ export default function HomePage() {
                                         }
                                     >
                                         Compare
-                                        <span className={pa.viewTabSub}>vs other player</span>
+                                        <span className={ui.viewTabSub}>vs other player</span>
                                     </button>
                                 </div>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        flexWrap: 'wrap',
-                                        alignItems: 'stretch',
-                                        gap: 8,
-                                    }}
-                                >
+                                <div className={styles.sectionButtonGroup}>
                                     <button
                                         type="button"
                                         disabled={!logLoaded || (viewTab === 'compare' && !compareReady)}
                                         onClick={expandAllSections}
-                                        className={`${pa.btnGhost} ${pa.btnGhostViewBar}`}
+                                        className={`${ui.btnGhost} ${ui.btnGhostViewBar}`}
                                         title={
                                             logLoaded
                                                 ? 'Open every collapsible section'
@@ -178,7 +135,7 @@ export default function HomePage() {
                                         type="button"
                                         disabled={!logLoaded || (viewTab === 'compare' && !compareReady)}
                                         onClick={collapseAllSections}
-                                        className={`${pa.btnGhost} ${pa.btnGhostViewBar}`}
+                                        className={`${ui.btnGhost} ${ui.btnGhostViewBar}`}
                                         title={
                                             logLoaded
                                                 ? 'Close every collapsible section'
@@ -195,14 +152,14 @@ export default function HomePage() {
                         {compareReady ? (
                             <>
                                 <div
-                                    style={{ display: viewTab === 'solo' ? 'block' : 'none' }}
+                                    className={viewTab === 'solo' ? undefined : styles.hiddenPane}
                                     aria-hidden={viewTab !== 'solo'}
                                 >
                                     <SoloFightView collapsibleBridgeRef={soloCollapsibleRef} />
                                 </div>
                                 {compareMounted || viewTab === 'compare' ? (
                                     <div
-                                        style={{ display: viewTab === 'compare' ? 'block' : 'none' }}
+                                        className={viewTab === 'compare' ? undefined : styles.hiddenPane}
                                         aria-hidden={viewTab !== 'compare'}
                                     >
                                         <CompareFightView collapsibleBridgeRef={compareCollapsibleRef} />
@@ -221,3 +178,5 @@ export default function HomePage() {
         </>
     )
 }
+
+export default HomePage

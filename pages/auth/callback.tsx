@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { writeWclUser } from '../../lib/wclUserToken'
+import styles from '../../styles/pages/authCallback.module.css'
 
 /**
  * "Sign in with WarcraftLogs" landing: exchanges the OAuth code via /api/auth
  * and stores the resulting USER token in this browser's localStorage (the
  * server never keeps it). See lib/wclUserToken.ts.
  */
-export default function AuthCallback() {
+const AuthCallback = () => {
     const router = useRouter()
     const [status, setStatus] = useState('Completing sign-in...')
     const ranRef = useRef(false)
@@ -69,33 +70,13 @@ export default function AuthCallback() {
     }, [router.isReady, router.query, router])
 
     return (
-        <div
-            style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--bg, #0a0c0f)',
-                color: 'var(--text, #e8edf2)',
-                fontFamily: 'var(--font-ui, sans-serif)',
-                fontSize: 14,
-            }}
-        >
-            <div style={{ textAlign: 'center' }}>
-                <div
-                    style={{
-                        fontFamily: 'var(--font-display, sans-serif)',
-                        fontSize: 22,
-                        fontWeight: 700,
-                        letterSpacing: 2,
-                        color: 'var(--gold2, #e8be40)',
-                        marginBottom: 16,
-                    }}
-                >
-                    PARSE ANALYZER
-                </div>
+        <div className={styles.screen}>
+            <div className={styles.inner}>
+                <div className={styles.logo}>PARSE ANALYZER</div>
                 <div>{status}</div>
             </div>
         </div>
     )
 }
+
+export default AuthCallback

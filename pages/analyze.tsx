@@ -1,23 +1,14 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+import styles from '../styles/pages/analyze.module.css'
 
 /** @deprecated Use `/` — Analyze lives on the home page with Solo | Compare subtabs. */
-export default function AnalyzeRedirectPage() {
+const AnalyzeRedirectPage = () => {
     const router = useRouter()
     useEffect(() => {
         void router.replace('/')
     }, [router])
-    return (
-        <div
-            style={{
-                maxWidth: 560,
-                margin: '48px auto',
-                fontFamily: 'var(--font-ui)',
-                fontSize: 12,
-                color: 'var(--dim)',
-            }}
-        >
-            Redirecting…
-        </div>
-    )
+    return <div className={styles.redirectNote}>Redirecting…</div>
 }
+
+export default AnalyzeRedirectPage

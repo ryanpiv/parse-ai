@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import styles from './styles.module.css'
 
 /* ---------- Wowhead tooltip fetcher + cache (spell + talent) ---------- */
 
@@ -108,7 +109,8 @@ export const useSpellTooltip = () => useContext(Ctx)
 
 /* ---------- Provider + floating tooltip ---------- */
 
-export function SpellTooltipProvider({ children }: { children: ReactNode }) {
+/** Named provider + hook pair (context-module shape) — the components-default-export rule does not apply. */
+export const SpellTooltipProvider = ({ children }: { children: ReactNode }) => {
     const [html, setHtml] = useState<string | null>(null)
     const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -185,19 +187,15 @@ export function SpellTooltipProvider({ children }: { children: ReactNode }) {
 
 /* ---------- Popup renderer ---------- */
 
-function TooltipPopup({
-    html,
-    x,
-    y,
-    onPopupEnter,
-    onPopupLeave,
-}: {
+interface ITooltipPopupProps {
     html: string | null
     x: number
     y: number
     onPopupEnter: () => void
     onPopupLeave: () => void
-}) {
+}
+
+const TooltipPopup = ({ html, x, y, onPopupEnter, onPopupLeave }: ITooltipPopupProps) => {
     const ref = useRef<HTMLDivElement>(null)
     const [adj, setAdj] = useState({ x, y })
 
@@ -222,26 +220,12 @@ function TooltipPopup({
     return (
         <div
             ref={ref}
-            style={{
-                position: 'fixed',
-                left: adj.x,
-                top: adj.y,
-                zIndex: 9999,
-                pointerEvents: 'auto',
-                maxWidth: 340,
-                minWidth: 220,
-            }}
+            className={styles.tooltipPopup}
+            style={{ left: adj.x, top: adj.y }}
             onMouseEnter={onPopupEnter}
             onMouseLeave={onPopupLeave}
         >
-            <div
-                className="wh-tooltip-wrapper"
-                style={{
-                    maxHeight: 'min(70vh, 420px)',
-                    overflowY: 'auto',
-                    overflowX: 'hidden',
-                }}
-            >
+            <div className={`wh-tooltip-wrapper ${styles.tooltipScroll}`}>
                 {html ? (
                     <div className="wh-tooltip-inner" dangerouslySetInnerHTML={{ __html: html }} />
                 ) : (

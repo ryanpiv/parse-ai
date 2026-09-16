@@ -1,2 +1,1 @@
-export { FormatAI } from './FormatAI'
-export { CopyBtn } from './CopyBtn'
+export { default, type AIChatProps, type AIChatMessage } from './AIChat'

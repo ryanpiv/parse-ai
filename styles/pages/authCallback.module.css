@@ -1,0 +1,23 @@
+.screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg, #0a0c0f);
+    color: var(--text, #e8edf2);
+    font-family: var(--font-ui, sans-serif);
+    font-size: 14px;
+}
+
+.inner {
+    text-align: center;
+}
+
+.logo {
+    font-family: var(--font-display, sans-serif);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--gold2, #e8be40);
+    margin-bottom: 16px;
+}

@@ -5,7 +5,7 @@
  * (WCL often omits hero node IDs; the export string carries them).
  */
 import { useMemo } from 'react'
-import { TalentTreeSection, type BlizzardNode } from './TalentTree'
+import TalentTreeSection, { type BlizzardNode } from './TalentTree'
 import { SpellTooltipProvider } from './SpellTooltip'
 import { uniformClassSpecTreeWidth } from './uniformClassSpecTreeWidth'
 import { useBlizzardTalentTree } from './useBlizzardTalentTree'
@@ -19,6 +19,7 @@ import {
 } from '../../lib/talents/p1TalentTreeSession'
 import { partitionBlizzardTalentNodes } from '../../lib/talents/partitionBlizzardTree'
 import { applyRankMapAsRaidbotsP1, sumRanks } from '../../lib/talents/raidbotsRankMap'
+import styles from './styles.module.css'
 
 const CANVAS_W = 1100
 const COL_CLASS_W = 410
@@ -30,7 +31,7 @@ const COL_SPEC_CENTER = COL_CLASS_W + COL_HERO_W + COL_SPEC_W / 2
 const NODE_PX = 33
 const RAIDBOTS_STEP = 55
 
-interface Props {
+export type FullTalentTreeProps = {
     specId: number
     /** WCL-style rows for the build (nodeID/rank; spellId fallback supported). */
     rows: P1TalentRow[]
@@ -38,7 +39,15 @@ interface Props {
     exportString?: string
 }
 
-export function FullTalentTree({ specId, rows, exportString }: Props) {
+const HeaderSlot = ({ leftPx, label }: { leftPx: number; label: string }) => {
+    return (
+        <div className={styles.headerSlot} style={{ left: leftPx }}>
+            <p className={styles.headerSlotLabel}>{label}</p>
+        </div>
+    )
+}
+
+const FullTalentTree = ({ specId, rows, exportString }: FullTalentTreeProps) => {
     const { tree, loading, error } = useBlizzardTalentTree(specId, { skip: !specId })
 
     const view = useMemo(() => {
@@ -113,12 +122,10 @@ export function FullTalentTree({ specId, rows, exportString }: Props) {
     )
 
     if (loading) {
-        return (
-            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--dim)' }}>Loading tree…</p>
-        )
+        return <p className={styles.fullTreeStatus}>Loading tree…</p>
     }
     if (error) {
-        return <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--red)' }}>{error}</p>
+        return <p className={styles.fullTreeStatusError}>{error}</p>
     }
     if (!tree || !view) return null
 
@@ -135,23 +142,15 @@ export function FullTalentTree({ specId, rows, exportString }: Props) {
 
     return (
         <SpellTooltipProvider>
-            <div style={{ overflowX: 'auto' }}>
-                <div style={{ position: 'relative', width: CANVAS_W, height: 30, marginBottom: 4 }}>
+            <div className={styles.fullTreeScroll}>
+                <div className={styles.fullTreeHeaderRow} style={{ width: CANVAS_W }}>
                     <HeaderSlot leftPx={COL_CLASS_CENTER} label={classHdr} />
                     <HeaderSlot leftPx={COL_HERO_CENTER} label={heroHdr} />
                     <HeaderSlot leftPx={COL_SPEC_CENTER} label={specHdr} />
                 </div>
 
-                <div style={{ display: 'flex', width: CANVAS_W, alignItems: 'flex-start' }}>
-                    <div
-                        style={{
-                            width: COL_CLASS_W,
-                            display: 'flex',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            overflow: 'hidden',
-                        }}
-                    >
+                <div className={styles.fullTreeColumns} style={{ width: CANVAS_W }}>
+                    <div className={styles.treeColumn} style={{ width: COL_CLASS_W }}>
                         {view.classNodes.length > 0 && (
                             <TalentTreeSection
                                 nodes={view.classNodes}
@@ -165,18 +164,7 @@ export function FullTalentTree({ specId, rows, exportString }: Props) {
                             />
                         )}
                     </div>
-                    <div
-                        style={{
-                            width: COL_HERO_W,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            flexShrink: 0,
-                            overflowX: 'hidden',
-                            overflowY: 'auto',
-                            maxHeight: 560,
-                        }}
-                    >
+                    <div className={styles.heroColumn} style={{ width: COL_HERO_W }}>
                         {heroView.mode === 'single' && heroView.block.nodes.length > 0 ? (
                             <TalentTreeSection
                                 nodes={heroView.block.nodes}
@@ -188,22 +176,10 @@ export function FullTalentTree({ specId, rows, exportString }: Props) {
                                 maxWidth={COL_HERO_W - 10}
                             />
                         ) : heroView.mode === 'wireframeAll' ? (
-                            <div style={{ width: '100%', padding: '0 4px' }}>
+                            <div className={styles.heroWireframeWrap}>
                                 {heroView.blocks.map((hb) => (
-                                    <div key={hb.key} style={{ marginBottom: 14 }}>
-                                        <div
-                                            style={{
-                                                fontSize: 10,
-                                                fontWeight: 600,
-                                                letterSpacing: '0.06em',
-                                                textTransform: 'uppercase',
-                                                color: 'var(--dim)',
-                                                marginBottom: 6,
-                                                textAlign: 'center',
-                                            }}
-                                        >
-                                            {hb.label}
-                                        </div>
+                                    <div key={hb.key} className={styles.heroWireframeBlock}>
+                                        <div className={styles.heroWireframeLabel}>{hb.label}</div>
                                         {hb.nodes.length > 0 ? (
                                             <TalentTreeSection
                                                 nodes={hb.nodes}
@@ -217,33 +193,16 @@ export function FullTalentTree({ specId, rows, exportString }: Props) {
                                         ) : null}
                                     </div>
                                 ))}
-                                <p
-                                    style={{
-                                        fontSize: 10,
-                                        color: 'var(--dim)',
-                                        lineHeight: 1.45,
-                                        margin: '8px 0 0',
-                                        textAlign: 'center',
-                                        fontFamily: 'var(--font-ui)',
-                                    }}
-                                >
+                                <p className={styles.heroWireframeNote}>
                                     No hero ranks in this data. WCL often omits hero node IDs; export strings
                                     include them.
                                 </p>
                             </div>
                         ) : (
-                            <span style={{ fontSize: 12, color: 'var(--dim)' }}>No hero tree</span>
+                            <span className={styles.noHeroTree}>No hero tree</span>
                         )}
                     </div>
-                    <div
-                        style={{
-                            width: COL_SPEC_W,
-                            display: 'flex',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            overflow: 'hidden',
-                        }}
-                    >
+                    <div className={styles.treeColumn} style={{ width: COL_SPEC_W }}>
                         {view.specNodes.length > 0 && (
                             <TalentTreeSection
                                 nodes={view.specNodes}
@@ -263,17 +222,4 @@ export function FullTalentTree({ specId, rows, exportString }: Props) {
     )
 }
 
-function HeaderSlot({ leftPx, label }: { leftPx: number; label: string }) {
-    return (
-        <div
-            style={{
-                position: 'absolute',
-                left: leftPx,
-                transform: 'translateX(-50%)',
-                whiteSpace: 'nowrap',
-            }}
-        >
-            <p style={{ margin: 0, fontSize: 15, fontWeight: 700, opacity: 0.88 }}>{label}</p>
-        </div>
-    )
-}
+export default FullTalentTree

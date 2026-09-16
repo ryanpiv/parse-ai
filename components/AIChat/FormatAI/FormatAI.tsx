@@ -1,4 +1,7 @@
-import React, { useRef, useEffect } from 'react'
+import React from 'react'
+import styles from './styles.module.css'
+
+export type FormatAIProps = { text: string }
 
 function formatInline(t: string): string {
     return t
@@ -13,13 +16,8 @@ function formatInline(t: string): string {
         )
 }
 
-export function FormatAI({ text }: { text: string }) {
-    const ref = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        // no-op: event delegation handles tooltips globally
-    })
-
+/** Renders Claude's markdown-ish reply (headings, bullets, inline spell links). Tooltips come from global event delegation. */
+const FormatAI = ({ text }: FormatAIProps) => {
     const lines = text.split('\n')
     const elements: React.ReactElement[] = []
     let listItems: string[] = []
@@ -27,13 +25,9 @@ export function FormatAI({ text }: { text: string }) {
     function flushList() {
         if (!listItems.length) return
         elements.push(
-            <ul key={elements.length} style={{ paddingLeft: 18, margin: '6px 0' }}>
+            <ul key={elements.length} className={styles.bulletList}>
                 {listItems.map((li, i) => (
-                    <li
-                        key={i}
-                        style={{ marginBottom: 4, color: 'var(--muted)' }}
-                        dangerouslySetInnerHTML={{ __html: li }}
-                    />
+                    <li key={i} className={styles.bulletItem} dangerouslySetInnerHTML={{ __html: li }} />
                 ))}
             </ul>,
         )
@@ -47,14 +41,7 @@ export function FormatAI({ text }: { text: string }) {
             elements.push(
                 <h3
                     key={i}
-                    style={{
-                        fontFamily: 'Rajdhani,sans-serif',
-                        fontSize: 15,
-                        fontWeight: 600,
-                        color: 'var(--gold2)',
-                        margin: '14px 0 5px',
-                        letterSpacing: '.5px',
-                    }}
+                    className={styles.heading}
                     dangerouslySetInnerHTML={{ __html: formatInline(headText) }}
                 />,
             )
@@ -67,7 +54,7 @@ export function FormatAI({ text }: { text: string }) {
             elements.push(
                 <p
                     key={i}
-                    style={{ marginBottom: 7, color: 'var(--muted)' }}
+                    className={styles.paragraph}
                     dangerouslySetInnerHTML={{ __html: formatInline(line) }}
                 />,
             )
@@ -75,5 +62,7 @@ export function FormatAI({ text }: { text: string }) {
     })
     flushList()
 
-    return <div ref={ref}>{elements}</div>
+    return <div>{elements}</div>
 }
+
+export default FormatAI

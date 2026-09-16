@@ -9,8 +9,8 @@
 import Head from 'next/head'
 import { useRouter, type NextRouter } from 'next/router'
 import { useMemo, useState } from 'react'
-import { TalentTreeSection, type BlizzardNode } from '../components/TalentCompare/TalentTree'
-import { TalentSourceForm } from '../components/TalentCompare/TalentSourceForm'
+import TalentTreeSection, { type BlizzardNode } from '../components/TalentCompare/TalentTree'
+import TalentSourceForm from '../components/TalentCompare/TalentSourceForm'
 import { SpellTooltipProvider } from '../components/TalentCompare/SpellTooltip'
 import { uniformClassSpecTreeWidth } from '../components/TalentCompare/uniformClassSpecTreeWidth'
 import { useBlizzardTalentTree } from '../components/TalentCompare'
@@ -26,7 +26,8 @@ import {
 } from '../lib/talents/p1TalentTreeSession'
 import { partitionBlizzardTalentNodes } from '../lib/talents/partitionBlizzardTree'
 import { applyRankMapAsRaidbotsP1, sumRanks } from '../lib/talents/raidbotsRankMap'
-import { pa, s } from '../lib/styles'
+import ui from '../styles/ui.module.css'
+import styles from '../styles/pages/talentPreview.module.css'
 import PageHeader from '../components/ui/PageHeader'
 
 const CANVAS_W = 1100
@@ -45,7 +46,7 @@ function presetModeFromQuery(q: NextRouter['query']): 'default' | 'none' | 'budg
     return 'budget'
 }
 
-export default function TalentPreviewPage() {
+const TalentPreviewPage = () => {
     const router = useRouter()
     const { hydrated, session } = useAppSession()
     const specFromQuery = router.query.specId ? parseInt(String(router.query.specId), 10) || 0 : 0
@@ -310,7 +311,7 @@ export default function TalentPreviewPage() {
             <Head>
                 <title>{usingSavedP1 ? `${p1Name} — talents — parse-ai` : `Talent preview — parse-ai`}</title>
             </Head>
-            <div style={s.wrap}>
+            <div className={ui.wrap}>
                 <div>
                     <PageHeader
                         title={usingSavedP1 ? `${p1Name} — full talents` : 'Talents'}
@@ -321,58 +322,33 @@ export default function TalentPreviewPage() {
                         }
                     />
                     <TalentSourceForm />
-                    <p
-                        style={{
-                            fontSize: 11,
-                            color: 'var(--dim)',
-                            marginBottom: 14,
-                            fontFamily: 'var(--font-ui)',
-                        }}
-                    >
+                    <p className={styles.metaLine}>
                         specId={effectiveSpecId || '—'} · preset={presetMode}
                         {hydrated && session.p1TalentTreeJson ? ' · session has WCL rows' : ''}
                         {hydrated && session.compareStr1 ? ' · session has export string' : ''}
                     </p>
 
-                    {loading && (
-                        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--dim)' }}>
-                            Loading tree…
-                        </p>
-                    )}
+                    {loading && <p className={styles.statusNote}>Loading tree…</p>}
                     {nothingLoaded && !loading && (
-                        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--muted)' }}>
+                        <p className={styles.emptyNote}>
                             No talents loaded yet — the tree appears here once you load a URL or apply an
                             export string above.
                         </p>
                     )}
-                    {error && (
-                        <p style={{ color: 'var(--red)', fontFamily: 'var(--font-ui)', fontSize: 13 }}>
-                            {error}
-                        </p>
-                    )}
+                    {error && <p className={styles.errorNote}>{error}</p>}
 
                     {!loading && !error && tree && (
                         <>
                             {/* Header row — fixed 1100px, labels centered over each column */}
-                            <div
-                                style={{ position: 'relative', width: CANVAS_W, height: 30, marginBottom: 4 }}
-                            >
+                            <div className={styles.headerRow} style={{ width: CANVAS_W }}>
                                 <HeaderSlot leftPx={COL_CLASS_CENTER} label={classHdr} />
                                 <HeaderSlot leftPx={COL_HERO_CENTER} label={heroHdr} />
                                 <HeaderSlot leftPx={COL_SPEC_CENTER} label={specHdr} />
                             </div>
 
                             {/* Tree columns — fixed widths matching Raidbots proportions */}
-                            <div style={{ display: 'flex', width: CANVAS_W, alignItems: 'flex-start' }}>
-                                <div
-                                    style={{
-                                        width: COL_CLASS_W,
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        flexShrink: 0,
-                                        overflow: 'hidden',
-                                    }}
-                                >
+                            <div className={styles.treeColumns} style={{ width: CANVAS_W }}>
+                                <div className={styles.treeColumn} style={{ width: COL_CLASS_W }}>
                                     {classNodes.length > 0 && (
                                         <TalentTreeSection
                                             nodes={classNodes}
@@ -386,18 +362,7 @@ export default function TalentPreviewPage() {
                                         />
                                     )}
                                 </div>
-                                <div
-                                    style={{
-                                        width: COL_HERO_W,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        flexShrink: 0,
-                                        overflowX: 'hidden',
-                                        overflowY: 'auto',
-                                        maxHeight: 560,
-                                    }}
-                                >
+                                <div className={styles.heroColumn} style={{ width: COL_HERO_W }}>
                                     {heroView.mode === 'single' && heroView.block.nodes.length > 0 ? (
                                         <TalentTreeSection
                                             nodes={heroView.block.nodes}
@@ -409,20 +374,10 @@ export default function TalentPreviewPage() {
                                             maxWidth={COL_HERO_W - 10}
                                         />
                                     ) : heroView.mode === 'wireframeAll' ? (
-                                        <div style={{ width: '100%', padding: '0 4px' }}>
+                                        <div className={styles.heroWireframeWrap}>
                                             {heroView.blocks.map((hb) => (
-                                                <div key={hb.key} style={{ marginBottom: 14 }}>
-                                                    <div
-                                                        style={{
-                                                            fontSize: 10,
-                                                            fontWeight: 600,
-                                                            letterSpacing: '0.06em',
-                                                            textTransform: 'uppercase',
-                                                            color: '#6a7580',
-                                                            marginBottom: 6,
-                                                            textAlign: 'center',
-                                                        }}
-                                                    >
+                                                <div key={hb.key} className={styles.heroWireframeBlock}>
+                                                    <div className={styles.heroWireframeLabel}>
                                                         {hb.label}
                                                     </div>
                                                     {hb.nodes.length > 0 ? (
@@ -438,33 +393,16 @@ export default function TalentPreviewPage() {
                                                     ) : null}
                                                 </div>
                                             ))}
-                                            <p
-                                                style={{
-                                                    fontSize: 10,
-                                                    color: '#5a6570',
-                                                    lineHeight: 1.45,
-                                                    margin: '8px 0 0',
-                                                    textAlign: 'center',
-                                                    fontFamily: 'var(--font-ui)',
-                                                }}
-                                            >
+                                            <p className={styles.heroWireframeNote}>
                                                 No hero ranks in saved data. WCL often omits hero node IDs;
                                                 re-run Analyze or ensure the export string matches this spec.
                                             </p>
                                         </div>
                                     ) : (
-                                        <span style={{ fontSize: 12, color: '#888' }}>No hero tree</span>
+                                        <span className={styles.noHeroTree}>No hero tree</span>
                                     )}
                                 </div>
-                                <div
-                                    style={{
-                                        width: COL_SPEC_W,
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        flexShrink: 0,
-                                        overflow: 'hidden',
-                                    }}
-                                >
+                                <div className={styles.treeColumn} style={{ width: COL_SPEC_W }}>
                                     {specNodes.length > 0 && (
                                         <TalentTreeSection
                                             nodes={specNodes}
@@ -481,18 +419,11 @@ export default function TalentPreviewPage() {
                             </div>
 
                             {exportString && (
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        marginTop: 28,
-                                        width: CANVAS_W,
-                                    }}
-                                >
+                                <div className={styles.copyRow} style={{ width: CANVAS_W }}>
                                     <button
                                         type="button"
                                         onClick={copyExportString}
-                                        className={pa.btnGold}
+                                        className={ui.btnGold}
                                         title="Copy this build's talent export string (paste in-game or into any calculator)"
                                     >
                                         {copyOk ? 'Copied' : 'Copy export string'}
@@ -507,26 +438,12 @@ export default function TalentPreviewPage() {
     )
 }
 
-function HeaderSlot({ leftPx, label }: { leftPx: number; label: string }) {
+const HeaderSlot = ({ leftPx, label }: { leftPx: number; label: string }) => {
     return (
-        <div
-            style={{
-                position: 'absolute',
-                left: leftPx,
-                transform: 'translateX(-50%)',
-                whiteSpace: 'nowrap',
-            }}
-        >
-            <p
-                style={{
-                    margin: 0,
-                    fontSize: 16,
-                    fontWeight: 700,
-                    opacity: 0.88,
-                }}
-            >
-                {label}
-            </p>
+        <div className={styles.headerSlot} style={{ left: leftPx }}>
+            <p className={styles.headerSlotLabel}>{label}</p>
         </div>
     )
 }
+
+export default TalentPreviewPage

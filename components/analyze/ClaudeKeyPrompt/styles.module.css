@@ -1,0 +1,18 @@
+.prompt {
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.blurb {
+    margin: 0;
+    flex: 1 1 260px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+}

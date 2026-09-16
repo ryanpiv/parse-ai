@@ -1,0 +1,50 @@
+.title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-transform);
+    color: var(--gold2);
+    margin-bottom: 10px;
+}
+
+.body {
+    font-family: var(--font-ui);
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+.flushPara {
+    margin: 0;
+}
+
+.leadPara {
+    margin: 0 0 10px;
+    color: var(--text);
+}
+
+.compareHintPara {
+    margin: 0 0 8px;
+}
+
+.compareUrlExample {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--blue);
+    word-break: break-all;
+}
+
+.reportsLink {
+    color: var(--gold2);
+    font-weight: 600;
+}
+
+.codeBlue {
+    color: var(--blue);
+}
+
+.strongText {
+    color: var(--text);
+}

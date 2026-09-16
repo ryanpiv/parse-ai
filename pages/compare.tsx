@@ -12,7 +12,8 @@ import {
 import { apiNodesToTreeNodes } from '../lib/talents/apiNodesToTreeNodes'
 import { parseNextApiJson } from '../lib/wclClient'
 import { wclClientHeaders } from '../lib/wclUserToken'
-import { s, pa } from '../lib/styles'
+import ui from '../styles/ui.module.css'
+import styles from '../styles/pages/compare.module.css'
 import Accordion from '../components/ui/Accordion'
 import FieldRow from '../components/ui/FieldRow'
 import OrDivider from '../components/ui/OrDivider'
@@ -31,7 +32,7 @@ function decodedToTalentTree(decoded: DecodedTalentString) {
     }))
 }
 
-export default function ComparePage() {
+const ComparePage = () => {
     const router = useRouter()
     const analyzeCache = useAnalyzePageCache()
     const { hydrated, session, patchSession } = useAppSession()
@@ -436,7 +437,7 @@ export default function ComparePage() {
             <Head>
                 <title>Talent Compare — parse-ai</title>
             </Head>
-            <div style={s.wrap}>
+            <div className={ui.wrap}>
                 <PageHeader
                     title="Talent compare"
                     subtitle="Diff two builds — two export strings, or one WCL compare URL"
@@ -444,7 +445,7 @@ export default function ComparePage() {
 
                 {/* Talent inputs: two export strings OR a WCL compare URL */}
                 <Panel title="Builds — two export strings or a WCL compare URL">
-                    <div style={{ marginBottom: 16 }}>
+                    <div className={styles.accordionBlock}>
                         <Accordion
                             label="Load from Warcraft Logs (compare URL)"
                             open={wclOpen}
@@ -457,14 +458,14 @@ export default function ComparePage() {
                                         type="button"
                                         onClick={() => void handleWclFetch()}
                                         disabled={!compareUrl.trim() || wclLoading}
-                                        className={pa.btnGold}
+                                        className={ui.btnGold}
                                     >
                                         {wclLoading ? 'Loading...' : 'Fetch both builds'}
                                     </button>
                                 }
                             >
                                 <input
-                                    style={s.input}
+                                    className={ui.input}
                                     value={compareUrl}
                                     onChange={(e) => setCompareUrl(e.target.value)}
                                     placeholder="https://www.warcraftlogs.com/reports/compare/…"
@@ -479,43 +480,43 @@ export default function ComparePage() {
 
                     {wclOpen && <OrDivider label="or paste two export strings" />}
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                        <div style={s.field}>
-                            <label style={s.label}>{name1}</label>
+                    <div className={styles.stringsGrid}>
+                        <div className={ui.field}>
+                            <label className={ui.label}>{name1}</label>
                             <textarea
                                 value={str1}
                                 onChange={(e) => setStr1(e.target.value)}
                                 placeholder="Paste talent export string..."
                                 rows={3}
-                                style={{ ...s.input, resize: 'vertical', minHeight: 60 }}
+                                className={`${ui.input} ${styles.stringInput}`}
                             />
                         </div>
-                        <div style={s.field}>
-                            <label style={s.label}>{name2}</label>
+                        <div className={ui.field}>
+                            <label className={ui.label}>{name2}</label>
                             <textarea
                                 value={str2}
                                 onChange={(e) => setStr2(e.target.value)}
                                 placeholder="Paste talent export string..."
                                 rows={3}
-                                style={{ ...s.input, resize: 'vertical', minHeight: 60 }}
+                                className={`${ui.input} ${styles.stringInput}`}
                             />
                         </div>
                     </div>
 
                     {wclTreesOnly && (
-                        <div style={s.alertInfo}>
+                        <div className={ui.alertInfo}>
                             Could not synthesize export strings from this log’s talent rows (missing nodes or
                             unusual shape). The diff still loads from WCL node data — paste in-game or Wowhead
                             strings manually if you need a share link.
                         </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: 10, marginTop: 14, alignItems: 'center' }}>
+                    <div className={styles.actionsRow}>
                         <button
                             type="button"
                             onClick={handleCompare}
                             disabled={!ready || loading}
-                            className={pa.btnGold}
+                            className={ui.btnGold}
                         >
                             {loading ? 'Loading...' : 'Compare'}
                         </button>
@@ -523,7 +524,7 @@ export default function ComparePage() {
                             <button
                                 type="button"
                                 onClick={handleClear}
-                                className={`${pa.btnGhost} ${pa.btnGhostPrimaryRow}`}
+                                className={`${ui.btnGhost} ${ui.btnGhostPrimaryRow}`}
                             >
                                 Clear
                             </button>
@@ -531,9 +532,9 @@ export default function ComparePage() {
                         {compareData && shareUrl && <CopyLinkButton url={shareUrl} />}
                     </div>
 
-                    {error && <div style={s.alertErr}>{error}</div>}
+                    {error && <div className={ui.alertErr}>{error}</div>}
 
-                    <div style={s.note}>
+                    <div className={ui.note}>
                         Export strings come from in-game (<code>/etl</code>), Wowhead, Raidbots, or any talent
                         calculator. Both strings must be for the same class and specialization.
                     </div>
@@ -541,8 +542,8 @@ export default function ComparePage() {
 
                 {/* Spec badge */}
                 {compareData && (
-                    <div style={{ marginBottom: 12 }}>
-                        <span style={s.badge}>
+                    <div className={styles.specBadgeRow}>
+                        <span className={ui.badge}>
                             {compareData.className} — {compareData.specName}
                         </span>
                     </div>
@@ -553,17 +554,17 @@ export default function ComparePage() {
                     <Panel
                         title={treeView === 'diff' ? 'Talent diff' : 'Full trees'}
                         actions={
-                            <span style={{ display: 'flex', gap: 6 }}>
+                            <span className={styles.viewTabs}>
                                 <button
                                     type="button"
-                                    className={`${pa.viewTab}${treeView === 'diff' ? ` ${pa.viewTabActive}` : ''}`}
+                                    className={`${ui.viewTab}${treeView === 'diff' ? ` ${ui.viewTabActive}` : ''}`}
                                     onClick={() => setTreeView('diff')}
                                 >
                                     Compare
                                 </button>
                                 <button
                                     type="button"
-                                    className={`${pa.viewTab}${treeView === 'full' ? ` ${pa.viewTabActive}` : ''}`}
+                                    className={`${ui.viewTab}${treeView === 'full' ? ` ${ui.viewTabActive}` : ''}`}
                                     onClick={() => setTreeView('full')}
                                 >
                                     Single tree
@@ -595,19 +596,8 @@ export default function ComparePage() {
                                         },
                                     ] as const
                                 ).map((build, i) => (
-                                    <div key={i} style={{ marginBottom: i === 0 ? 28 : 0 }}>
-                                        <div
-                                            style={{
-                                                ...s.label,
-                                                fontSize: 12,
-                                                color: 'var(--gold2)',
-                                                marginBottom: 8,
-                                                paddingBottom: 6,
-                                                borderBottom: '1px solid var(--border)',
-                                            }}
-                                        >
-                                            {build.name}
-                                        </div>
+                                    <div key={i} className={i === 0 ? styles.buildBlockFirst : undefined}>
+                                        <div className={`${ui.label} ${styles.buildName}`}>{build.name}</div>
                                         <FullTalentTree
                                             specId={compareData.specId}
                                             rows={build.data.talentTree.map((t) => ({
@@ -627,7 +617,7 @@ export default function ComparePage() {
     )
 }
 
-function CopyLinkButton({ url }: { url: string }) {
+const CopyLinkButton = ({ url }: { url: string }) => {
     const [copied, setCopied] = useState(false)
     const handleCopy = () => {
         navigator.clipboard.writeText(url).then(() => {
@@ -636,8 +626,10 @@ function CopyLinkButton({ url }: { url: string }) {
         })
     }
     return (
-        <button type="button" onClick={handleCopy} className={`${pa.btnGhost} ${pa.btnGhostPrimaryRow}`}>
+        <button type="button" onClick={handleCopy} className={`${ui.btnGhost} ${ui.btnGhostPrimaryRow}`}>
             {copied ? 'Copied!' : 'Copy share link'}
         </button>
     )
 }
+
+export default ComparePage

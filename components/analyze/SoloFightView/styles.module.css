@@ -1,0 +1,198 @@
+.summaryCard {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 14px 28px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 16px;
+    width: 100%;
+}
+
+.summaryCardWipe {
+    border-color: rgba(212, 64, 64, 0.3);
+}
+
+.summaryLead {
+    min-width: 140px;
+    flex: 1 1 160px;
+}
+
+.playerName {
+    font-family: Rajdhani, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--gold2);
+    margin-bottom: 4px;
+}
+
+.wipeTag {
+    margin-left: 8px;
+    color: var(--red);
+    font-size: 9px;
+}
+
+.dpsValue {
+    font-family: Rajdhani, sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold2);
+    line-height: 1.2;
+}
+
+.dpsUnit {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--dim);
+}
+
+.specLine {
+    font-family: var(--font-ui);
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 4px;
+}
+
+.summaryStat {
+    min-width: 100px;
+    flex: 0 1 auto;
+    border-left: 1px solid var(--border);
+    padding-left: 16px;
+}
+
+.summaryStatLabel {
+    font-family: Rajdhani, sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 3px;
+}
+
+.summaryStatValue {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.tableCaption {
+    font-family: Rajdhani, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin: 14px 0 6px;
+}
+
+.tableScroll {
+    overflow-x: auto;
+}
+
+.spellTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.th {
+    font-family: Rajdhani, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 5px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.thRight {
+    text-align: right;
+}
+
+.thCasts {
+    color: var(--gold2);
+}
+
+.spellRow:hover {
+    background: var(--bg3);
+}
+
+.td {
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--bg4);
+    font-family: var(--font-ui);
+}
+
+.tdSpell {
+    color: var(--muted);
+}
+
+.tdCasts {
+    color: var(--gold2);
+    text-align: right;
+}
+
+.tdCpm {
+    text-align: right;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.tdNum {
+    text-align: right;
+    font-size: 11px;
+}
+
+.spellLink {
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--dim);
+    cursor: help;
+}
+
+.chartStack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.chartGridTwo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.timelineCard {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+}
+
+.guideCluster {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 10px;
+    background: var(--bg3);
+}
+
+.guideClusterLabel {
+    font-family: var(--font-ui);
+    font-size: 10px;
+    margin-bottom: 6px;
+    line-height: 1.35;
+}
+
+.guideChipRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}

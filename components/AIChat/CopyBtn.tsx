@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { pa } from '../../lib/styles'
+import ui from '../../styles/ui.module.css'
 
-export function CopyBtn({ text, label = 'Copy' }: { text: string; label?: string }) {
+export type CopyBtnProps = { text: string; label?: string }
+
+const CopyBtn = ({ text, label = 'Copy' }: CopyBtnProps) => {
     const [copied, setCopied] = useState(false)
 
-    function doCopy() {
+    function handleCopy() {
         navigator.clipboard
             .writeText(text)
             .then(() => {
@@ -26,10 +28,12 @@ export function CopyBtn({ text, label = 'Copy' }: { text: string; label?: string
     return (
         <button
             type="button"
-            onClick={doCopy}
-            className={`${pa.btnCopy}${copied ? ` ${pa.btnCopyCopied}` : ''}`}
+            onClick={handleCopy}
+            className={`${ui.btnCopy}${copied ? ` ${ui.btnCopyCopied}` : ''}`}
         >
             {copied ? '✓ Copied' : label}
         </button>
     )
 }
+
+export default CopyBtn

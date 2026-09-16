@@ -1,25 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { partitionBlizzardTalentNodes } from '../../lib/talents/partitionBlizzardTree'
-import { TalentTreeSection, type BlizzardNode, type DiffState } from './TalentTree'
-import { SpellTooltipProvider } from './SpellTooltip'
+import TalentTreeSection, { type BlizzardNode, type DiffState } from './TalentTree'
+import { SpellTooltipProvider, useSpellTooltip } from './SpellTooltip'
 import { uniformClassSpecTreeWidth } from './uniformClassSpecTreeWidth'
 import { useBlizzardTalentTree } from './useBlizzardTalentTree'
-import { useSpellTooltip } from './SpellTooltip'
+import styles from './styles.module.css'
 
-interface WCLTalent {
+interface IWclTalent {
     id: number
     nodeID: number
     rank: number
 }
-interface TalentData {
+interface ITalentData {
     name: string
-    talentTree?: WCLTalent[]
-    talents?: any[]
+    talentTree?: IWclTalent[]
+    talents?: unknown[]
 }
 
-interface Props {
-    p1Talents: TalentData | null
-    p2Talents: TalentData | null
+export type TalentCompareProps = {
+    p1Talents: ITalentData | null
+    p2Talents: ITalentData | null
     name1: string
     name2: string
     specId?: number
@@ -53,7 +53,15 @@ function fitTreeWidths(availW: number | null): { maxTree: number; heroW: number 
     return { maxTree, heroW }
 }
 
-function TalentDiffLink({ spellId, name, color }: { spellId: number; name: string; color: 'gold' | 'blue' }) {
+const TalentDiffLink = ({
+    spellId,
+    name,
+    color,
+}: {
+    spellId: number
+    name: string
+    color: 'gold' | 'blue'
+}) => {
     const { show, hide } = useSpellTooltip()
     const c = color === 'gold' ? { text: 'rgba(201,162,39,1)' } : { text: 'rgba(90,173,240,1)' }
     return (
@@ -61,13 +69,8 @@ function TalentDiffLink({ spellId, name, color }: { spellId: number; name: strin
             href={`https://www.wowhead.com/spell=${spellId}`}
             target="_blank"
             rel="noreferrer"
-            style={{
-                fontFamily: 'var(--font-ui)',
-                fontSize: 11,
-                color: c.text,
-                textDecoration: 'none',
-                cursor: 'help',
-            }}
+            className={styles.diffLink}
+            style={{ color: c.text }}
             onMouseEnter={(e) => show(spellId, e.currentTarget.getBoundingClientRect(), name)}
             onMouseLeave={() => hide()}
         >
@@ -76,35 +79,32 @@ function TalentDiffLink({ spellId, name, color }: { spellId: number; name: strin
     )
 }
 
-function CircleSep() {
+const CircleSep = () => {
     return (
-        <span
-            aria-hidden
-            style={{ display: 'inline-flex', alignItems: 'center', padding: '0 9px', flexShrink: 0 }}
-        >
-            <span
-                style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: '50%',
-                    background: 'var(--dim,#4a5a6a)',
-                    opacity: 0.5,
-                }}
-            />
+        <span aria-hidden className={styles.circleSepWrap}>
+            <span className={styles.circleSepDot} />
         </span>
     )
 }
 
 /** "{name} only: N" followed by the differing talents on one wrapping row. */
-function OnlyList({ name, nodes, color }: { name: string; nodes: BlizzardNode[]; color: 'gold' | 'blue' }) {
+const OnlyList = ({
+    name,
+    nodes,
+    color,
+}: {
+    name: string
+    nodes: BlizzardNode[]
+    color: 'gold' | 'blue'
+}) => {
     const headColor = color === 'gold' ? 'rgba(201,162,39,0.95)' : 'rgba(90,173,240,0.95)'
     return (
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 6, columnGap: 0 }}>
-            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: headColor }}>
+        <div className={styles.onlyList}>
+            <span className={styles.onlyListHead} style={{ color: headColor }}>
                 {name} only: <strong>{nodes.length}</strong>
             </span>
             {nodes.map((n) => (
-                <span key={n.nodeId} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <span key={n.nodeId} className={styles.onlyListItem}>
                     <CircleSep />
                     {n.entries[0]?.spellId ? (
                         <TalentDiffLink
@@ -114,9 +114,8 @@ function OnlyList({ name, nodes, color }: { name: string; nodes: BlizzardNode[];
                         />
                     ) : (
                         <span
+                            className={styles.onlyListFallback}
                             style={{
-                                fontFamily: 'var(--font-ui)',
-                                fontSize: 11,
                                 color: color === 'gold' ? 'rgba(201,162,39,0.7)' : 'rgba(90,173,240,0.7)',
                             }}
                         >
@@ -143,7 +142,7 @@ function annotateDiff(
     })
 }
 
-export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Props) {
+const TalentCompare = ({ p1Talents, p2Talents, name1, name2, specId }: TalentCompareProps) => {
     const {
         tree: treeData,
         loading,
@@ -167,8 +166,8 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
     // Build WCL selection maps: nodeId → rank (empty maps when both players missing — hooks below still run)
     const sel1 = new Map<number, number>()
     const sel2 = new Map<number, number>()
-    ;(p1Talents?.talentTree || []).forEach((t: WCLTalent) => sel1.set(t.nodeID, t.rank))
-    ;(p2Talents?.talentTree || []).forEach((t: WCLTalent) => sel2.set(t.nodeID, t.rank))
+    ;(p1Talents?.talentTree || []).forEach((t: IWclTalent) => sel1.set(t.nodeID, t.rank))
+    ;(p2Talents?.talentTree || []).forEach((t: IWclTalent) => sel2.set(t.nodeID, t.rank))
 
     const allNodes: BlizzardNode[] = treeData?.nodes || []
     const edges = treeData?.edges || []
@@ -206,75 +205,29 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
     const both = allAnnotated.filter((n) => n.state === 'both')
 
     if (!p1Talents && !p2Talents) {
-        return (
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--dim,#4a5a6a)' }}>
-                Talent data not available.
-            </div>
-        )
+        return <div className={styles.emptyNote}>Talent data not available.</div>
     }
 
     return (
         <SpellTooltipProvider>
             <div>
                 {/* Diff summary — each player's unique talents, one per line */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
-                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--dim,#4a5a6a)' }}>
-                        Shared: <span style={{ color: 'var(--text,#e8edf2)' }}>{both.length}</span>
+                <div className={styles.diffSummary}>
+                    <div className={styles.sharedLine}>
+                        Shared: <span className={styles.sharedCount}>{both.length}</span>
                     </div>
                     <OnlyList name={name1} nodes={p1Only} color="gold" />
                     <OnlyList name={name2} nodes={p2Only} color="blue" />
                 </div>
 
-                {loading && (
-                    <div
-                        style={{
-                            fontFamily: 'var(--font-ui)',
-                            fontSize: 11,
-                            color: 'var(--dim,#4a5a6a)',
-                            padding: '20px 0',
-                        }}
-                    >
-                        Loading talent tree...
-                    </div>
-                )}
-                {error && (
-                    <div
-                        style={{
-                            fontFamily: 'var(--font-ui)',
-                            fontSize: 11,
-                            color: 'var(--red,#d44040)',
-                            padding: '8px 0',
-                        }}
-                    >
-                        Error: {error}
-                    </div>
-                )}
+                {loading && <div className={styles.treeLoading}>Loading talent tree...</div>}
+                {error && <div className={styles.treeError}>Error: {error}</div>}
 
                 {!loading && !error && treeData && (
-                    <div
-                        ref={scrollerRef}
-                        style={{
-                            width: '100%',
-                            maxHeight: 'min(72vh, 900px)',
-                            overflow: 'auto',
-                            padding: '8px 20px 32px',
-                            boxSizing: 'border-box',
-                            textAlign: 'center',
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: 'inline-flex',
-                                flexDirection: 'row',
-                                flexWrap: 'nowrap',
-                                alignItems: 'flex-start',
-                                gap: 24,
-                                textAlign: 'left',
-                                verticalAlign: 'top',
-                            }}
-                        >
+                    <div ref={scrollerRef} className={styles.treeScroller}>
+                        <div className={styles.treeRow}>
                             {classNodes.length > 0 && (
-                                <div style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}>
+                                <div className={styles.treeCell}>
                                     <TalentTreeSection
                                         nodes={classNodes}
                                         edges={edges}
@@ -289,10 +242,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
                             )}
 
                             {heroTypes.map((ht) => (
-                                <div
-                                    key={ht}
-                                    style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}
-                                >
+                                <div key={ht} className={styles.treeCell}>
                                     <TalentTreeSection
                                         nodes={heroNodesByType[ht] || []}
                                         edges={edges}
@@ -306,7 +256,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
                             ))}
 
                             {specNodes.length > 0 && (
-                                <div style={{ flexShrink: 0, padding: '0 8px', overflow: 'visible' }}>
+                                <div className={styles.treeCell}>
                                     <TalentTreeSection
                                         nodes={specNodes}
                                         edges={edges}
@@ -325,17 +275,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
 
                 {/* Legend */}
                 {!loading && treeData && (
-                    <div
-                        style={{
-                            display: 'flex',
-                            gap: 14,
-                            marginTop: 10,
-                            fontFamily: 'var(--font-ui)',
-                            fontSize: 10,
-                            color: 'var(--dim,#4a5a6a)',
-                            flexWrap: 'wrap',
-                        }}
-                    >
+                    <div className={styles.legend}>
                         {[
                             {
                                 bg: 'rgba(255,255,255,0.07)',
@@ -355,22 +295,14 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
                         ].map((l) => (
                             <span
                                 key={l.label}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 5,
-                                    opacity: l.dim ? 0.5 : 1,
-                                }}
+                                className={styles.legendItem}
+                                style={{ opacity: l.dim ? 0.5 : 1 }}
                             >
                                 <span
+                                    className={styles.legendSwatch}
                                     style={{
-                                        width: 12,
-                                        height: 12,
-                                        borderRadius: 3,
                                         background: l.bg,
                                         border: `${l.w}px solid ${l.border}`,
-                                        display: 'inline-block',
-                                        boxSizing: 'border-box',
                                     }}
                                 />
                                 {l.label}
@@ -382,3 +314,5 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
         </SpellTooltipProvider>
     )
 }
+
+export default TalentCompare

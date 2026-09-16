@@ -1,0 +1,44 @@
+.loadActions {
+    display: flex;
+    gap: 8px;
+}
+
+.rosterSection {
+    margin-top: 12px;
+}
+
+.rosterLabel {
+    margin-bottom: 8px;
+}
+
+.rosterGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rosterIcon {
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.rosterIconPlaceholder {
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    background: var(--bg4);
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+.rosterName {
+    color: var(--gold2);
+    font-weight: 600;
+}
+
+.rosterSpec {
+    display: block;
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 2px;
+}

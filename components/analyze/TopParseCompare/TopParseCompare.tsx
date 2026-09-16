@@ -7,27 +7,28 @@
  * compare through the normal load pipeline.
  */
 import { useMemo, useState } from 'react'
-import { pa } from '../../lib/styles'
-import { gql } from '../../lib/wclClient'
-import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
-import { parseWclUrl, resolveReportFightQuery } from '../../lib/wclReportUrl'
-import { fetchFightPlayerRows, type FightPlayerRow } from '../../lib/wclFightPlayers'
+import ui from '../../../styles/ui.module.css'
+import styles from './styles.module.css'
+import { gql } from '../../../lib/wclClient'
+import { useFightAnalysis } from '../../../contexts/FightAnalysisContext'
+import { parseWclUrl, resolveReportFightQuery } from '../../../lib/wclReportUrl'
+import { fetchFightPlayerRows, type FightPlayerRow } from '../../../lib/wclFightPlayers'
 import {
     buildCrossReportCompareUrl,
     fetchReportFights,
     type WclFightSummary,
     type WclTopRank,
-} from '../../lib/wclReports'
-import TopParseSection from '../reports/TopParseSection'
+} from '../../../lib/wclReports'
+import TopParseSection from '../../reports/TopParseSection'
 
-interface ResolvedMeta {
+interface IResolvedMeta {
     fight: WclFightSummary
     player: FightPlayerRow
 }
 
-export function TopParseCompare() {
+const TopParseCompare = () => {
     const fa = useFightAnalysis()
-    const [meta, setMeta] = useState<ResolvedMeta | null>(null)
+    const [meta, setMeta] = useState<IResolvedMeta | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -44,7 +45,7 @@ export function TopParseCompare() {
 
     if (!parsed || fa.authStatus !== 'ok') return null
 
-    async function resolve() {
+    async function handleResolveFight() {
         if (!parsed) return
         setLoading(true)
         setError(null)
@@ -63,14 +64,14 @@ export function TopParseCompare() {
                 rows.find((r) => r.name.toLowerCase() === playerName.toLowerCase())
             if (!player) throw new Error('Could not find the loaded player in the fight roster.')
             setMeta({ fight, player })
-        } catch (e: any) {
-            setError(e?.message || 'Could not look up this fight on WCL.')
+        } catch (e) {
+            setError((e instanceof Error && e.message) || 'Could not look up this fight on WCL.')
         } finally {
             setLoading(false)
         }
     }
 
-    function compareVsRank(r: WclTopRank) {
+    function handleCompareVsRank(r: WclTopRank) {
         if (!parsed || !meta) return
         const url = buildCrossReportCompareUrl(
             parsed.code,
@@ -97,28 +98,24 @@ export function TopParseCompare() {
                 fightId={meta.fight.id}
                 autoStart
                 disabled={fa.loading}
-                onPick={compareVsRank}
+                onPick={handleCompareVsRank}
             />
         )
     }
 
     return (
-        <div style={{ margin: '16px 0 20px' }}>
-            <button type="button" className={pa.btnGold} disabled={loading} onClick={() => void resolve()}>
+        <div className={styles.lookupBlock}>
+            <button
+                type="button"
+                className={ui.btnGold}
+                disabled={loading}
+                onClick={() => void handleResolveFight()}
+            >
                 {loading ? 'Looking up this fight…' : `Compare ${playerName} vs a similar top parse`}
             </button>
-            {error && (
-                <p
-                    style={{
-                        fontFamily: 'var(--font-ui)',
-                        fontSize: 12.5,
-                        color: 'var(--red, #e06c75)',
-                        marginTop: 8,
-                    }}
-                >
-                    {error}
-                </p>
-            )}
+            {error && <p className={styles.lookupError}>{error}</p>}
         </div>
     )
 }
+
+export default TopParseCompare

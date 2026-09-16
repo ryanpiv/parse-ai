@@ -1,19 +1,17 @@
 import Head from 'next/head'
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import PageHeader from '../components/ui/PageHeader'
 import Panel from '../components/ui/Panel'
 import { useFightAnalysis } from '../contexts/FightAnalysisContext'
-import { pa, s } from '../lib/styles'
+import ui from '../styles/ui.module.css'
+import styles from '../styles/pages/history.module.css'
 import {
     clearHistory,
     readHistory,
     HISTORY_CHANGED_EVENT,
     type AnalysisHistoryEntry,
 } from '../lib/analysisHistory'
-
-const mono: CSSProperties = { fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--muted)' }
-const dim: CSSProperties = { fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--dim)' }
 
 function fmtWhen(ms: number): string {
     const diff = Date.now() - ms
@@ -28,31 +26,21 @@ function fmtWhen(ms: number): string {
     })
 }
 
-function KindBadge({ kind }: { kind: AnalysisHistoryEntry['kind'] }) {
+interface IKindBadgeProps {
+    kind: AnalysisHistoryEntry['kind']
+}
+
+const KindBadge = ({ kind }: IKindBadgeProps) => {
     const solo = kind === 'solo'
     return (
-        <span
-            style={{
-                fontFamily: 'var(--font-ui)',
-                fontSize: 10.5,
-                fontWeight: 600,
-                padding: '2px 7px',
-                borderRadius: 999,
-                border: `1px solid ${solo ? 'var(--gold2)' : 'var(--blue)'}`,
-                color: solo ? 'var(--gold2)' : 'var(--blue)',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                width: 64,
-                textAlign: 'center',
-            }}
-        >
+        <span className={`${styles.kindBadge} ${solo ? styles.kindBadgeSolo : styles.kindBadgeCompare}`}>
             {solo ? 'Solo' : 'Compare'}
         </span>
     )
 }
 
 /** Recent solo/compare loads (localStorage) — click to load again. */
-export default function HistoryPage() {
+const HistoryPage = () => {
     const fa = useFightAnalysis()
     const router = useRouter()
     const [entries, setEntries] = useState<AnalysisHistoryEntry[]>([])
@@ -74,25 +62,16 @@ export default function HistoryPage() {
             <Head>
                 <title>History · Parse Analyzer</title>
             </Head>
-            <div style={s.wrap}>
+            <div className={ui.wrap}>
                 <PageHeader title="History" subtitle="every fight you've loaded — click to load it again" />
                 <Panel title="Recent loads">
                     {entries.length === 0 ? (
-                        <p style={mono}>
+                        <p className={styles.mono}>
                             Nothing yet — load a fight on Analyze or from Reports and it will show up here.
                         </p>
                     ) : (
                         <>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: 6,
-                                    maxHeight: 480,
-                                    overflowY: 'auto',
-                                    paddingRight: 4,
-                                }}
-                            >
+                            <div className={styles.entryList}>
                                 {entries.map((e) => (
                                     <button
                                         key={e.url}
@@ -100,51 +79,29 @@ export default function HistoryPage() {
                                         disabled={fa.loading}
                                         onClick={() => reload(e)}
                                         title={e.url}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 12,
-                                            width: '100%',
-                                            textAlign: 'left',
-                                            padding: '10px 12px',
-                                            background: 'transparent',
-                                            border: '1px solid var(--border)',
-                                            borderRadius: 6,
-                                            cursor: 'pointer',
-                                            color: 'var(--text)',
-                                        }}
+                                        className={styles.entryButton}
                                     >
                                         <KindBadge kind={e.kind} />
-                                        <span style={{ minWidth: 0 }}>
-                                            <span
-                                                style={{
-                                                    display: 'block',
-                                                    fontFamily: 'var(--font-ui)',
-                                                    fontWeight: 600,
-                                                    fontSize: 13,
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap',
-                                                }}
-                                            >
+                                        <span className={styles.entryText}>
+                                            <span className={styles.entryTitle}>
                                                 {e.name1}
                                                 {e.spec1 ? ` (${e.spec1})` : ''}
                                                 {e.kind === 'compare' && e.name2
                                                     ? ` vs ${e.name2}${e.spec2 ? ` (${e.spec2})` : ''}`
                                                     : ''}
                                             </span>
-                                            <span style={{ ...dim, display: 'block' }}>{e.boss}</span>
+                                            <span className={`${styles.dim} ${styles.block}`}>{e.boss}</span>
                                         </span>
-                                        <span style={{ ...dim, marginLeft: 'auto', flexShrink: 0 }}>
+                                        <span className={`${styles.dim} ${styles.entryWhen}`}>
                                             {fmtWhen(e.accessedAt)}
                                         </span>
                                     </button>
                                 ))}
                             </div>
-                            <div style={{ marginTop: 12 }}>
+                            <div className={styles.clearRow}>
                                 <button
                                     type="button"
-                                    className={`${pa.btnGhost} ${pa.btnGhostSm}`}
+                                    className={`${ui.btnGhost} ${ui.btnGhostSm}`}
                                     onClick={() => clearHistory()}
                                 >
                                     Clear history
@@ -157,3 +114,5 @@ export default function HistoryPage() {
         </>
     )
 }
+
+export default HistoryPage

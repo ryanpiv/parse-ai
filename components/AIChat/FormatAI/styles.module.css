@@ -1,0 +1,23 @@
+.bulletList {
+    padding-left: 18px;
+    margin: 6px 0;
+}
+
+.bulletItem {
+    margin-bottom: 4px;
+    color: var(--muted);
+}
+
+.heading {
+    font-family: Rajdhani, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gold2);
+    margin: 14px 0 5px;
+    letter-spacing: 0.5px;
+}
+
+.paragraph {
+    margin-bottom: 7px;
+    color: var(--muted);
+}

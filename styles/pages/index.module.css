@@ -1,0 +1,45 @@
+.viewBar {
+    margin-bottom: 14px;
+    padding-top: 4px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: var(--pa-sticky-app-nav-offset);
+    z-index: 40;
+    background: var(--bg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.viewBarRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.viewTabGroup {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.viewBarLabel {
+    font-family: var(--font-ui);
+    font-size: 10px;
+    color: var(--dim);
+    margin-right: 4px;
+}
+
+.sectionButtonGroup {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.hiddenPane {
+    display: none;
+}

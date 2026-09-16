@@ -5,6 +5,7 @@
  */
 import { useEffect, useState, useCallback } from 'react'
 import { useSpellTooltip } from './SpellTooltip'
+import styles from './styles.module.css'
 
 export type DiffState = 'p1' | 'p2' | 'both' | 'neither'
 
@@ -33,7 +34,7 @@ export interface BlizzardNode {
     rank?: number
 }
 
-interface Props {
+export type TalentTreeSectionProps = {
     nodes: BlizzardNode[]
     edges: { from: number; to: number }[]
     name1: string
@@ -135,15 +136,13 @@ function primaryEntryForSingleNode(node: BlizzardNode): BlizzardNode['entries'][
     return entries.find(hasKey) ?? entries[0]
 }
 
-function NodeIcon({
-    node,
-    size,
-    renderMode,
-}: {
+interface INodeIconProps {
     node: BlizzardNode
     size: number
     renderMode: TalentTreeRenderMode
-}) {
+}
+
+const NodeIcon = ({ node, size, renderMode }: INodeIconProps) => {
     const state = node.state ?? 'neither'
     const isChoice = node.nodeType === 'CHOICE'
     const rank = node.rank ?? 0
@@ -273,15 +272,7 @@ function NodeIcon({
     )
 }
 
-function SingleNodeIcon({
-    node,
-    size,
-    containerStyle,
-    s,
-    borderRadius,
-    renderMode,
-    active,
-}: {
+interface ISingleNodeIconProps {
     node: BlizzardNode
     size: number
     containerStyle: React.CSSProperties
@@ -289,7 +280,17 @@ function SingleNodeIcon({
     borderRadius: number
     renderMode: TalentTreeRenderMode
     active: boolean
-}) {
+}
+
+const SingleNodeIcon = ({
+    node,
+    size,
+    containerStyle,
+    s,
+    borderRadius,
+    renderMode,
+    active,
+}: ISingleNodeIconProps) => {
     const entry = primaryEntryForSingleNode(node)
     const iconUrl = useEntryIcon(entry?.spellId ?? 0, entry?.talentId ?? 0)
     const name = entry?.name || `Node ${node.nodeId}`
@@ -367,17 +368,7 @@ function SingleNodeIcon({
                     }}
                 />
             ) : (
-                <span
-                    style={{
-                        fontSize: 7,
-                        fontFamily: 'var(--font-ui)',
-                        color: s.border,
-                        textAlign: 'center',
-                        padding: 1,
-                        fontWeight: 600,
-                        lineHeight: 1,
-                    }}
-                >
+                <span className={styles.nodeInitials} style={{ color: s.border }}>
                     {name
                         .split(' ')
                         .map((w: string) => w[0])
@@ -387,21 +378,7 @@ function SingleNodeIcon({
                 </span>
             )}
             {(renderMode === 'raidbots' || (node.rank && node.rank > 0 && entry && entry.maxRanks > 1)) && (
-                <span
-                    style={{
-                        position: 'absolute',
-                        right: -4,
-                        bottom: -4,
-                        background: 'rgb(0,0,0)',
-                        color: '#fff',
-                        fontSize: 10.85,
-                        fontFamily: 'Tahoma, sans-serif',
-                        paddingLeft: 2,
-                        paddingRight: 2,
-                        pointerEvents: 'none',
-                        lineHeight: 1.2,
-                    }}
-                >
+                <span className={styles.rankBadge}>
                     {renderMode === 'raidbots' ? `${cur}/${maxR}` : `${node.rank}/${entry!.maxRanks}`}
                 </span>
             )}
@@ -409,21 +386,16 @@ function SingleNodeIcon({
     )
 }
 
-function ChoiceNodeIcon({
-    node,
-    size,
-    containerStyle,
-    s,
-    renderMode,
-    active,
-}: {
+interface IChoiceNodeIconProps {
     node: BlizzardNode
     size: number
     containerStyle: React.CSSProperties
     s: { bg: string; border: string; opacity: number }
     renderMode: TalentTreeRenderMode
     active: boolean
-}) {
+}
+
+const ChoiceNodeIcon = ({ node, size, containerStyle, s, renderMode, active }: IChoiceNodeIconProps) => {
     const e0 = node.entries[0]
     const e1 = node.entries[1]
     const icon0 = useEntryIcon(e0?.spellId ?? 0, e0?.talentId ?? 0)
@@ -487,8 +459,8 @@ function ChoiceNodeIcon({
             onMouseLeave={onLeave}
         >
             {/* Split display: left half = choice 0, right half = choice 1 */}
-            <div style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden' }}>
-                <div style={{ width: '50%', height: '100%', overflow: 'hidden', position: 'relative' }}>
+            <div className={styles.choiceSplit}>
+                <div className={styles.choiceHalf}>
                     {icon0 ? (
                         <img
                             src={icon0}
@@ -506,18 +478,7 @@ function ChoiceNodeIcon({
                             }}
                         />
                     ) : (
-                        <span
-                            style={{
-                                fontSize: 6,
-                                fontFamily: 'var(--font-ui)',
-                                color: s.border,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                height: '100%',
-                                fontWeight: 600,
-                            }}
-                        >
+                        <span className={styles.choiceInitials} style={{ color: s.border }}>
                             {name0
                                 .split(' ')
                                 .map((w: string) => w[0])
@@ -527,15 +488,7 @@ function ChoiceNodeIcon({
                         </span>
                     )}
                 </div>
-                <div
-                    style={{
-                        width: '50%',
-                        height: '100%',
-                        overflow: 'hidden',
-                        position: 'relative',
-                        borderLeft: `1px solid ${s.border}`,
-                    }}
-                >
+                <div className={styles.choiceHalf} style={{ borderLeft: `1px solid ${s.border}` }}>
                     {icon1 ? (
                         <img
                             src={icon1}
@@ -554,18 +507,7 @@ function ChoiceNodeIcon({
                             }}
                         />
                     ) : (
-                        <span
-                            style={{
-                                fontSize: 6,
-                                fontFamily: 'var(--font-ui)',
-                                color: s.border,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                height: '100%',
-                                fontWeight: 600,
-                            }}
-                        >
+                        <span className={styles.choiceInitials} style={{ color: s.border }}>
                             {name1
                                 .split(' ')
                                 .map((w: string) => w[0])
@@ -577,21 +519,7 @@ function ChoiceNodeIcon({
                 </div>
             </div>
             {renderMode === 'raidbots' && (
-                <span
-                    style={{
-                        position: 'absolute',
-                        right: -4,
-                        bottom: -4,
-                        background: 'rgb(0,0,0)',
-                        color: '#fff',
-                        fontSize: 10.85,
-                        fontFamily: 'Tahoma, sans-serif',
-                        paddingLeft: 2,
-                        paddingRight: 2,
-                        pointerEvents: 'none',
-                        lineHeight: 1.2,
-                    }}
-                >
+                <span className={styles.rankBadge}>
                     {cur}/{maxR}
                 </span>
             )}
@@ -683,7 +611,7 @@ function nodeTakenByP2(n: BlizzardNode): boolean {
     return s === 'p2' || s === 'both'
 }
 
-export function TalentTreeSection({
+const TalentTreeSection = ({
     nodes,
     edges,
     name1,
@@ -694,7 +622,7 @@ export function TalentTreeSection({
     maxWidth,
     forceWidth,
     forceGrid,
-}: Props) {
+}: TalentTreeSectionProps) => {
     if (!nodes.length) return null
 
     const NODE = nodePx ?? DEFAULT_NODE
@@ -844,3 +772,5 @@ export function TalentTreeSection({
 
     return inner
 }
+
+export default TalentTreeSection

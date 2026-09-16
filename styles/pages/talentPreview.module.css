@@ -1,0 +1,110 @@
+/*
+ * Static layout for pages/talent-preview.tsx. Column and canvas widths stay
+ * inline in the page — they come from the CANVAS_W / column constants shared
+ * with the JS layout math.
+ */
+
+.metaLine {
+    font-size: 11px;
+    color: var(--dim);
+    margin-bottom: 14px;
+    font-family: var(--font-ui);
+}
+
+.statusNote {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--dim);
+}
+
+.emptyNote {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.errorNote {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--red);
+}
+
+.headerRow {
+    position: relative;
+    height: 30px;
+    margin-bottom: 4px;
+}
+
+.headerSlot {
+    position: absolute;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+.headerSlotLabel {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    opacity: 0.88;
+}
+
+.treeColumns {
+    display: flex;
+    align-items: flex-start;
+}
+
+.treeColumn {
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.heroColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 560px;
+}
+
+.heroWireframeWrap {
+    width: 100%;
+    padding: 0 4px;
+}
+
+.heroWireframeBlock {
+    margin-bottom: 14px;
+}
+
+.heroWireframeLabel {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #6a7580;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.heroWireframeNote {
+    font-size: 10px;
+    color: #5a6570;
+    line-height: 1.45;
+    margin: 8px 0 0;
+    text-align: center;
+    font-family: var(--font-ui);
+}
+
+.noHeroTree {
+    font-size: 12px;
+    color: #888;
+}
+
+.copyRow {
+    display: flex;
+    justify-content: center;
+    margin-top: 28px;
+}

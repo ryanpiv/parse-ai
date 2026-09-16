@@ -1,0 +1,45 @@
+/* Static layout for pages/compare.tsx — dynamic values stay inline in the page. */
+
+.accordionBlock {
+    margin-bottom: 16px;
+}
+
+.stringsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.stringInput {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.actionsRow {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    align-items: center;
+}
+
+.specBadgeRow {
+    margin-bottom: 12px;
+}
+
+.viewTabs {
+    display: flex;
+    gap: 6px;
+}
+
+/* Composed with ui.label — overrides its size/color and adds the underline row. */
+.buildName {
+    font-size: 12px;
+    color: var(--gold2);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+}
+
+.buildBlockFirst {
+    margin-bottom: 28px;
+}

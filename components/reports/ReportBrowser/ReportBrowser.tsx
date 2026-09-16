@@ -5,13 +5,14 @@
  * All queries run with the signed-in user's token, so private logs they can
  * see on WCL are visible here too.
  */
-import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/router'
-import { pa, s } from '../../lib/styles'
-import { gql } from '../../lib/wclClient'
-import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
-import { fetchFightPlayerRows, type FightPlayerRow } from '../../lib/wclFightPlayers'
-import { wowClassColor, wowClassDisplayName } from '../../lib/wowClassColors'
+import ui from '../../../styles/ui.module.css'
+import styles from './styles.module.css'
+import { gql } from '../../../lib/wclClient'
+import { useFightAnalysis } from '../../../contexts/FightAnalysisContext'
+import { fetchFightPlayerRows, type FightPlayerRow } from '../../../lib/wclFightPlayers'
+import { wowClassColor, wowClassDisplayName } from '../../../lib/wowClassColors'
 import {
     buildCompareUrl,
     buildCrossReportCompareUrl,
@@ -26,8 +27,8 @@ import {
     type WclReportPage,
     type WclReportSummary,
     type WclTopRank,
-} from '../../lib/wclReports'
-import TopParseSection from './TopParseSection'
+} from '../../../lib/wclReports'
+import TopParseSection from '../TopParseSection'
 
 type Source = { kind: 'mine' } | { kind: 'guild'; id: number; label: string }
 
@@ -61,33 +62,6 @@ function writeLastPlayer(name: string): void {
     }
 }
 
-const ui: Record<string, CSSProperties> = {
-    mono: { fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--muted)' },
-    dim: { fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--dim)' },
-    rowBtn: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        width: '100%',
-        textAlign: 'left',
-        padding: '10px 12px',
-        background: 'transparent',
-        border: '1px solid var(--border)',
-        borderRadius: 6,
-        cursor: 'pointer',
-        color: 'var(--text)',
-    },
-    badge: {
-        fontFamily: 'var(--font-ui)',
-        fontSize: 10.5,
-        fontWeight: 600,
-        padding: '2px 7px',
-        borderRadius: 999,
-        border: '1px solid var(--border)',
-        whiteSpace: 'nowrap',
-    },
-}
-
 function fmtDate(ms: number): string {
     if (!ms) return ''
     return new Date(ms).toLocaleString(undefined, {
@@ -106,18 +80,16 @@ function fmtDuration(startMs: number, endMs: number): string {
     return `${m}:${ss}`
 }
 
-function BackRow({ onBack, backLabel, right }: { onBack: () => void; backLabel: string; right?: ReactNode }) {
+interface IBackRowProps {
+    onBack: () => void
+    backLabel: string
+    right?: ReactNode
+}
+
+const BackRow = ({ onBack, backLabel, right }: IBackRowProps) => {
     return (
-        <div
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 10,
-                marginBottom: 12,
-            }}
-        >
-            <button type="button" className={`${pa.btnGhost} ${pa.btnGhostSm}`} onClick={onBack}>
+        <div className={styles.backRow}>
+            <button type="button" className={`${ui.btnGhost} ${ui.btnGhostSm}`} onClick={onBack}>
                 ← {backLabel}
             </button>
             {right}
@@ -125,25 +97,19 @@ function BackRow({ onBack, backLabel, right }: { onBack: () => void; backLabel: 
     )
 }
 
-function KillBadge({ fight }: { fight: WclFightSummary }) {
-    if (fight.kill) {
-        return (
-            <span
-                style={{ ...ui.badge, color: 'var(--green, #4caf7d)', borderColor: 'var(--green, #4caf7d)' }}
-            >
-                Kill
-            </span>
-        )
-    }
-    const pct = fight.fightPercentage != null ? ` ${Math.round(fight.fightPercentage)}%` : ''
-    return (
-        <span style={{ ...ui.badge, color: 'var(--red, #e06c75)', borderColor: 'var(--red, #e06c75)' }}>
-            Wipe{pct}
-        </span>
-    )
+interface IKillBadgeProps {
+    fight: WclFightSummary
 }
 
-export function ReportBrowser() {
+const KillBadge = ({ fight }: IKillBadgeProps) => {
+    if (fight.kill) {
+        return <span className={`${styles.badge} ${styles.badgeKill}`}>Kill</span>
+    }
+    const pct = fight.fightPercentage != null ? ` ${Math.round(fight.fightPercentage)}%` : ''
+    return <span className={`${styles.badge} ${styles.badgeWipe}`}>Wipe{pct}</span>
+}
+
+const ReportBrowser = () => {
     const fa = useFightAnalysis()
     const router = useRouter()
 
@@ -313,11 +279,11 @@ export function ReportBrowser() {
         void router.push('/')
     }
 
-    if (fa.authStatus === 'checking') return <p style={ui.mono}>Checking WarcraftLogs sign-in…</p>
+    if (fa.authStatus === 'checking') return <p className={styles.mono}>Checking WarcraftLogs sign-in…</p>
     if (!signedIn) return null // page shows WclKeyPrompt
 
-    if (meError) return <p style={{ ...ui.mono, color: 'var(--red, #e06c75)' }}>{meError}</p>
-    if (!me) return <p style={ui.mono}>Loading your WCL account…</p>
+    if (meError) return <p className={`${styles.mono} ${styles.errorText}`}>{meError}</p>
+    if (!me) return <p className={styles.mono}>Loading your WCL account…</p>
 
     /* ------------------------------ player grid ------------------------------ */
     if (report && fight) {
@@ -333,16 +299,16 @@ export function ReportBrowser() {
                     onBack={() => setFight(null)}
                     backLabel="All pulls"
                     right={
-                        <div style={{ display: 'flex', gap: 8 }}>
+                        <div className={styles.backActions}>
                             <button
                                 type="button"
-                                className={`${pa.btnGhost} ${pa.btnGhostSm}`}
+                                className={`${ui.btnGhost} ${ui.btnGhostSm}`}
                                 onClick={resetToReports}
                             >
                                 ⟲ All reports
                             </button>
                             <a
-                                className={`${pa.btnGhost} ${pa.btnGhostSm}`}
+                                className={`${ui.btnGhost} ${ui.btnGhostSm}`}
                                 href={wclReportLink(report.code, fight.id)}
                                 target="_blank"
                                 rel="noreferrer"
@@ -352,55 +318,32 @@ export function ReportBrowser() {
                         </div>
                     }
                 />
-                <div
-                    style={{
-                        marginBottom: 12,
-                        display: 'flex',
-                        alignItems: 'baseline',
-                        gap: 10,
-                        flexWrap: 'wrap',
-                    }}
-                >
-                    <span
-                        style={{
-                            fontFamily: 'var(--font-display)',
-                            fontSize: 14,
-                            fontWeight: 600,
-                            color: 'var(--gold2)',
-                        }}
-                    >
-                        {fight.name}
-                    </span>
-                    <span style={ui.badge}>{difficultyLabel(fight.difficulty) || '—'}</span>
+                <div className={styles.fightHeader}>
+                    <span className={styles.goldTitle}>{fight.name}</span>
+                    <span className={styles.badge}>{difficultyLabel(fight.difficulty) || '—'}</span>
                     <KillBadge fight={fight} />
-                    <span style={ui.dim}>{fmtDuration(fight.startTime, fight.endTime)}</span>
+                    <span className={styles.dim}>{fmtDuration(fight.startTime, fight.endTime)}</span>
                 </div>
 
-                <p style={{ ...ui.mono, marginBottom: 14 }}>
-                    Pick <strong style={{ color: 'var(--text)' }}>one player</strong> to analyze solo, or{' '}
-                    <strong style={{ color: 'var(--text)' }}>two</strong> to compare — your first pick is
-                    player 1.
+                <p className={`${styles.mono} ${styles.pickIntro}`}>
+                    Pick <strong className={styles.strongText}>one player</strong> to analyze solo, or{' '}
+                    <strong className={styles.strongText}>two</strong> to compare — your first pick is player
+                    1.
                 </p>
 
-                {playersError && <p style={{ ...ui.mono, color: 'var(--red, #e06c75)' }}>{playersError}</p>}
-                {!players && !playersError && <p style={ui.mono}>Loading roster…</p>}
+                {playersError && <p className={`${styles.mono} ${styles.errorText}`}>{playersError}</p>}
+                {!players && !playersError && <p className={styles.mono}>Loading roster…</p>}
 
                 {players &&
                     byRole.map(({ label, role }) => {
                         const rows = players.filter((p) => p.role === role)
                         if (!rows.length) return null
                         return (
-                            <div key={role} style={{ marginBottom: 14 }}>
-                                <div style={{ ...s.label, marginBottom: 8 }}>
-                                    {label} <span style={{ color: 'var(--dim)' }}>· {rows.length}</span>
+                            <div key={role} className={styles.roleSection}>
+                                <div className={`${ui.label} ${styles.roleLabel}`}>
+                                    {label} <span className={styles.countDim}>· {rows.length}</span>
                                 </div>
-                                <div
-                                    style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
-                                        gap: 8,
-                                    }}
-                                >
+                                <div className={styles.playerGrid}>
                                     {rows.map((p) => {
                                         const idx = pickIndex(p.id)
                                         const selected = idx >= 0
@@ -409,14 +352,9 @@ export function ReportBrowser() {
                                                 key={p.id}
                                                 type="button"
                                                 onClick={() => togglePick(p)}
-                                                style={{
-                                                    ...ui.rowBtn,
-                                                    gap: 10,
-                                                    borderColor: selected ? 'var(--gold2)' : 'var(--border)',
-                                                    background: selected
-                                                        ? 'rgba(255, 200, 100, 0.07)'
-                                                        : 'transparent',
-                                                }}
+                                                className={`${styles.rowBtn} ${styles.playerCard}${
+                                                    selected ? ` ${styles.playerCardSelected}` : ''
+                                                }`}
                                             >
                                                 {p.iconUrl ? (
                                                     <img
@@ -424,39 +362,24 @@ export function ReportBrowser() {
                                                         alt=""
                                                         width={26}
                                                         height={26}
-                                                        style={{ borderRadius: 4, flexShrink: 0 }}
+                                                        className={styles.playerIcon}
                                                     />
                                                 ) : null}
-                                                <span style={{ minWidth: 0 }}>
+                                                <span className={styles.cellText}>
                                                     <span
-                                                        style={{
-                                                            display: 'block',
-                                                            fontFamily: 'var(--font-ui)',
-                                                            fontWeight: 600,
-                                                            fontSize: 13,
-                                                            color: wowClassColor(p.className),
-                                                            overflow: 'hidden',
-                                                            textOverflow: 'ellipsis',
-                                                            whiteSpace: 'nowrap',
-                                                        }}
+                                                        className={styles.rowTitle}
+                                                        style={{ color: wowClassColor(p.className) }}
                                                     >
                                                         {p.name}
                                                     </span>
-                                                    <span style={{ ...ui.dim, display: 'block' }}>
+                                                    <span className={`${styles.dim} ${styles.block}`}>
                                                         {p.specLabel && p.specLabel !== p.className
                                                             ? `${p.specLabel} ${wowClassDisplayName(p.className)}`
                                                             : wowClassDisplayName(p.className)}
                                                     </span>
                                                 </span>
                                                 {selected && (
-                                                    <span
-                                                        style={{
-                                                            ...ui.badge,
-                                                            marginLeft: 'auto',
-                                                            color: 'var(--gold2)',
-                                                            borderColor: 'var(--gold2)',
-                                                        }}
-                                                    >
+                                                    <span className={`${styles.badge} ${styles.pickBadge}`}>
                                                         {idx === 0 ? 'P1' : 'P2'}
                                                     </span>
                                                 )}
@@ -469,18 +392,10 @@ export function ReportBrowser() {
                     })}
 
                 {players && (
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 10,
-                            flexWrap: 'wrap',
-                            marginTop: 4,
-                        }}
-                    >
+                    <div className={styles.actionsRow}>
                         <button
                             type="button"
-                            className={pa.btnGold}
+                            className={ui.btnGold}
                             disabled={picked.length === 0 || fa.loading}
                             onClick={analyze}
                         >
@@ -493,7 +408,7 @@ export function ReportBrowser() {
                         {picked.length > 0 && (
                             <button
                                 type="button"
-                                className={`${pa.btnGhost} ${pa.btnGhostSm}`}
+                                className={`${ui.btnGhost} ${ui.btnGhostSm}`}
                                 onClick={() => {
                                     setPicked([])
                                     setAutoPickedName(null)
@@ -503,13 +418,13 @@ export function ReportBrowser() {
                             </button>
                         )}
                         {autoPickedName && picked.some((p) => p.name === autoPickedName) && (
-                            <span style={ui.dim}>
+                            <span className={styles.dim}>
                                 Auto-picked {autoPickedName} — your last character. Click their card to
                                 unselect.
                             </span>
                         )}
                         {picked.length === 2 && (
-                            <span style={ui.dim}>
+                            <span className={styles.dim}>
                                 Anything fancier (filters, phases) — craft the URL on WCL and paste it on
                                 Analyze.
                             </span>
@@ -545,7 +460,7 @@ export function ReportBrowser() {
                     backLabel="All reports"
                     right={
                         <a
-                            className={`${pa.btnGhost} ${pa.btnGhostSm}`}
+                            className={`${ui.btnGhost} ${ui.btnGhostSm}`}
                             href={wclReportLink(report.code)}
                             target="_blank"
                             rel="noreferrer"
@@ -554,44 +469,33 @@ export function ReportBrowser() {
                         </a>
                     }
                 />
-                <div style={{ marginBottom: 12 }}>
-                    <span
-                        style={{
-                            fontFamily: 'var(--font-display)',
-                            fontSize: 14,
-                            fontWeight: 600,
-                            color: 'var(--gold2)',
-                        }}
-                    >
-                        {report.title}
-                    </span>{' '}
-                    <span style={ui.dim}>
+                <div className={styles.reportHeading}>
+                    <span className={styles.goldTitle}>{report.title}</span>{' '}
+                    <span className={styles.dim}>
                         {report.zoneName ? `${report.zoneName} · ` : ''}
                         {fmtDate(report.startTime)}
                     </span>
                 </div>
 
-                {fightsError && <p style={{ ...ui.mono, color: 'var(--red, #e06c75)' }}>{fightsError}</p>}
-                {!fights && !fightsError && <p style={ui.mono}>Loading pulls…</p>}
-                {fights && fights.length === 0 && <p style={ui.mono}>No boss pulls in this report.</p>}
+                {fightsError && <p className={`${styles.mono} ${styles.errorText}`}>{fightsError}</p>}
+                {!fights && !fightsError && <p className={styles.mono}>Loading pulls…</p>}
+                {fights && fights.length === 0 && (
+                    <p className={styles.mono}>No boss pulls in this report.</p>
+                )}
 
                 {fights && fights.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div className={styles.rowList}>
                         {fights.map((f) => (
-                            <button key={f.id} type="button" style={ui.rowBtn} onClick={() => openFight(f)}>
-                                <span
-                                    style={{
-                                        fontFamily: 'var(--font-ui)',
-                                        fontWeight: 600,
-                                        fontSize: 13,
-                                        color: 'var(--text)',
-                                    }}
-                                >
-                                    {f.name}
-                                </span>
-                                <span style={ui.badge}>{difficultyLabel(f.difficulty) || '—'}</span>
+                            <button
+                                key={f.id}
+                                type="button"
+                                className={styles.rowBtn}
+                                onClick={() => openFight(f)}
+                            >
+                                <span className={styles.fightName}>{f.name}</span>
+                                <span className={styles.badge}>{difficultyLabel(f.difficulty) || '—'}</span>
                                 <KillBadge fight={f} />
-                                <span style={{ ...ui.dim, marginLeft: 'auto' }}>
+                                <span className={`${styles.dim} ${styles.pushRight}`}>
                                     {fmtDuration(f.startTime, f.endTime)}
                                 </span>
                             </button>
@@ -616,7 +520,7 @@ export function ReportBrowser() {
 
     return (
         <>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+            <div className={styles.sourceTabs}>
                 {sources.map((src) => {
                     const key = sourceKey(src)
                     const active = key === activeKey
@@ -624,7 +528,7 @@ export function ReportBrowser() {
                         <button
                             key={key}
                             type="button"
-                            className={`${pa.rosterPick}${active ? ` ${pa.rosterPickActive}` : ''}`}
+                            className={`${ui.rosterPick}${active ? ` ${ui.rosterPickActive}` : ''}`}
                             onClick={() => {
                                 setSource(src)
                                 setPage(1)
@@ -636,10 +540,10 @@ export function ReportBrowser() {
                 })}
             </div>
 
-            {listError && <p style={{ ...ui.mono, color: 'var(--red, #e06c75)' }}>{listError}</p>}
-            {listLoading && !reportPage && <p style={ui.mono}>Loading reports…</p>}
+            {listError && <p className={`${styles.mono} ${styles.errorText}`}>{listError}</p>}
+            {listLoading && !reportPage && <p className={styles.mono}>Loading reports…</p>}
             {reportPage && reportPage.reports.length === 0 && (
-                <p style={ui.mono}>
+                <p className={styles.mono}>
                     {source.kind === 'mine'
                         ? 'No uploads on your account. If your guild logs raids, try a guild tab above.'
                         : 'No reports found for this guild.'}
@@ -647,57 +551,42 @@ export function ReportBrowser() {
             )}
 
             {reportPage && reportPage.reports.length > 0 && (
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 6,
-                        opacity: listLoading ? 0.6 : 1,
-                    }}
-                >
+                <div className={`${styles.rowList}${listLoading ? ` ${styles.listLoading}` : ''}`}>
                     {reportPage.reports.map((r) => (
-                        <button key={r.code} type="button" style={ui.rowBtn} onClick={() => openReport(r)}>
-                            <span style={{ minWidth: 0 }}>
-                                <span
-                                    style={{
-                                        display: 'block',
-                                        fontFamily: 'var(--font-ui)',
-                                        fontWeight: 600,
-                                        fontSize: 13,
-                                        color: 'var(--text)',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                    }}
-                                >
-                                    {r.title}
-                                </span>
-                                <span style={ui.dim}>
+                        <button
+                            key={r.code}
+                            type="button"
+                            className={styles.rowBtn}
+                            onClick={() => openReport(r)}
+                        >
+                            <span className={styles.cellText}>
+                                <span className={styles.rowTitle}>{r.title}</span>
+                                <span className={styles.dim}>
                                     {r.zoneName ? `${r.zoneName} · ` : ''}
                                     {fmtDate(r.startTime)}
                                     {r.ownerName ? ` · by ${r.ownerName}` : ''}
                                 </span>
                             </span>
-                            <span style={{ ...ui.dim, marginLeft: 'auto', flexShrink: 0 }}>→</span>
+                            <span className={`${styles.dim} ${styles.pushRight} ${styles.noShrink}`}>→</span>
                         </button>
                     ))}
                 </div>
             )}
 
             {reportPage && (reportPage.hasMore || page > 1) && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }}>
+                <div className={styles.pagerRow}>
                     <button
                         type="button"
-                        className={`${pa.btnGhost} ${pa.btnGhostSm}`}
+                        className={`${ui.btnGhost} ${ui.btnGhostSm}`}
                         disabled={page <= 1 || listLoading}
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                     >
                         ← Newer
                     </button>
-                    <span style={ui.dim}>page {reportPage.page}</span>
+                    <span className={styles.dim}>page {reportPage.page}</span>
                     <button
                         type="button"
-                        className={`${pa.btnGhost} ${pa.btnGhostSm}`}
+                        className={`${ui.btnGhost} ${ui.btnGhostSm}`}
                         disabled={!reportPage.hasMore || listLoading}
                         onClick={() => setPage((p) => p + 1)}
                     >
@@ -708,3 +597,5 @@ export function ReportBrowser() {
         </>
     )
 }
+
+export default ReportBrowser
