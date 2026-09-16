@@ -1,0 +1,177 @@
+{
+  "sourceUrl": "https://www.wowhead.com/guide/classes/demon-hunter/havoc/talent-builds-pve-dps",
+  "scrapedAt": "2026-09-16T02:30:00.011Z",
+  "game": "wow-retail",
+  "classSlug": "demon-hunter",
+  "specSlug": "havoc",
+  "wowSpecId": 577,
+  "markupLength": 12642,
+  "pageType": "talent-builds",
+  "snapshot": {
+    "scrapedAt": "2026-09-16T02:30:00.011Z",
+    "sourcePageUrl": "https://www.wowhead.com/guide/classes/demon-hunter/havoc/talent-builds-pve-dps",
+    "fetch": {
+      "httpStatus": 200,
+      "ok": true,
+      "blockedByCdn": false
+    },
+    "wowheadDeclaredEdition": {
+      "patchLabel": {
+        "label": "Patch 12.1.0",
+        "patchSemverLike": "12.1.0",
+        "sourcedFrom": "Wowhead HTML: `.interior-sidebar-header-text-subtitle` contains the literal text \"Patch X.Y.Z\""
+      },
+      "guideLastUpdated": {
+        "displayDate": "2026/08/22",
+        "sourcedFrom": "Wowhead HTML: `.guide-content-byline-changed` / `.date-tip` shows the guide revision date"
+      },
+      "guide": {
+        "guideId": 4529,
+        "sourcedFrom": "Wowhead HTML: script/init references `guide: <id>`"
+      }
+    },
+    "bbcodeSignals": {
+      "seasonBanner": {
+        "phrase": "Midnight Season 2",
+        "sourcedFrom": "Wowhead BBCode: bracket emphasis block `Midnight Season N` in guide-body article text"
+      }
+    },
+    "blizzardTalentExports": {
+      "samples": [
+        {
+          "importCodePrefix": "CEkAAAAAAAAA…",
+          "blizzardExportSerializationVersion": 8,
+          "specIdFromExport": 18688,
+          "sourcedFrom": "Decoded from Base64 payload header (8-bit version, 16-bit specId) per Blizzard export format; same as lib/talents/decodeTalentString.ts parseTalentStringHeader"
+        },
+        {
+          "importCodePrefix": "CEkAAAAAAAAA…",
+          "blizzardExportSerializationVersion": 8,
+          "specIdFromExport": 18688,
+          "sourcedFrom": "Decoded from Base64 payload header (8-bit version, 16-bit specId) per Blizzard export format; same as lib/talents/decodeTalentString.ts parseTalentStringHeader"
+        }
+      ]
+    },
+    "talentHeaderVsGuideWarning": "parseTalentStringHeader on this Wowhead export yields specId 18688, not ChrSpecialization id 577 for Havoc Demon Hunter. Treat header fields as raw Blizzard bit layout — see __tests__/lib/talents/decodeTalentString.ts (Wowhead CAE sample).",
+    "howToStayCurrent": {
+      "refreshProcedure": "Re-run `npm run scrape-wowhead -- <spec-folder>` when guides change; commit new JSON. Wowhead \"Updated\" date + sidebar patch are the closest HTML-native freshness signals.",
+      "notInHtml": "Official WoW client build number is not embedded in the fetched guide HTML; compare in-game or Blizzard patch notes if you need that precision."
+    }
+  },
+  "talentCopies": [
+    {
+      "label": "Raid",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMzmxMzMmZmMmZAAAAAAAzyDMmtZYmBzMWmZMDzMGzyALziZMMbaaMzMG2AAAAAAAAYmBDAAAAD",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Mythic+",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Delves",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Raid",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYgZmZ2MmZmxMzkxMDAAAAAAYWegxsNDzMz2MzYZmxMWmZYmlZ2mBDjlNmkxMjhFAAAAAAAwMDwAAAAwA",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Mythic+",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMz2MmZmxYmMmZAAAAAAAzixsNDzMz2MzYZmxMMzwMLzsNDGGbbMJjZGzYBAAAAAAAMzAMAAAAM",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Delves",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMz2MmZmxYmMmZAAAAAAAzixsNDzMz2MzYZmxMMzwMLzsNDGGbbMJjZGzYBAAAAAAAMzAMAAAAM",
+      "source": "copy",
+      "heroTalent": null
+    }
+  ],
+  "talentCalcReferences": [
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMzmxMzMmZmMmZAAAAAAAzyDMmtZYmBzMWmZMDzMGzyALziZMMbaaMzMG2AAAAAAAAYmBDAAAAD",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMzmxMzMmZmMmZAAAAAAAzyDMmtZYmBzMWmZMDzMGzyALziZMMbaaMzMG2AAAAAAAAYmBDAAAAD",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYgZmZ2MmZmxMzkxMDAAAAAAYWegxsNDzMz2MzYZmxMWmZYmlZ2mBDjlNmkxMjhFAAAAAAAwMDwAAAAwA",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYgZmZ2MmZmxMzkxMDAAAAAAYWegxsNDzMz2MzYZmxMWmZYmlZ2mBDjlNmkxMjhFAAAAAAAwMDwAAAAwA",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMz2MmZmxYmMmZAAAAAAAzixsNDzMz2MzYZmxMMzwMLzsNDGGbbMJjZGzYBAAAAAAAMzAMAAAAM",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMz2MmZmxYmMmZAAAAAAAzixsNDzMz2MzYZmxMMzwMLzsNDGGbbMJjZGzYBAAAAAAAMzAMAAAAM",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMz2MmZmxYmMmZAAAAAAAzixsNDzMz2MzYZmxMMzwMLzsNDGGbbMJjZGzYBAAAAAAAMzAMAAAAM",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMz2MmZmxYmMmZAAAAAAAzixsNDzMz2MzYZmxMMzwMLzsNDGGbbMJjZGzYBAAAAAAAMzAMAAAAM",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMzmxMzMmZmMmZAAAAAAAzyDMmtZYmBzMWmZMDzMGzyALziZMMbaaMzMG2AAAAAAAAYmBDAAAAD",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMzmxMzMmZmMmZAAAAAAAzyDMmtZYmBzMWmZMDzMGzyALziZMMbaaMzMG2AAAAAAAAYmBDAAAAD",
+      "source": "dragonflight-calc"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMzmxMzMmZmMmZAAAAAAAzyDMmtZYmBzMWmZegZYmBzyALziZMMbaaMzMG2AAAAAAAAYmBDAAAAD",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMzmxMzMmZmMmZAAAAAAAzyDMmtZYmBzMWmZegZYmBzyALziZMMbaaMzMG2AAAAAAAAYmBDAAAAD",
+      "source": "dragonflight-calc"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYgZmZ2MmZmxMzkxMDAAAAAAYWegxsNDzMz2MzYZmxMWmZYmlZ2mBDjlNmkxMjhFAAAAAAAwMDwAAAAwA",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYgZmZ2MmZmxMzkxMDAAAAAAYWegxsNDzMz2MzYZmxMWmZYmlZ2mBDjlNmkxMjhFAAAAAAAwMDwAAAAwA",
+      "source": "dragonflight-calc"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYAzMzmxMzMmZmMmZAAAAAAAzyDMmtZYmxyMzYZm5BmZWmZWGjBWmFzYY200wMjhNAAAAAAAAmZwAAAAwA",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYAzMzmxMzMmZmMmZAAAAAAAzyDMmtZYmxyMzYZm5BmZWmZWGjBWmFzYY200wMjhNAAAAAAAAmZwAAAAwA",
+      "source": "dragonflight-calc"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+      "source": "dragonflight-calc"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMz2MmZmxYmMmZAAAAAAAzixsNDzMz2MzYZmxMMzwMLzsNDGGbbMJjZGzYBAAAAAAAMzAMAAAAM",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMz2MmZmxYmMmZAAAAAAAzixsNDzMz2MzYZmxMMzwMLzsNDGGbbMJjZGzYBAAAAAAAMzAMAAAAM",
+      "source": "dragonflight-calc"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMMPwMYmZGmZwsMw2sZGDzimGzMjZsBAAAMAAAAmZwAAAAwA",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMMPwMYmZGmZwsMw2sZGDzimGzMjZsBAAAMAAAAmZwAAAAwA",
+      "source": "dragonflight-calc"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+      "importCode": "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+      "source": "dragonflight-calc"
+    }
+  ],
+  "uniqueImportCodes": [
+    "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMzmxMzMmZmMmZAAAAAAAzyDMmtZYmBzMWmZMDzMGzyALziZMMbaaMzMG2AAAAAAAAYmBDAAAAD",
+    "CEkAAAAAAAAAAAAAAAAAAAAAAYmZGzMz2MmZmxYmMmZAAAAAAAzixsNDzMwMWmZmZYmBzyALzmZMMLaaMzMmxGAAAwAAAAYmBDAAAAD",
+    "CEkAAAAAAAAAAAAAAAAAAAAAAYgZmZ2MmZmxMzkxMDAAAAAAYWegxsNDzMz2MzYZmxMWmZYmlZ2mBDjlNmkxMjhFAAAAAAAwMDwAAAAwA",
+    "CEkAAAAAAAAAAAAAAAAAAAAAAYGMzMz2MmZmxYmMmZAAAAAAAzixsNDzMz2MzYZmxMMzwMLzsNDGGbbMJjZGzYBAAAAAAAMzAMAAAAM"
+  ]
+}

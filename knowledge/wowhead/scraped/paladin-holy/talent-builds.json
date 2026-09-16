@@ -1,0 +1,202 @@
+{
+  "sourceUrl": "https://www.wowhead.com/guide/classes/paladin/holy/talent-builds-pve-healer",
+  "scrapedAt": "2026-09-16T02:30:19.440Z",
+  "game": "wow-retail",
+  "classSlug": "paladin",
+  "specSlug": "holy",
+  "wowSpecId": 65,
+  "markupLength": 15358,
+  "pageType": "talent-builds",
+  "snapshot": {
+    "scrapedAt": "2026-09-16T02:30:19.440Z",
+    "sourcePageUrl": "https://www.wowhead.com/guide/classes/paladin/holy/talent-builds-pve-healer",
+    "fetch": {
+      "httpStatus": 200,
+      "ok": true,
+      "blockedByCdn": false
+    },
+    "wowheadDeclaredEdition": {
+      "patchLabel": {
+        "label": "Patch 12.1.0",
+        "patchSemverLike": "12.1.0",
+        "sourcedFrom": "Wowhead HTML: `.interior-sidebar-header-text-subtitle` contains the literal text \"Patch X.Y.Z\""
+      },
+      "guideLastUpdated": {
+        "displayDate": "2026/08/12",
+        "sourcedFrom": "Wowhead HTML: `.guide-content-byline-changed` / `.date-tip` shows the guide revision date"
+      },
+      "guide": {
+        "guideId": 3048,
+        "sourcedFrom": "Wowhead HTML: script/init references `guide: <id>`"
+      }
+    },
+    "bbcodeSignals": {
+      "seasonBanner": {
+        "phrase": "Midnight Season 2",
+        "sourcedFrom": "Wowhead BBCode: bracket emphasis block `Midnight Season N` in guide-body article text"
+      }
+    },
+    "blizzardTalentExports": {
+      "samples": [
+        {
+          "importCodePrefix": "CEEAAAAAAAAA…",
+          "blizzardExportSerializationVersion": 8,
+          "specIdFromExport": 16640,
+          "sourcedFrom": "Decoded from Base64 payload header (8-bit version, 16-bit specId) per Blizzard export format; same as lib/talents/decodeTalentString.ts parseTalentStringHeader"
+        },
+        {
+          "importCodePrefix": "CEEAAAAAAAAA…",
+          "blizzardExportSerializationVersion": 8,
+          "specIdFromExport": 16640,
+          "sourcedFrom": "Decoded from Base64 payload header (8-bit version, 16-bit specId) per Blizzard export format; same as lib/talents/decodeTalentString.ts parseTalentStringHeader"
+        }
+      ]
+    },
+    "talentHeaderVsGuideWarning": "parseTalentStringHeader on this Wowhead export yields specId 16640, not ChrSpecialization id 65 for Holy Paladin. Treat header fields as raw Blizzard bit layout — see __tests__/lib/talents/decodeTalentString.ts (Wowhead CAE sample).",
+    "howToStayCurrent": {
+      "refreshProcedure": "Re-run `npm run scrape-wowhead -- <spec-folder>` when guides change; commit new JSON. Wowhead \"Updated\" date + sidebar patch are the closest HTML-native freshness signals.",
+      "notInHtml": "Official WoW client build number is not embedded in the fetched guide HTML; compare in-game or Blizzard patch notes if you need that precision."
+    }
+  },
+  "talentCopies": [
+    {
+      "label": "Raid",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAw2MzMjZMzYxYmZYZwMLmpJGGzMDjZLDADYYDsxyMmZZ2mZmtGAAAgFAYzwYGzwMAAmZYGjRDA",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Raid",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAwyMzMjZ2mZmNYMsM2MziZaihxMzwY2yAwAG2AbsMjZWmtZmZrBAAAYBA2MMmxMMDAgZGmxY0A",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Mythic+",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAD2GzMzMjZmZBmZYZsZmFjmYYMzMMmtMAMAsB2YZmZmlZbmZ2aAAAAWAmhNDMjZYGAAzMMjxoB",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Mythic+",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADWGzMzMjZmZBGDLzsZmFjmYYMzMMmtMAMAsB2YZmZmlZbmZ2aAAAAWAmhNDMjZwAAYmhZMGNA",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Delves",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADMmZmZGzMzixMmxyYzMLGNxYGjZYMbZAYAYDsxyMzMLz2Mzs1AAAAsAMDbGYGzwAAwMDzYMaA",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Raid",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAAbAwMAAw2MzMjZ2mZsYMzMsMYmFz0EDjZmhxslBgBMsB2YZGDACAYmZZZx2MDbAwmhxMmhBgZGAmxY0A",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Raid",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAwyMzMjZMzMbGzYYZsZmFz0EDjZmhxslBgBMsB2YZGDACAYmZZZx2MDbAwmhxMmhBgZGAmxY0A",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Mythic+",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAD2GwMz2MzsMjZmhFzmZWMTTMMmZGGzWGAGA2AbsYmBABAMzsssYZmhN2wMsZgZMDAYmBgZMGNA",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Mythic+",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADWGwMz2MzsMjZMsMzmZWMTTMMmZGGzWGAGA2AbsYmBABAMzsssYZmhN2wMsZgZMDAYmBgZMGNA",
+      "source": "copy",
+      "heroTalent": null
+    },
+    {
+      "label": "Delves",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADMmZmZGzMzixMmxyYzMLGNxwYMDjZLDADAbgNWmZGAEAwMz22ilZG2AzMsZgZYYAYmBgZMGNA",
+      "source": "copy",
+      "heroTalent": null
+    }
+  ],
+  "talentCalcReferences": [
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAw2MzMjZMzYxYmZYZwMLmpJGGzMDjZLDADYYDsxyMmZZ2mZmtGAAAgFAYzwYGzwMAAmZYGjRDA",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAw2MzMjZMzYxYmZYZwMLmpJGGzMDjZLDADYYDsxyMmZZ2mZmtGAAAgFAYzwYGzwMAAmZYGjRDA",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAwyMzMjZ2mZmNYMsM2MziZaihxMzwY2yAwAG2AbsMjZWmtZmZrBAAAYBA2MMmxMMDAgZGmxY0A",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAwyMzMjZ2mZmNYMsM2MziZaihxMzwY2yAwAG2AbsMjZWmtZmZrBAAAYBA2MMmxMMDAgZGmxY0A",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAD2GzMzMjZmZBmZYZsZmFjmYYMzMMmtMAMAsB2YZmZmlZbmZ2aAAAAWAmhNDMjZYGAAzMMjxoB",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAD2GzMzMjZmZBmZYZsZmFjmYYMzMMmtMAMAsB2YZmZmlZbmZ2aAAAAWAmhNDMjZYGAAzMMjxoB",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADWGzMzMjZmZBGDLzsZmFjmYYMzMMmtMAMAsB2YZmZmlZbmZ2aAAAAWAmhNDMjZwAAYmhZMGNA",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADWGzMzMjZmZBGDLzsZmFjmYYMzMMmtMAMAsB2YZmZmlZbmZ2aAAAAWAmhNDMjZwAAYmhZMGNA",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADMmZmZGzMzixMmxyYzMLGNxYGjZYMbZAYAYDsxyMzMLz2Mzs1AAAAsAMDbGYGzwAAwMDzYMaA",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADMmZmZGzMzixMmxyYzMLGNxYGjZYMbZAYAYDsxyMzMLz2Mzs1AAAAsAMDbGYGzwAAwMDzYMaA",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAAbAwMAAw2MzMjZ2mZsYMzMsMYmFz0EDjZmhxslBgBMsB2YZGDACAYmZZZx2MDbAwmhxMmhBgZGAmxY0A",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAAbAwMAAw2MzMjZ2mZsYMzMsMYmFz0EDjZmhxslBgBMsB2YZGDACAYmZZZx2MDbAwmhxMmhBgZGAmxY0A",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAwyMzMjZMzMbGzYYZsZmFz0EDjZmhxslBgBMsB2YZGDACAYmZZZx2MDbAwmhxMmhBgZGAmxY0A",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAwyMzMjZMzMbGzYYZsZmFz0EDjZmhxslBgBMsB2YZGDACAYmZZZx2MDbAwmhxMmhBgZGAmxY0A",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAD2GwMz2MzsMjZmhFzmZWMTTMMmZGGzWGAGA2AbsYmBABAMzsssYZmhN2wMsZgZMDAYmBgZMGNA",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAD2GwMz2MzsMjZmhFzmZWMTTMMmZGGzWGAGA2AbsYmBABAMzsssYZmhN2wMsZgZMDAYmBgZMGNA",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADWGwMz2MzsMjZMsMzmZWMTTMMmZGGzWGAGA2AbsYmBABAMzsssYZmhN2wMsZgZMDAYmBgZMGNA",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADWGwMz2MzsMjZMsMzmZWMTTMMmZGGzWGAGA2AbsYmBABAMzsssYZmhN2wMsZgZMDAYmBgZMGNA",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADMmZmZGzMzixMmxyYzMLGNxwYMDjZLDADAbgNWmZGAEAwMz22ilZG2AzMsZgZYYAYmBgZMGNA",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADMmZmZGzMzixMmxyYzMLGNxwYMDjZLDADAbgNWmZGAEAwMz22ilZG2AzMsZgZYYAYmBgZMGNA",
+      "source": "url"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAw2MzMjZMzYxYmZYZwMLmpJGGzMDjZLDADYYDsxyMmZZ2mZmtGAAAgFAYzwYGzwMAAmZYGjRDA",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAw2MzMjZMzYxYmZYZwMLmpJGGzMDjZLDADYYDsxyMmZZ2mZmtGAAAgFAYzwYGzwMAAmZYGjRDA",
+      "source": "dragonflight-calc"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAD2GzMzMjZmZBmZYZsZmFjmYYMzMMmtMAMAsB2YZmZmlZbmZ2aAAAAWAmhNDMjZYGAAzMMjxoB",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAD2GzMzMjZmZBmZYZsZmFjmYYMzMMmtMAMAsB2YZmZmlZbmZ2aAAAAWAmhNDMjZYGAAzMMjxoB",
+      "source": "dragonflight-calc"
+    },
+    {
+      "path": "/talent-calc/blizzard/CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADMmZmZGzMzixMmxyYzMLGNxwYMDjZLDADAbgNWmZGAEAwMz22ilZG2AzMsZgZYYAYmBgZMGNA",
+      "importCode": "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADMmZmZGzMzixMmxyYzMLGNxwYMDjZLDADAbgNWmZGAEAwMz22ilZG2AzMsZgZYYAYmBgZMGNA",
+      "source": "dragonflight-calc"
+    }
+  ],
+  "uniqueImportCodes": [
+    "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAw2MzMjZMzYxYmZYZwMLmpJGGzMDjZLDADYYDsxyMmZZ2mZmtGAAAgFAYzwYGzwMAAmZYGjRDA",
+    "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAwyMzMjZ2mZmNYMsM2MziZaihxMzwY2yAwAG2AbsMjZWmtZmZrBAAAYBA2MMmxMMDAgZGmxY0A",
+    "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAD2GzMzMjZmZBmZYZsZmFjmYYMzMMmtMAMAsB2YZmZmlZbmZ2aAAAAWAmhNDMjZYGAAzMMjxoB",
+    "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADWGzMzMjZmZBGDLzsZmFjmYYMzMMmtMAMAsB2YZmZmlZbmZ2aAAAAWAmhNDMjZwAAYmhZMGNA",
+    "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADMmZmZGzMzixMmxyYzMLGNxYGjZYMbZAYAYDsxyMzMLz2Mzs1AAAAsAMDbGYGzwAAwMDzYMaA",
+    "CEEAAAAAAAAAAAAAAAAAAAAAAAAAAbAwMAAw2MzMjZ2mZsYMzMsMYmFz0EDjZmhxslBgBMsB2YZGDACAYmZZZx2MDbAwmhxMmhBgZGAmxY0A",
+    "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAwyMzMjZMzMbGzYYZsZmFz0EDjZmhxslBgBMsB2YZGDACAYmZZZx2MDbAwmhxMmhBgZGAmxY0A",
+    "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAAD2GwMz2MzsMjZmhFzmZWMTTMMmZGGzWGAGA2AbsYmBABAMzsssYZmhN2wMsZgZMDAYmBgZMGNA",
+    "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADWGwMz2MzsMjZMsMzmZWMTTMMmZGGzWGAGA2AbsYmBABAMzsssYZmhN2wMsZgZMDAYmBgZMGNA",
+    "CEEAAAAAAAAAAAAAAAAAAAAAAAAAALAwMAADMmZmZGzMzixMmxyYzMLGNxwYMDjZLDADAbgNWmZGAEAwMz22ilZG2AzMsZgZYYAYmBgZMGNA"
+  ]
+}

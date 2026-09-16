@@ -211,4 +211,6 @@ node scripts/test-icons.mjs            # Test Wowhead icon fetching for known Fr
 
 ## Spec Coverage
 
-**SimulationCraft default APLs** (opt-in on Analyze) are bundled for **all Mage specs** (62 Arcane, 63 Fire, 64 Frost) and **all Death Knight specs** (250 Blood, 251 Frost, 252 Unholy); see `lib/knowledge/embeddedSimc.ts` and `knowledge/simc/`. The talent tree system, data pipeline, charts, and AI chat work for any spec; Wowhead guide snippets are still Frost-only in `lib/knowledge/embeddedGuides.ts`.
+**Wowhead scraped guides** (talent builds + rotation/cooldowns, used by the SimC + Wowhead chat preset) cover **all 39 retail specs** — patch 12.1.0 snapshots under `knowledge/wowhead/scraped/`, bundled via the `SPEC_DOCS` registry in `lib/knowledge/embeddedWowhead.ts`, refreshed with `npm run scrape-wowhead -- <spec-folder…|--all>`.
+
+**SimulationCraft default APLs** (opt-in on Analyze) are bundled for **all Mage specs** (62 Arcane, 63 Fire, 64 Frost) and **all Death Knight specs** (250 Blood, 251 Frost, 252 Unholy); see `lib/knowledge/embeddedSimc.ts` and `knowledge/simc/`. The talent tree system, data pipeline, charts, and AI chat work for any spec; human-written guide summaries in `lib/knowledge/embeddedGuides.ts` are still Frost-Mage-centric.

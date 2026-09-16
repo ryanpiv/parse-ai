@@ -1,0 +1,92 @@
+{
+  "sourceUrl": "https://www.wowhead.com/guide/classes/priest/holy/rotation-cooldowns-pve-healer",
+  "scrapedAt": "2026-09-16T02:30:23.907Z",
+  "game": "wow-retail",
+  "classSlug": "priest",
+  "specSlug": "holy",
+  "wowSpecId": 257,
+  "markupLength": 14935,
+  "pageType": "rotation-cooldowns",
+  "snapshot": {
+    "scrapedAt": "2026-09-16T02:30:23.907Z",
+    "sourcePageUrl": "https://www.wowhead.com/guide/classes/priest/holy/rotation-cooldowns-pve-healer",
+    "fetch": {
+      "httpStatus": 200,
+      "ok": true,
+      "blockedByCdn": false
+    },
+    "wowheadDeclaredEdition": {
+      "patchLabel": {
+        "label": "Patch 12.1.0",
+        "patchSemverLike": "12.1.0",
+        "sourcedFrom": "Wowhead HTML: `.interior-sidebar-header-text-subtitle` contains the literal text \"Patch X.Y.Z\""
+      },
+      "guideLastUpdated": {
+        "displayDate": "2026/08/27",
+        "sourcedFrom": "Wowhead HTML: `.guide-content-byline-changed` / `.date-tip` shows the guide revision date"
+      },
+      "guide": {
+        "guideId": 3186,
+        "sourcedFrom": "Wowhead HTML: script/init references `guide: <id>`"
+      }
+    },
+    "bbcodeSignals": {
+      "dbFlavor": {
+        "tag": "db=live",
+        "sourcedFrom": "Leading tokens of extracted guide-body BBCode (`WH.markup.printHtml` first argument)"
+      },
+      "seasonBanner": {
+        "phrase": "Midnight Season 2",
+        "sourcedFrom": "Wowhead BBCode: bracket emphasis block `Midnight Season N` in guide-body article text"
+      }
+    },
+    "blizzardTalentExports": {},
+    "talentHeaderVsGuideWarning": null,
+    "howToStayCurrent": {
+      "refreshProcedure": "Re-run `npm run scrape-wowhead -- <spec-folder>` when guides change; commit new JSON. Wowhead \"Updated\" date + sidebar patch are the closest HTML-native freshness signals.",
+      "notInHtml": "Official WoW client build number is not embedded in the fetched guide HTML; compare in-game or Blizzard patch notes if you need that precision."
+    }
+  },
+  "sections": [
+    {
+      "heading": null,
+      "tocSlug": null,
+      "body": "[db=live]Welcome to the Holy Priest rotation guide for Midnight Season 2! This guide will teach you all about the optimal rotation for Holy Priest across its various talent builds. It will cover both core ability cadence and cooldown usage in dungeons and raids for [b]Midnight Season 2[/b].\n[pad]\n[center][wrapper width=80%]\n[nav]\n[nav-item=guide/classes/priest/holy/overview-pve-healer]Overview[/nav-item]\n[nav-item=guide/classes/priest/holy/bis-gear]BiS Gear[/nav-item]\n[nav-item=guide/classes/priest/holy/rotation-cooldowns-pve-healer][color=white]Rotation[/color][/nav-item]\n[nav-item=guide/classes/priest/holy/talent-builds-pve-healer]Talent Builds[/nav-item]\n[nav-item=guide/classes/priest/holy/enchants-gems-pve-healer]Consumables[/nav-item]\n[nav-item=guide/classes/priest/holy/stat-priority-pve-healer]Stats[/nav-item]\n[nav-item=guide/classes/priest/holy/basics icon=Inv_misc_groupneedmore]Basics[/nav-item]\n[/nav][/wrapper][/center]\n[pad]\n\n\n[toc]\n\n[pad]"
+    },
+    {
+      "heading": "How to Play Holy",
+      "tocSlug": "How to Play Holy",
+      "body": "[h2 type=bar toc=\"How to Play Holy\"][color=q1]Holy Priest Rotation in Midnight Season 2[/color][/h2]\nHealing typically has less of a strict rotation and more of a priority list. In both raid and mythic+, you will tailor your healing style by building up those respective Holy Words for the best effect. Holy tends to follow 3 key rules:\n\n[center][box]\n[center][wrapper width=800px]\n[table]\n[tr]\n[td width=7%][icon name=ability_priest_ascension size=medium type=round color=priest inline=true][/icon][/td] \n[td][b]Keep Holy Words on cooldown:[/b] Our Holy Words, [spell=2050] and [spell=34861], are our most powerful abilities and should be frequently used for maximum efficiency. If you know that predictable damage is incoming, especially single-target damage, you can pool Holy Words like [spell=2050] to prepare to triage allies quickly, but you should not sit on 2 stacks of the Holy Words if you can help it.[/td]\n[/tr]\n[/table]\n[hr]\n[table]\n[tr]\n[td width=7%][icon name=spell_holy_divineprovidence size=medium type=round color=priest inline=true][/icon][/td]\n[td][b]Raid Healing with AoE or single-target:[/b] Holy has great balance across talents with competitive AoE and single-target builds at their disposal. Often, triage or \"spot-healing\" can be at a premium in progression raiding, as most Healer builds focus on even AoE healing. This capability offers an opportunity for Holy to provide crucial output to the most vulnerable allies.[/td]\n[/tr]\n[/table]\n[hr]\n[table]\n[tr][td width=7%][icon name=spell_holy_persuitofjustice size=medium type=round color=priest inline=true][/icon][/td]\n[td][b]Mythic+ Healing is flexible:[/b] The [spell=1246517] talent lends a great deal of flexibility to Holy Priest in dungeons, allowing you to still cast [spell=596] to handle AoE healing while also giving you more [spell=2050]s that also cleave your party members.[/td][/tr][/table]\n[/wrapper][/center]\n[/box][/center]\n[pad]\n[center][cta-button guide=32804 icon=spell_holy_guardianspirit]Holy Priest Starter Guide[/cta-button][/center]"
+    },
+    {
+      "heading": "Rotation Priority",
+      "tocSlug": "Rotation Priority",
+      "body": "[h2 type=bar toc=\"Rotation Priority\"][icon name=spell_holy_guardianspirit type=round size=medium inline=true color=q1][/icon] Best Holy Priest Rotation[/h2]\n\nBelow, we break down the main priority lists for Holy Priest: Raid and Mythic+ Priorities\n[tabs name=\"Rotations\" uniform=true]\n\n[tab name=\"Oracle Priority\" icon=spell_holy_flashheal]"
+    },
+    {
+      "heading": "Oracle Priority",
+      "tocSlug": "Oracle Priority",
+      "body": "[h2 toc=\"Oracle Priority\" type=bar][icon name=ability_priest_holywordlife color=c5 inline=true size=medium type=round][/icon] [color=priest] Oracle Holy Priest Raid Rotation[/color][/h2]\n[pad]\n\nAlways look to have one [spell=2050] charge before you activate [spell=200183] to take advantage of the cost discount and increased healing. With Oracle you will be pumping out greater [spell=33076] casts and passive healing while [spell=1246802] makes your healing more efficient. You do not use Prayer of Healing with Oracle and instead focus on maximizing your single-target healing with Flash Heal making up the majority of your casts, giving you cooldown reduction for Serenity and cleaving onto allies with Dispersing Light.\n\n\n[wrapper width=850px]\n\n[hr] [center][minor-heading]Standard Priority[/minor-heading][/center]\n\t\t[rotation-timeline]\n\t\t\t[rt-step=2050 text=\"Don't Overcap\"]\n\t\t\t[rt-step=33076 text=\"On CD\"] \n\t\t\t[rt-step=200183]\n\t\t\t[rt-step=2050]\n\t\t\t[rt-step=2061]\n\t\t\t[rt-step=2050]\n\n\t\t[/rotation-timeline]\n\n[wrapper]\n[box border=true]\n[ol]\n\n[li]Cast [spell=2050] for single target healing on cooldown.[/li]\n[li]Keep [spell=33076] on cooldown, you can pool a charge if you know you will need to move so that you have something to cast while moving.[/li]\n[li]Cast [spell=2061]s to spot-heal as needed and make sure to not overcap on [spell=1262755] stacks (2).[/li]\n[li]Cast [spell=585] during downtime to farm for [spell=114255] procs. [/li]\n[li]Cast [spell=64843] for raid-wide damage.[/li]\n\n[/ol]\n\nOther key considerations are spreading around your Renew effectively to allies. With your 4pc bonus your Prayer of Mending casts will guarantee a Renew on the ally who had PoM cast upon them, with this in mind you will want to try to spread PoMs to allies that do not have Renew, cast Serenity on allies that do not have Renew (or is shortly expiring) and fill with Flash Heals as needed.\n[/box][/wrapper]\n\n[div display-options=\"Tot-ST\"]\n[hr]\n\n[/div]\n\n[/wrapper]\n[/tab]\n\n\n[tab name=\"Archon Priority\" icon=spell_holy_divinespirit]"
+    },
+    {
+      "heading": "Archon Priority",
+      "tocSlug": "Archon Priority",
+      "body": "[h2 toc=\"Archon Priority\" type=bar][icon name=ability_priest_holywordlife color=c5 inline=true size=medium type=round][/icon] [color=priest] Archon Holy Priest Raid Rotation[/color][/h2]\n[pad]\n\nHoly is very flexible in Midnight with [spell=596] acting mainly as your mana burn to blast extra healing if you have the mana to afford it. As Archon you will want to look to use [spell=200183] and [spell=120517] together whenever possible and always look to have one [spell=2050] charge before you activate [spell=200183] to take advantage of the cost discount and increased healing. [spell=585] can be used as filler in downtime to play for [spell=114255] procs for more cooldown reduction. \n\n\n\n\n\n\n\n[wrapper width=850px]\n\n[hr] [center][minor-heading]Standard [spell=200183]/[spell=120517] combo[/minor-heading][/center]\n\t\t[rotation-timeline]\n\t\t\t[rt-step=2050 text=\"Don't Overcap\"]\n\t\t\t[rt-step=33076 text=\"On CD\"] \n\t\t\t[rt-step=120517] \n\t\t\t[rt-step=200183]\n\t\t\t[rt-step=2050]\n\t\t\t[rt-step=596 text=\"With Surge procs\"]\n\t\t\t[rt-step=2050]\n\n\t\t[/rotation-timeline]\n\n[wrapper]\n[box border=true]\n[ol]\n\n[li display-options=\"archon0\"]Cast [spell=120517] as raid damage begins, the goal is to have it expanding and contracting continuously as damage is hitting the raid.[/li]\n[li display-options=\"archon0\"]Cast [spell=200183] to reset the cooldown of your Holy Words.[/li]\n[li]Cast [spell=2050] for single target healing on cooldown.[/li]\n[li]Consume any [spell=114255] procs on [spell=596] whenever possible, you can hold up to two stacks.[/li]\n[li]Keep [spell=33076] on cooldown.[/li]\n[li]Cast [spell=2061]s to spot-heal as needed and make sure to not overcap on [spell=1262755] stacks (2).[/li]\n[li]Cast [spell=585] during downtime to farm for [spell=114255] procs. [/li]\n[li]Cast [spell=64843] for raid-wide damage.[/li]\n\n[/ol]\n[/box][/wrapper]\n\n[div display-options=\"Tot-ST\"]\n[hr]\n\n[/div]\n\n[/wrapper]\n[/tab]\n[tab name=\"M+ Priority\" icon=spell_holy_prayerofspirit]"
+    },
+    {
+      "heading": "M+ Priority",
+      "tocSlug": "M+ Priority",
+      "body": "[h2 toc=\"M+ Priority\" type=bar][icon name=spell_holy_prayerofspirit color=c5 inline=true size=medium type=round][/icon] [color=priest] Mythic+ Healing[/color][/h2]\n[pad]\n\nHoly Priest does a solid job at conserving its mana while producing excellent burst output with the Archon hero talent tree.\n\nThe major downside for Holy in Mythic+ is defensives and thats where [b]high versatility[/b] can become very important for the high-end Holy Priest. Also it can be very productive to hold Holy Words from time to time to prepare for incoming boss mechanics. Holy has powerful and short cooldowns at its disposal in dungeons, making it imperative to frequently weave them into the mix to increase your damage, healing, or mana efficiency!\n\n\n[center][b]Use the [b]\\u2718[/b] markers next to talent selections to populate the priority list.[/b][/center]\n[grid]\n[display-option=\"archon2\" color=priest icon=inv_ability_holyfire_groundstate ]Archon[/display-option]\n[display-option=\"oracle2\" color=priest icon=inv_inscription_vantusrune_progenitor checked]Oracle[/display-option]\n[/grid]\n\n\n\n[minor-heading type=bar toc=false][color=priest]Priority[/color][/minor-heading]\n[ol]\n\n[li display-options=\"oracle2\"]Cast [spell=33076] on cooldown, preferring allies that need direct healing or allies without stacks of [spell=33076]. [/li]\n[li display-options=\"archon2\"]Cast [spell=120517] frequently for healing and damage, look to utilize before incoming damage so you can start generating [spell=114255] procs to help with healing (these heal for more than regular casts!).[/li]\n[li]Cast [spell=2050] on cooldown for single target.[/li]\n[li]Keep [spell=33076] on cooldown. (Focus on refreshing/maintaining stacks on players).[/li]\n[li]Use [spell=200183] frequently to save mana, reset the cooldowns of your Holy Words to prepare for additional burst damage or simply as a damage cooldown during downtime.[/li]\n[li]Use [spell=2061] and make sure to not overcap (2) on [spell=1262755] stacks. [/li]\n[/ol]\n[/tab]\n[/tabs]\n[pad]"
+    },
+    {
+      "heading": "Major Cooldowns",
+      "tocSlug": "Major Cooldowns",
+      "body": "[h2 toc=\"Major Cooldowns\" type=bar][icon name=spell_holy_divinehymn color=priest inline=true size=medium type=round][/icon] Holy Priest Major Cooldown Usage[/h2]\n\n\n[tabs name=\"cds\"]\n[tab name=\"Divine Hymn\" icon=spell_holy_divinehymn]\n\n[spell=64843] is your primary raid cooldown. Keep in mind that [spell=64843] can be cast while Line of Sight from your allies.  This is particularly helpful when LoSing dangerous mobs like in a dungeon environment but has had some applications in prior raids like on the Jailer encounter. In Patch 12.1 Divine Hymn now also applies [spell=47788] to you while channeling making it so that you can \"tank\" any ground swirlies that might be placed on your character while channeling, guaranteeing your survival. Hymn also does bonus healing in dungeons, making it a powerful healing cooldown in Mythic+![/tab]\n\n[tab name=\"Apotheosis\" icon=ability_priest_ascension]\n\n[spell=200183] is an excellent cooldown that helps produce additional Holy Word casts. It reduces the cost of your Holy Word spells and allows you to cast Holy Words more rapidly. Regardless of the situation, your goal when using Apotheosis is to maximize your Holy Word casts during its duration, the best way to do so is to be ready to be casting spells like [spell=596] or [spell=2061] to aggressively generate new Holy Words to spend. Pooling resources like [spell=114255] procs or using talents like [spell=1215241] can help you generate new Holy Words more quickly and efficiently, resulting in some excellent sustained healing over its duration.[/tab]\n\n\n[tab name=\"Guardian Spirit\" icon=spell_holy_guardianspirit]\n\n[spell=47788] is your main tank external and will function as a cheat death, putting the target back to 40% health if they intake lethal levels of damage. There is a limit to the damage that can be received but keep in mind that this talent is very valuable to use particularly on tanks that have solid self-healing capabilities like Blood DKs, communicating when and how you want to use these abilities and being mindful of how helpful/necessary it is to use it is also important. As Priest is often very weak on the defensive front, [spell=47788] can be self-cast if necessary and if tanks are not utilizing the cooldown. \n\n\n[/tab]\n\n\n\n[tab name=\"Defensives\" icon=spell_magic_lesserinvisibilty]\n\n[spell=19236] and [spell=586] are your primary defensives. [spell=193063] allows you to receive 10% damage reduction at any point in an encounter just by casting [spell=2061] on any ally thanks to the [spell=368275] passive. With the [spell=368275] talent it allows you to cast [spell=2061] on any ally and this will always activate the [spell=193063] effect on yourself!\n\n[/tab]\n\n[/table][/center]\n\n[/tab]\n[/tabs]"
+    },
+    {
+      "heading": "Advanced Tips",
+      "tocSlug": "Advanced Tips",
+      "body": "[h2 toc=\"Advanced Tips\" type=bar][color=q1][icon name=Inv_artifact_tome01 type=round size=medium inline=true color=q1][/icon] Holy Priest Advanced Tips[/color][/h2]\n[symbol=wow-hero-talent-archon] Archon gameplay is very straightforward as your [spell=120517] lasts longer, does increased healing, and increases the healing your allies receive for 10 seconds after your [spell=120517] heals them. As a result, you'll want to use [spell=120517] early as damage is hitting your raid, and when possible, pooling Holy Words to benefit from the increased healing. Not enough to cap on stacks or let a player sit low. Pairing your [spell=120517] with [spell=200183] is an absolute must for the bonus healing that both spells receive when playing with Archon talents. This allows you to produce huge, sustained, and focused output for the duration.\n\nThe primary buff uptimes that you might play around is [spell=200183] which grants faster cooldown reduction for your Holy Words and makes them cheaper to cast! [b]You want every global cast during [spell=200183] to be one that casts a Holy Word or reduces one[/b].\n\n\n[symbol=wow-hero-talent-oracle] Oracle Priest will be using their additional charge of [spell=33076] to produce better sustained and passive healing. With an extra charge also comes the abilities to pool [spell=33076] casts which can be helpful if you know that you will need to move for an upcoming mechanic or if you need to provide some efficient spot-healing to an ally through the [spell=1246799] talent.\n\n[spell=1246802] is now passive in Midnight, redirecting any of your overheal to other allies in need. [spell=1272363] a new talent in Midnight, becomes especially helpful in a Mythic+ environment where it keeps your [spell=33076] stacks active on allies instead of fully expiring, refreshing and maintaining these buffs by casting a [spell=33076] on an ally who already has some stacks on them can also act as a way of reducing the \"waste\" of [spell=33076] stacks and increasing your passive output in the process. [spell=33076] can stack up to 14 and with our usual talents one cast will apply 7 stacks so as long as you are not overcapping past 14 with your cast, or if the duration is about to run off and the waste is less than or equal to 2 stacks, then you'll want to cast [spell=33076] on that ally. \n[pad]\n\nOur Holy Priest guides are always updated with the latest information from in-game experience, simulations, and logs. Make sure to check our changelog for this page by clicking on [b]View Changelog[/b] in the Quick Facts column or on the book icon at the top of the page. If you are interested in more in-depth Holy Priest guides for [b]Midnight Season 2[/b], make sure to browse the [i]Navigation Bar[/i] at the top of the page, along with our list of [b]Related Guides[/b] just beneath the [i]Table of Contents[/i]."
+    }
+  ]
+}

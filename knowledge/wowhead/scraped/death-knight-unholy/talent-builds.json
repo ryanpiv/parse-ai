@@ -1,14 +1,14 @@
 {
   "sourceUrl": "https://www.wowhead.com/guide/classes/death-knight/unholy/talent-builds-pve-dps",
-  "scrapedAt": "2026-05-01T09:18:13.070Z",
+  "scrapedAt": "2026-09-16T02:29:59.016Z",
   "game": "wow-retail",
   "classSlug": "death-knight",
   "specSlug": "unholy",
   "wowSpecId": 252,
-  "markupLength": 10042,
+  "markupLength": 9890,
   "pageType": "talent-builds",
   "snapshot": {
-    "scrapedAt": "2026-05-01T09:18:13.070Z",
+    "scrapedAt": "2026-09-16T02:29:59.016Z",
     "sourcePageUrl": "https://www.wowhead.com/guide/classes/death-knight/unholy/talent-builds-pve-dps",
     "fetch": {
       "httpStatus": 200,
@@ -17,12 +17,12 @@
     },
     "wowheadDeclaredEdition": {
       "patchLabel": {
-        "label": "Patch 12.0.5",
-        "patchSemverLike": "12.0.5",
+        "label": "Patch 12.1.0",
+        "patchSemverLike": "12.1.0",
         "sourcedFrom": "Wowhead HTML: `.interior-sidebar-header-text-subtitle` contains the literal text \"Patch X.Y.Z\""
       },
       "guideLastUpdated": {
-        "displayDate": "2026/04/17",
+        "displayDate": "2026/09/05",
         "sourcedFrom": "Wowhead HTML: `.guide-content-byline-changed` / `.date-tip` shows the guide revision date"
       },
       "guide": {
@@ -32,7 +32,7 @@
     },
     "bbcodeSignals": {
       "seasonBanner": {
-        "phrase": "Midnight Season 1",
+        "phrase": "Midnight Season 2",
         "sourcedFrom": "Wowhead BBCode: bracket emphasis block `Midnight Season N` in guide-body article text"
       }
     },
@@ -52,16 +52,16 @@
         }
       ]
     },
-    "talentHeaderVsGuideWarning": "parseTalentStringHeader on this Wowhead export yields specId 960, not ChrSpecialization id 252 for Unholy DK. Treat header fields as raw Blizzard bit layout — see __tests__/lib/talents/decodeTalentString.ts (Wowhead CAE sample).",
+    "talentHeaderVsGuideWarning": "parseTalentStringHeader on this Wowhead export yields specId 960, not ChrSpecialization id 252 for Unholy Death Knight. Treat header fields as raw Blizzard bit layout — see __tests__/lib/talents/decodeTalentString.ts (Wowhead CAE sample).",
     "howToStayCurrent": {
-      "refreshProcedure": "Re-run `npm run scrape-wowhead-unholy` when guides change; commit new JSON. Wowhead \"Updated\" date + sidebar patch are the closest HTML-native freshness signals.",
+      "refreshProcedure": "Re-run `npm run scrape-wowhead -- <spec-folder>` when guides change; commit new JSON. Wowhead \"Updated\" date + sidebar patch are the closest HTML-native freshness signals.",
       "notInHtml": "Official WoW client build number is not embedded in the fetched guide HTML; compare in-game or Blizzard patch notes if you need that precision."
     }
   },
   "talentCopies": [
     {
       "label": "Rider ST",
-      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZAbmFDDZgZjhGLAYGAGzMjZAmZmxYA",
+      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAwyMmZ2mZGzMDYzsYYIDMbM0YBAzAAzMjZAmZmxYA",
       "source": "copy",
       "heroTalent": null
     },
@@ -79,21 +79,21 @@
     },
     {
       "label": "San ST",
-      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZMwAzYRjlFAbTsBgZAYMzMmBzMYGjB",
+      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTjZmxYGDAAAAAAAAzMMGAsMjZmtZmxMzYgBmxiGLbA2mYDAzAwYmZMDmZwMzYA",
       "source": "copy",
       "heroTalent": null
     },
     {
       "label": "San AoE",
-      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGzYAwyMmZ2MzYMjBGYGbassAYZiNMgZAYMzMmBzMYGjB",
+      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAYmhZMGDz2MzMTzyMzYMjBAAAAAAAgZGDDAWmxMzmZGzMjBGYGbassAYbiNMgZAYMzMmBzMYMjB",
       "source": "copy",
       "heroTalent": null
     }
   ],
   "talentCalcReferences": [
     {
-      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZAbmFDDZgZjhGLAYGAGzMjZAmZmxYA",
-      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZAbmFDDZgZjhGLAYGAGzMjZAmZmxYA",
+      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAwyMmZ2mZGzMDYzsYYIDMbM0YBAzAAzMjZAmZmxYA",
+      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAwyMmZ2mZGzMDYzsYYIDMbM0YBAzAAzMjZAmZmxYA",
       "source": "url"
     },
     {
@@ -102,23 +102,23 @@
       "source": "url"
     },
     {
-      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZMwAzYRjlFAbTsBgZAYMzMmBzMYGjB",
-      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZMwAzYRjlFAbTsBgZAYMzMmBzMYGjB",
+      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTjZmxYGDAAAAAAAAzMMGAsMjZmtZmxMzYgBmxiGLbA2mYDAzAwYmZMDmZwMzYA",
+      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTjZmxYGDAAAAAAAAzMMGAsMjZmtZmxMzYgBmxiGLbA2mYDAzAwYmZMDmZwMzYA",
       "source": "url"
     },
     {
-      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGzYAwyMmZ2MzYMjBGYGbassAYZiNMgZAYMzMmBzMYGjB",
-      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGzYAwyMmZ2MzYMjBGYGbassAYZiNMgZAYMzMmBzMYGjB",
+      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAYmhZMGDz2MzMTzyMzYMjBAAAAAAAgZGDDAWmxMzmZGzMjBGYGbassAYbiNMgZAYMzMmBzMYMjB",
+      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAYmhZMGDz2MzMTzyMzYMjBAAAAAAAgZGDDAWmxMzmZGzMjBGYGbassAYbiNMgZAYMzMmBzMYMjB",
       "source": "url"
     },
     {
-      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZAbmFDDZgZjhGLAYGAGzMjZAmZmxYA",
-      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZAbmFDDZgZjhGLAYGAGzMjZAmZmxYA",
+      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAwyMmZ2mZGzMDYzsYYIDMbM0YBAzAAzMjZAmZmxYA",
+      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAwyMmZ2mZGzMDYzsYYIDMbM0YBAzAAzMjZAmZmxYA",
       "source": "dragonflight-calc"
     },
     {
-      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZMwAzYRjlFAbTsBgZAYMzMmBzMYGjB",
-      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZMwAzYRjlFAbTsBgZAYMzMmBzMYGjB",
+      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTjZmxYGDAAAAAAAAzMMGAsMjZmtZmxMzYgBmxiGLbA2mYDAzAwYmZMDmZwMzYA",
+      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTjZmxYGDAAAAAAAAzMMGAsMjZmtZmxMzYgBmxiGLbA2mYDAzAwYmZMDmZwMzYA",
       "source": "dragonflight-calc"
     },
     {
@@ -127,8 +127,8 @@
       "source": "dragonflight-calc"
     },
     {
-      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGzYAwyMmZ2MzYMjBGYGbassAYZiNMgZAYMzMmBzMYGjB",
-      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGzYAwyMmZ2MzYMjBGYGbassAYZiNMgZAYMzMmBzMYGjB",
+      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAYmhZMGDz2MzMTzyMzYMjBAAAAAAAgZGDDAWmxMzmZGzMjBGYGbassAYbiNMgZAYMzMmBzMYMjB",
+      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAYmhZMGDz2MzMTzyMzYMjBAAAAAAAgZGDDAWmxMzmZGzMjBGYGbassAYbiNMgZAYMzMmBzMYMjB",
       "source": "dragonflight-calc"
     },
     {
@@ -137,16 +137,16 @@
       "source": "dragonflight-calc"
     },
     {
-      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGzYAwyMmZ2MzYMjBGYGbassAYZiNMgZAYMzMmBzMYGjB",
-      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGzYAwyMmZ2MzYMjBGYGbassAYZiNMgZAYMzMmBzMYGjB",
+      "path": "/talent-calc/blizzard/CwPAAAAAAAAAAAAAAAAAAAAAAAYmhZMGDz2MzMTzyMzYMjBAAAAAAAgZGDDAWmxMzmZGzMjBGYGbassAYbiNMgZAYMzMmBzMYMjB",
+      "importCode": "CwPAAAAAAAAAAAAAAAAAAAAAAAYmhZMGDz2MzMTzyMzYMjBAAAAAAAgZGDDAWmxMzmZGzMjBGYGbassAYbiNMgZAYMzMmBzMYMjB",
       "source": "dragonflight-calc"
     }
   ],
   "uniqueImportCodes": [
-    "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZAbmFDDZgZjhGLAYGAGzMjZAmZmxYA",
+    "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAwyMmZ2mZGzMDYzsYYIDMbM0YBAzAAzMjZAmZmxYA",
     "CwPAAAAAAAAAAAAAAAAAAAAAAAYmhZMDDz2MzMTzmxMzMjBAAAAAAAgZGzYAwyMmZ2MzYMDYzsZYIDMbM0YBDYGAGzMjZAmZmxYA",
     "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGzYAw2MmZ2mZGjZAbmNDDZgZhhGLYAzAAzMjZAmZmxYA",
-    "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGmZAw2MmZ2mZGjZMwAzYRjlFAbTsBgZAYMzMmBzMYGjB",
-    "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTzmZmZMjBAAAAAAAgZGzYAwyMmZ2MzYMjBGYGbassAYZiNMgZAYMzMmBzMYGjB"
+    "CwPAAAAAAAAAAAAAAAAAAAAAAAwMjZMDDz2MzMTjZmxYGDAAAAAAAAzMMGAsMjZmtZmxMzYgBmxiGLbA2mYDAzAwYmZMDmZwMzYA",
+    "CwPAAAAAAAAAAAAAAAAAAAAAAAYmhZMGDz2MzMTzyMzYMjBAAAAAAAgZGDDAWmxMzmZGzMjBGYGbassAYbiNMgZAYMzMmBzMYMjB"
   ]
 }

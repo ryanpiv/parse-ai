@@ -211,4 +211,14 @@ Phase ideas, in order:
 
 - Token refresh: WCL user tokens eventually expire and we don't use refresh
   tokens — users just re-sign-in. Fine for now; revisit if it annoys.
-- Wowhead scraped corpus only covers Frost Mage (specId 64); extend when adding specs.
+- Wowhead corpus (2026-09-15): now covers **all 39 retail specs**. Scraper
+  consolidated into table-driven `scripts/wowhead/scrape-wowhead.mjs`
+  (`npm run scrape-wowhead -- <folder…|--all>`; per-spec scripts deleted, old
+  npm aliases still work; role-based URL suffixes pve-dps/-healer/-tank; 400ms
+  page / 500ms spec pacing). `embeddedWowhead.ts` is a `SPEC_DOCS` registry
+  with all 39 imports; coverage locked by `__tests__/lib/embeddedWowhead.test.ts`
+  (every spec has fetch ok + talent copies + rotation sections; all snapshots
+  patch 12.1.0). `markupBbCode` no longer written (redundant with `sections`,
+  halves bundled size — corpus is ~1.9MB pretty-printed on disk). SimC APLs
+  still Frost-Mage-only (`knowledge/simc/`) — other specs get Wowhead but no
+  SimC block.

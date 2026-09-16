@@ -309,6 +309,27 @@ export default function ComparePage() {
     patchSession({ specId: compareData.specId })
   }, [hydrated, compareData, patchSession])
 
+  // Reflect the loaded comparison in the address bar (?b1=&b2=&n1=&n2=) so a
+  // refresh or copied URL reproduces it. Runs only when a compare completes —
+  // typing in the boxes alone doesn't rewrite the URL.
+  useEffect(() => {
+    if (!router.isReady || !compareData) return
+    const t1 = str1.trim()
+    const t2 = str2.trim()
+    if (!t1 || !t2) return // WCL trees-only loads have no export strings to encode
+    const params = new URLSearchParams({ b1: t1, b2: t2 })
+    const label1 = compareData.p1.name || name1
+    const label2 = compareData.p2.name || name2
+    if (label1 && label1 !== 'Build 1') params.set('n1', label1)
+    if (label2 && label2 !== 'Build 2') params.set('n2', label2)
+    const next = `/compare?${params.toString()}`
+    if (router.asPath === next) return
+    // The query-param effect must not re-run the compare we just finished.
+    autoTriggered.current = true
+    void router.replace(next, undefined, { shallow: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, compareData])
+
   useEffect(() => {
     if (!hydrated || !compareData?.p1?.talentTree?.length) return
     patchSession({ p1TalentTreeJson: talentDataToP1RowsJson(compareData.p1.talentTree) })

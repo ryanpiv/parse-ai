@@ -199,10 +199,10 @@ All prompt-time knowledge must be **imported from bundled TS modules** — `buil
 |---|---|---|---|
 | Wowhead summaries (human-written) | `knowledge/guides/bodies/<specId>.md` | `lib/knowledge/embeddedGuides.ts` | manual copy (Wowhead-only source policy — see `knowledge/guides/README.md`) |
 | SimC default APLs (GPL-3.0, `midnight` branch) | `knowledge/simc/*.midnight.simc` | `lib/knowledge/embeddedSimc.ts` | `npm run embed-simc` after refreshing files |
-| Wowhead scraped guides (JSON) | `knowledge/wowhead/scraped/` | `lib/knowledge/embeddedWowhead.ts` | `npm run scrape-wowhead-frost` / `-unholy` |
+| Wowhead scraped guides (JSON) | `knowledge/wowhead/scraped/` | `lib/knowledge/embeddedWowhead.ts` | `npm run scrape-wowhead -- <spec-folder…\|--all>` (registry in `scripts/wowhead/scrape-wowhead.mjs`) |
 | Icy Veins scraped guides (JSON) | `knowledge/icy-veins/scraped/` | `lib/knowledge/embeddedIcyVeins.ts` | `npm run scrape-icy-veins-frost` / `-unholy` |
 
-Coverage today: SimC for all Mage (62/63/64) + all DK (250/251/252) specs; scraped guides for Frost Mage (64) and Unholy DK (252); human summaries Frost-Mage-centric. The rest of the pipeline (charts, talents, chat) is spec-agnostic.
+Coverage today: **Wowhead scraped guides for all 39 retail specs** (patch 12.1.0 snapshots, 2026-09-15; coverage locked by `__tests__/lib/embeddedWowhead.test.ts`); SimC APLs for all Mage (62/63/64) + all DK (250/251/252) specs; Icy Veins scrapes for Frost Mage + Unholy DK; human summaries Frost-Mage-centric. The rest of the pipeline (charts, talents, chat) is spec-agnostic.
 
 Prompt precedence rule baked into the prompts: **the log data always wins** over guides/APL when they conflict. SimC's vendored APLs are generated files upstream — never "fix" them here; refresh from the `midnight` branch instead.
 
@@ -266,7 +266,7 @@ npm run dev            # localhost:3000 (.env.local loaded)
 npm test               # full Jest suite; npx jest --testPathPatterns=<regex> for a subset
 npm run build          # production build — required before finishing any change
 npm run embed-simc     # regenerate lib/knowledge/embeddedSimc.ts from knowledge/simc/
-npm run scrape-wowhead-frost | scrape-wowhead-unholy
+npm run scrape-wowhead -- <spec-folder…|--all>   # all 39 specs in scripts/wowhead/scrape-wowhead.mjs
 npm run scrape-icy-veins-frost | scrape-icy-veins-unholy
 ```
 
