@@ -10,36 +10,36 @@
  */
 
 function usable(value: string | undefined): value is string {
-  if (value == null) return false
-  const t = value.trim()
-  if (!t) return false
-  if (t === 'paste_your_wcl_token_here') return false
-  return true
+    if (value == null) return false
+    const t = value.trim()
+    if (!t) return false
+    if (t === 'paste_your_wcl_token_here') return false
+    return true
 }
 
 /** First defined, non-placeholder value among `primary` then `aliases`. */
 export function serverEnv(primary: string, ...aliases: string[]): string | undefined {
-  for (const key of [primary, ...aliases]) {
-    const v = process.env[key]
-    if (usable(v)) return v.trim()
-  }
-  return undefined
+    for (const key of [primary, ...aliases]) {
+        const v = process.env[key]
+        if (usable(v)) return v.trim()
+    }
+    return undefined
 }
 
 export function wclToken(): string | undefined {
-  return serverEnv('WCL_TOKEN', 'WCL_TOKEN_LOCAL', 'WARCRAFTLOGS_TOKEN')
+    return serverEnv('WCL_TOKEN', 'WCL_TOKEN_LOCAL', 'WARCRAFTLOGS_TOKEN')
 }
 
 export function anthropicApiKey(): string | undefined {
-  const k = serverEnv('ANTHROPIC_API_KEY', 'ANTHROPIC_API_KEY_LOCAL', 'ANTHROPIC_KEY')
-  if (k && k.includes('paste_your_key')) return undefined
-  return k
+    const k = serverEnv('ANTHROPIC_API_KEY', 'ANTHROPIC_API_KEY_LOCAL', 'ANTHROPIC_KEY')
+    if (k && k.includes('paste_your_key')) return undefined
+    return k
 }
 
 export function blizzardClientId(): string | undefined {
-  return serverEnv('BLIZZARD_CLIENT_ID', 'BLIZZARD_CLIENT_ID_LOCAL')
+    return serverEnv('BLIZZARD_CLIENT_ID', 'BLIZZARD_CLIENT_ID_LOCAL')
 }
 
 export function blizzardClientSecret(): string | undefined {
-  return serverEnv('BLIZZARD_CLIENT_SECRET', 'BLIZZARD_CLIENT_SECRET_LOCAL')
+    return serverEnv('BLIZZARD_CLIENT_SECRET', 'BLIZZARD_CLIENT_SECRET_LOCAL')
 }

@@ -1,21 +1,21 @@
 export { fetchTalents, type WclGqlFn } from './fetchTalents'
 export {
-  loadTalentsFromWclUrl,
-  confirmTalentPlayer,
-  type TalentLoadPick,
-  type TalentLoadReady,
+    loadTalentsFromWclUrl,
+    confirmTalentPlayer,
+    type TalentLoadPick,
+    type TalentLoadReady,
 } from './loadTalentsFromWclUrl'
 export {
-  decodeTalentString,
-  encodeTalentString,
-  parseTalentStringHeader,
-  wclRowsToDecodedNodes,
-  decodedNodesEqual,
-  TALENT_EXPORT_SERIALIZATION_VERSION,
-  type DecodedTalentString,
-  type DecodedTalentNode,
-  type TalentStringHeader,
-  type TreeNodeInfo,
+    decodeTalentString,
+    encodeTalentString,
+    parseTalentStringHeader,
+    wclRowsToDecodedNodes,
+    decodedNodesEqual,
+    TALENT_EXPORT_SERIALIZATION_VERSION,
+    type DecodedTalentString,
+    type DecodedTalentNode,
+    type TalentStringHeader,
+    type TreeNodeInfo,
 } from './decodeTalentString'
 export { apiNodesToTreeNodes } from './apiNodesToTreeNodes'
 export { stripColOutliers } from './stripColOutliers'
@@ -25,15 +25,9 @@ export { applyDecodedNodesToRankMaps } from './applyDecodedToRankMaps'
 export { heroTreeShortLabel, heroTreeTitleLabel } from './heroLabels'
 export { applyRankMapAsRaidbotsP1, sumRanks } from './raidbotsRankMap'
 export {
-  categorizeTalents,
-  type TalentCategory,
-  type CategorizedTalent,
-  type CategorizedTalents,
+    categorizeTalents,
+    type TalentCategory,
+    type CategorizedTalent,
+    type CategorizedTalents,
 } from './diffTalents'
-export {
-  _nodeMap,
-  scheduleNodeFetch,
-  getNodeMap,
-  fetchTalentInfo,
-  fetchIcon,
-} from './nodeResolution'
+export { _nodeMap, scheduleNodeFetch, getNodeMap, fetchTalentInfo, fetchIcon } from './nodeResolution'

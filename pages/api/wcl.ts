@@ -4,12 +4,12 @@ const WCL_USER_ENDPOINT = 'https://www.warcraftlogs.com/api/v2/user'
 const RATE_LIMIT_QUERY = '{ rateLimitData { limitPerHour pointsSpentThisHour pointsResetIn } }'
 
 const NO_TOKEN_ERROR =
-  'Sign in with WarcraftLogs to load reports (Settings, top right). Each user connects their own WCL account.'
+    'Sign in with WarcraftLogs to load reports (Settings, top right). Each user connects their own WCL account.'
 
 interface WclAuth {
-  token: string
-  /** User tokens must use /api/v2/user to get the user's report permissions. */
-  endpoint: string
+    token: string
+    /** User tokens must use /api/v2/user to get the user's report permissions. */
+    endpoint: string
 }
 
 /**
@@ -19,159 +19,171 @@ interface WclAuth {
  * lookups (/api/talents).
  */
 function resolveAuth(req: NextApiRequest): WclAuth | null {
-  const userToken = req.headers['x-wcl-user-token']
-  if (typeof userToken === 'string' && userToken.trim()) {
-    return { token: userToken.trim(), endpoint: WCL_USER_ENDPOINT }
-  }
-  return null
+    const userToken = req.headers['x-wcl-user-token']
+    if (typeof userToken === 'string' && userToken.trim()) {
+        return { token: userToken.trim(), endpoint: WCL_USER_ENDPOINT }
+    }
+    return null
 }
 
 async function wclFetch(auth: WclAuth, body: object): Promise<{ status: number; text: string }> {
-  const response = await fetch(auth.endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${auth.token}`,
-    },
-    body: JSON.stringify(body),
-  })
-  const text = await response.text()
-  return { status: response.status, text }
+    const response = await fetch(auth.endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify(body),
+    })
+    const text = await response.text()
+    return { status: response.status, text }
 }
 
 function tryParseJSON(text: string): { ok: true; data: unknown } | { ok: false } {
-  try {
-    return { ok: true, data: JSON.parse(text) }
-  } catch {
-    return { ok: false }
-  }
+    try {
+        return { ok: true, data: JSON.parse(text) }
+    } catch {
+        return { ok: false }
+    }
 }
 
 function safeJson(res: NextApiResponse, status: number, payload: unknown) {
-  if (res.writableEnded) return
-  try {
-    return res.status(status).json(payload)
-  } catch (e) {
-    console.error('[api/wcl] res.json failed', e)
-    if (!res.writableEnded) {
-      return res.status(500).json({ error: 'Failed to serialize API response (WCL payload may be invalid).' })
+    if (res.writableEnded) return
+    try {
+        return res.status(status).json(payload)
+    } catch (e) {
+        console.error('[api/wcl] res.json failed', e)
+        if (!res.writableEnded) {
+            return res
+                .status(500)
+                .json({ error: 'Failed to serialize API response (WCL payload may be invalid).' })
+        }
     }
-  }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    if (req.method === 'GET') {
-      const auth = resolveAuth(req)
-      if (!auth) return safeJson(res, 401, { error: NO_TOKEN_ERROR })
-
-      try {
-        const { status, text } = await wclFetch(auth, { query: RATE_LIMIT_QUERY })
-        if (status !== 200) {
-          return safeJson(res, status, { error: `WCL returned ${status}`, body: text.slice(0, 300) })
-        }
-
-        const parsed = tryParseJSON(text)
-        if (!parsed.ok) {
-          return safeJson(res, 500, {
-            error: 'WCL returned non-JSON — token likely expired',
-            body: text.slice(0, 300),
-          })
-        }
-
-        const data = parsed.data as Record<string, unknown>
-        return safeJson(res, 200, { ok: true, rateLimit: (data?.data as Record<string, unknown>)?.rateLimitData })
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unknown error'
-        return safeJson(res, 500, { error: message })
-      }
-    }
-
-    if (req.method !== 'POST') {
-      return safeJson(res, 405, { error: 'Method not allowed' })
-    }
-
-    const auth = resolveAuth(req)
-    if (!auth) return safeJson(res, 401, { error: NO_TOKEN_ERROR })
-
-    // Special action: extract talent strings from a WCL compare URL
-    if (req.body?.action === 'compare-talents') {
-      return await handleCompareTalents(req, res, auth)
-    }
-
-    if (req.body == null || typeof req.body !== 'object' || typeof (req.body as { query?: unknown }).query !== 'string') {
-      return safeJson(res, 400, {
-        error: 'Expected JSON body { query: string, variables?: object }. If you see this in the app, the WCL client is misconfigured.',
-      })
-    }
-
     try {
-      const { status, text } = await wclFetch(auth, req.body as object)
-      if (status !== 200) {
-        return safeJson(res, status, { error: `WCL returned ${status}`, body: text.slice(0, 300) })
-      }
+        if (req.method === 'GET') {
+            const auth = resolveAuth(req)
+            if (!auth) return safeJson(res, 401, { error: NO_TOKEN_ERROR })
 
-      const parsed = tryParseJSON(text)
-      if (!parsed.ok) {
-        return safeJson(res, 500, {
-          error: 'WCL returned non-JSON — token likely expired or credentials invalid.',
-          body: text.slice(0, 300),
-        })
-      }
+            try {
+                const { status, text } = await wclFetch(auth, { query: RATE_LIMIT_QUERY })
+                if (status !== 200) {
+                    return safeJson(res, status, {
+                        error: `WCL returned ${status}`,
+                        body: text.slice(0, 300),
+                    })
+                }
 
-      return safeJson(res, 200, parsed.data)
+                const parsed = tryParseJSON(text)
+                if (!parsed.ok) {
+                    return safeJson(res, 500, {
+                        error: 'WCL returned non-JSON — token likely expired',
+                        body: text.slice(0, 300),
+                    })
+                }
+
+                const data = parsed.data as Record<string, unknown>
+                return safeJson(res, 200, {
+                    ok: true,
+                    rateLimit: (data?.data as Record<string, unknown>)?.rateLimitData,
+                })
+            } catch (err) {
+                const message = err instanceof Error ? err.message : 'Unknown error'
+                return safeJson(res, 500, { error: message })
+            }
+        }
+
+        if (req.method !== 'POST') {
+            return safeJson(res, 405, { error: 'Method not allowed' })
+        }
+
+        const auth = resolveAuth(req)
+        if (!auth) return safeJson(res, 401, { error: NO_TOKEN_ERROR })
+
+        // Special action: extract talent strings from a WCL compare URL
+        if (req.body?.action === 'compare-talents') {
+            return await handleCompareTalents(req, res, auth)
+        }
+
+        if (
+            req.body == null ||
+            typeof req.body !== 'object' ||
+            typeof (req.body as { query?: unknown }).query !== 'string'
+        ) {
+            return safeJson(res, 400, {
+                error: 'Expected JSON body { query: string, variables?: object }. If you see this in the app, the WCL client is misconfigured.',
+            })
+        }
+
+        try {
+            const { status, text } = await wclFetch(auth, req.body as object)
+            if (status !== 200) {
+                return safeJson(res, status, { error: `WCL returned ${status}`, body: text.slice(0, 300) })
+            }
+
+            const parsed = tryParseJSON(text)
+            if (!parsed.ok) {
+                return safeJson(res, 500, {
+                    error: 'WCL returned non-JSON — token likely expired or credentials invalid.',
+                    body: text.slice(0, 300),
+                })
+            }
+
+            return safeJson(res, 200, parsed.data)
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Unknown error'
+            return safeJson(res, 500, { error: message })
+        }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error'
-      return safeJson(res, 500, { error: message })
+        console.error('[api/wcl] unhandled', err)
+        if (!res.writableEnded) {
+            return safeJson(res, 500, {
+                error: err instanceof Error ? err.message : 'Internal server error',
+                hint: 'Check the terminal running `npm run dev` for [api/wcl] logs.',
+            })
+        }
     }
-  } catch (err) {
-    console.error('[api/wcl] unhandled', err)
-    if (!res.writableEnded) {
-      return safeJson(res, 500, {
-        error: err instanceof Error ? err.message : 'Internal server error',
-        hint: 'Check the terminal running `npm run dev` for [api/wcl] logs.',
-      })
-    }
-  }
 }
 
 /** Unwrap GraphQL `data` from WCL HTTP JSON (`{ data, errors? }`). */
 function gqlData(httpBody: any): any {
-  if (!httpBody || typeof httpBody !== 'object') return null
-  if ('data' in httpBody && httpBody.data !== undefined) return httpBody.data
-  return httpBody
+    if (!httpBody || typeof httpBody !== 'object') return null
+    if ('data' in httpBody && httpBody.data !== undefined) return httpBody.data
+    return httpBody
 }
 
 async function gqlQuery(auth: WclAuth, query: string, variables: Record<string, unknown>) {
-  const { status, text } = await wclFetch(auth, { query, variables })
-  if (status !== 200) throw new Error(`WCL returned ${status}`)
-  const parsed = tryParseJSON(text)
-  if (!parsed.ok) throw new Error('WCL returned non-JSON — token may be expired')
-  const httpBody = parsed.data as any
-  if (Array.isArray(httpBody?.errors) && httpBody.errors.length) {
-    throw new Error(httpBody.errors.map((e: any) => e.message).join('; '))
-  }
-  return httpBody
+    const { status, text } = await wclFetch(auth, { query, variables })
+    if (status !== 200) throw new Error(`WCL returned ${status}`)
+    const parsed = tryParseJSON(text)
+    if (!parsed.ok) throw new Error('WCL returned non-JSON — token may be expired')
+    const httpBody = parsed.data as any
+    if (Array.isArray(httpBody?.errors) && httpBody.errors.length) {
+        throw new Error(httpBody.errors.map((e: any) => e.message).join('; '))
+    }
+    return httpBody
 }
 
 function isPlayerActor(a: any): boolean {
-  const t = String(a?.type || '').toLowerCase()
-  return t === 'player'
+    const t = String(a?.type || '').toLowerCase()
+    return t === 'player'
 }
 
 function findActor(actors: any[], srcRaw: string) {
-  const src = srcRaw.trim()
-  if (!src) return undefined
-  if (!isNaN(Number(src))) {
-    const id = parseInt(src, 10)
-    return actors.find((a: any) => a.id === id && isPlayerActor(a))
-  }
-  const lower = src.toLowerCase()
-  return actors.find((a: any) => a.name?.toLowerCase() === lower && isPlayerActor(a))
+    const src = srcRaw.trim()
+    if (!src) return undefined
+    if (!isNaN(Number(src))) {
+        const id = parseInt(src, 10)
+        return actors.find((a: any) => a.id === id && isPlayerActor(a))
+    }
+    const lower = src.toLowerCase()
+    return actors.find((a: any) => a.name?.toLowerCase() === lower && isPlayerActor(a))
 }
 
 function findFight(fights: any[], fid: number) {
-  return fights.find((f: any) => Number(f.id) === fid)
+    return fights.find((f: any) => Number(f.id) === fid)
 }
 
 /** Same CombatantInfo query as lib/talents/fetchTalents.ts */
@@ -184,153 +196,173 @@ const COMBATANT_INFO_QUERY = `
 `
 
 async function fetchCombatantEvents(
-  auth: WclAuth,
-  reportCode: string,
-  fightId: number,
-  start: number,
-  end: number
+    auth: WclAuth,
+    reportCode: string,
+    fightId: number,
+    start: number,
+    end: number,
 ): Promise<any[]> {
-  const root = await gqlQuery(auth, COMBATANT_INFO_QUERY, {
-    code: reportCode,
-    fightId,
-    start,
-    end,
-  })
-  const report = gqlData(root)?.reportData?.report
-  return report?.events?.data || []
+    const root = await gqlQuery(auth, COMBATANT_INFO_QUERY, {
+        code: reportCode,
+        fightId,
+        start,
+        end,
+    })
+    const report = gqlData(root)?.reportData?.report
+    return report?.events?.data || []
 }
 
 async function resolvePlayerEvent(
-  auth: WclAuth,
-  reportCode: string,
-  fightId: number,
-  fightStart: number,
-  fightEnd: number,
-  playerName: string,
-  playerId: number | undefined,
-  events: any[]
+    auth: WclAuth,
+    reportCode: string,
+    fightId: number,
+    fightStart: number,
+    fightEnd: number,
+    playerName: string,
+    playerId: number | undefined,
+    events: any[],
 ): Promise<any | null> {
-  let playerEvent = playerId != null
-    ? events.find((e: any) => Number(e.sourceID) === Number(playerId))
-    : null
+    let playerEvent =
+        playerId != null ? events.find((e: any) => Number(e.sourceID) === Number(playerId)) : null
 
-  if (!playerEvent) {
-    const pdRoot = await gqlQuery(
-      auth,
-      `query($code: String!, $fightId: Int!) {
+    if (!playerEvent) {
+        const pdRoot = await gqlQuery(
+            auth,
+            `query($code: String!, $fightId: Int!) {
         reportData { report(code: $code) { playerDetails(fightIDs: [$fightId]) } }
       }`,
-      { code: reportCode, fightId },
-    )
-    const details = gqlData(pdRoot)?.reportData?.report?.playerDetails?.data
-    const allPlayers = [...(details?.dps || []), ...(details?.healers || []), ...(details?.tanks || [])]
-    const pd = allPlayers.find((p: any) => p.name?.toLowerCase() === playerName?.toLowerCase())
-    if (pd) playerEvent = events.find((e: any) => Number(e.sourceID) === Number(pd.id))
-  }
+            { code: reportCode, fightId },
+        )
+        const details = gqlData(pdRoot)?.reportData?.report?.playerDetails?.data
+        const allPlayers = [...(details?.dps || []), ...(details?.healers || []), ...(details?.tanks || [])]
+        const pd = allPlayers.find((p: any) => p.name?.toLowerCase() === playerName?.toLowerCase())
+        if (pd) playerEvent = events.find((e: any) => Number(e.sourceID) === Number(pd.id))
+    }
 
-  if (!playerEvent && events.length === 1) playerEvent = events[0]
-  return playerEvent || null
+    if (!playerEvent && events.length === 1) playerEvent = events[0]
+    return playerEvent || null
 }
 
 function normalizeTalentTreeRows(raw: any): any[] {
-  const arr = Array.isArray(raw) ? raw : []
-  return arr
-    .map((t: any) => ({
-      id: t.spellId || t.id || 0,
-      nodeID: t.nodeID ?? t.nodeId,
-      rank: t.rank ?? 0,
-    }))
-    .filter((t: any) => t.nodeID != null && Number(t.nodeID) > 0)
+    const arr = Array.isArray(raw) ? raw : []
+    return arr
+        .map((t: any) => ({
+            id: t.spellId || t.id || 0,
+            nodeID: t.nodeID ?? t.nodeId,
+            rank: t.rank ?? 0,
+        }))
+        .filter((t: any) => t.nodeID != null && Number(t.nodeID) > 0)
 }
 
 async function handleCompareTalents(req: NextApiRequest, res: NextApiResponse, auth: WclAuth) {
-  try {
-    const url: string = req.body.url || ''
-    const pm = url.match(/\/reports\/compare\/([^/]+)\/([^/?]+)/)
-    if (!pm) return res.status(400).json({ error: 'Cannot find report codes in URL. Expected a WCL compare URL.' })
-    const r1 = pm[1], r2 = pm[2]
+    try {
+        const url: string = req.body.url || ''
+        const pm = url.match(/\/reports\/compare\/([^/]+)\/([^/?]+)/)
+        if (!pm)
+            return res
+                .status(400)
+                .json({ error: 'Cannot find report codes in URL. Expected a WCL compare URL.' })
+        const r1 = pm[1],
+            r2 = pm[2]
 
-    const u = new URL(url.startsWith('http') ? url : 'https://www.warcraftlogs.com' + url)
-    const fights = (u.searchParams.get('fight') || '').split(',').map(s => s.trim()).filter(Boolean)
-    const f1id = parseInt(fights[0] || '0', 10)
-    const f2id = parseInt(fights[1] || fights[0] || '0', 10)
-    const srcs = (u.searchParams.get('source') || '').split(',').map(s => s.trim())
-    const src1 = srcs[0] || ''
-    const src2 = srcs[1] || srcs[0] || ''
+        const u = new URL(url.startsWith('http') ? url : 'https://www.warcraftlogs.com' + url)
+        const fights = (u.searchParams.get('fight') || '')
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        const f1id = parseInt(fights[0] || '0', 10)
+        const f2id = parseInt(fights[1] || fights[0] || '0', 10)
+        const srcs = (u.searchParams.get('source') || '').split(',').map((s) => s.trim())
+        const src1 = srcs[0] || ''
+        const src2 = srcs[1] || srcs[0] || ''
 
-    if (!f1id || !f2id) return res.status(400).json({ error: 'Could not parse fight IDs from URL.' })
+        if (!f1id || !f2id) return res.status(400).json({ error: 'Could not parse fight IDs from URL.' })
 
-    const metaQuery = `query($code: String!){
+        const metaQuery = `query($code: String!){
       reportData{report(code:$code){fights{id startTime endTime} masterData{actors{id name type}}}}
     }`
 
-    const [m1, m2] = await Promise.all([
-      gqlQuery(auth, metaQuery, { code: r1 }),
-      gqlQuery(auth, metaQuery, { code: r2 }),
-    ])
+        const [m1, m2] = await Promise.all([
+            gqlQuery(auth, metaQuery, { code: r1 }),
+            gqlQuery(auth, metaQuery, { code: r2 }),
+        ])
 
-    const rep1 = gqlData(m1)?.reportData?.report
-    const rep2 = gqlData(m2)?.reportData?.report
-    const fight1 = findFight(rep1?.fights || [], f1id)
-    const fight2 = findFight(rep2?.fights || [], f2id)
-    if (!fight1) return res.status(400).json({ error: `Fight ${f1id} not found in report ${r1}.` })
-    if (!fight2) return res.status(400).json({ error: `Fight ${f2id} not found in report ${r2}.` })
+        const rep1 = gqlData(m1)?.reportData?.report
+        const rep2 = gqlData(m2)?.reportData?.report
+        const fight1 = findFight(rep1?.fights || [], f1id)
+        const fight2 = findFight(rep2?.fights || [], f2id)
+        if (!fight1) return res.status(400).json({ error: `Fight ${f1id} not found in report ${r1}.` })
+        if (!fight2) return res.status(400).json({ error: `Fight ${f2id} not found in report ${r2}.` })
 
-    const a1 = rep1?.masterData?.actors || []
-    const a2 = rep2?.masterData?.actors || []
-    const actor1 = findActor(a1, src1)
-    const actor2 = findActor(a2, src2)
-    const name1 = actor1?.name || src1
-    const name2 = actor2?.name || src2
-    /** Numeric source= in URL is the combatant sourceID even if masterData actor match fails */
-    const id1 = actor1?.id ?? (/^\d+$/.test(src1) ? parseInt(src1, 10) : undefined)
-    const id2 = actor2?.id ?? (/^\d+$/.test(src2) ? parseInt(src2, 10) : undefined)
+        const a1 = rep1?.masterData?.actors || []
+        const a2 = rep2?.masterData?.actors || []
+        const actor1 = findActor(a1, src1)
+        const actor2 = findActor(a2, src2)
+        const name1 = actor1?.name || src1
+        const name2 = actor2?.name || src2
+        /** Numeric source= in URL is the combatant sourceID even if masterData actor match fails */
+        const id1 = actor1?.id ?? (/^\d+$/.test(src1) ? parseInt(src1, 10) : undefined)
+        const id2 = actor2?.id ?? (/^\d+$/.test(src2) ? parseInt(src2, 10) : undefined)
 
-    const [events1, events2] = await Promise.all([
-      fetchCombatantEvents(auth, r1, f1id, fight1.startTime, fight1.endTime),
-      fetchCombatantEvents(auth, r2, f2id, fight2.startTime, fight2.endTime),
-    ])
+        const [events1, events2] = await Promise.all([
+            fetchCombatantEvents(auth, r1, f1id, fight1.startTime, fight1.endTime),
+            fetchCombatantEvents(auth, r2, f2id, fight2.startTime, fight2.endTime),
+        ])
 
-    const ev1 = await resolvePlayerEvent(
-      auth, r1, f1id, fight1.startTime, fight1.endTime, name1, id1, events1
-    )
-    const ev2 = await resolvePlayerEvent(
-      auth, r2, f2id, fight2.startTime, fight2.endTime, name2, id2, events2
-    )
+        const ev1 = await resolvePlayerEvent(
+            auth,
+            r1,
+            f1id,
+            fight1.startTime,
+            fight1.endTime,
+            name1,
+            id1,
+            events1,
+        )
+        const ev2 = await resolvePlayerEvent(
+            auth,
+            r2,
+            f2id,
+            fight2.startTime,
+            fight2.endTime,
+            name2,
+            id2,
+            events2,
+        )
 
-    const b1 = ev1?.talentSpec || null
-    const b2 = ev2?.talentSpec || null
+        const b1 = ev1?.talentSpec || null
+        const b2 = ev2?.talentSpec || null
 
-    const tree1Raw = ev1?.talentTree?.length ? ev1.talentTree : ev1?.talents
-    const tree2Raw = ev2?.talentTree?.length ? ev2.talentTree : ev2?.talents
-    const tree1 = normalizeTalentTreeRows(tree1Raw)
-    const tree2 = normalizeTalentTreeRows(tree2Raw)
+        const tree1Raw = ev1?.talentTree?.length ? ev1.talentTree : ev1?.talents
+        const tree2Raw = ev2?.talentTree?.length ? ev2.talentTree : ev2?.talents
+        const tree1 = normalizeTalentTreeRows(tree1Raw)
+        const tree2 = normalizeTalentTreeRows(tree2Raw)
 
-    const specId = ev1?.specID ?? ev2?.specID ?? null
+        const specId = ev1?.specID ?? ev2?.specID ?? null
 
-    if (!b1 && !b2 && !tree1.length && !tree2.length) {
-      return res.status(200).json({
-        error: 'No CombatantInfo talent data for either player. If the log is very old, WCL may not have stored talents. Try a recent report.',
-        debug: {
-          events1: events1.length,
-          events2: events2.length,
-          matched1: !!ev1,
-          matched2: !!ev2,
-        },
-      })
+        if (!b1 && !b2 && !tree1.length && !tree2.length) {
+            return res.status(200).json({
+                error: 'No CombatantInfo talent data for either player. If the log is very old, WCL may not have stored talents. Try a recent report.',
+                debug: {
+                    events1: events1.length,
+                    events2: events2.length,
+                    matched1: !!ev1,
+                    matched2: !!ev2,
+                },
+            })
+        }
+
+        return res.status(200).json({
+            b1,
+            b2,
+            tree1,
+            tree2,
+            n1: name1,
+            n2: name2,
+            specId,
+        })
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error'
+        return res.status(500).json({ error: message })
     }
-
-    return res.status(200).json({
-      b1,
-      b2,
-      tree1,
-      tree2,
-      n1: name1,
-      n2: name2,
-      specId,
-    })
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    return res.status(500).json({ error: message })
-  }
 }

@@ -1,0 +1,12 @@
+# Build output and deps
+node_modules/
+.next/
+package-lock.json
+
+# Vendored / scraped / generated corpora (embed-simc writes its own formatting)
+knowledge/
+lib/knowledge/embeddedSimcData.ts
+
+# Prose — keep hand-formatted tables and wrapping
+*.md
+*.mdc

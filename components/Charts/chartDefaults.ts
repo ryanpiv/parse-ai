@@ -13,68 +13,65 @@ export const GREEN = 'rgba(64,160,96,0.85)'
 export const DIM = 'rgba(74,90,106,0.4)'
 
 export const CHART_DEFAULTS = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      labels: {
-        color: '#8a9bb0',
-        font: { family: 'DM Sans', size: 11 },
-        boxWidth: 12,
-        padding: 14,
-      }
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            labels: {
+                color: '#8a9bb0',
+                font: { family: 'DM Sans', size: 11 },
+                boxWidth: 12,
+                padding: 14,
+            },
+        },
+        tooltip: {
+            backgroundColor: '#111418',
+            borderColor: '#2a3340',
+            borderWidth: 1,
+            titleColor: '#e8be40',
+            bodyColor: '#8a9bb0',
+            titleFont: { family: 'Rajdhani', size: 13, weight: '600' },
+            bodyFont: { family: 'DM Sans', size: 11 },
+            padding: 10,
+        },
     },
-    tooltip: {
-      backgroundColor: '#111418',
-      borderColor: '#2a3340',
-      borderWidth: 1,
-      titleColor: '#e8be40',
-      bodyColor: '#8a9bb0',
-      titleFont: { family: 'Rajdhani', size: 13, weight: '600' },
-      bodyFont: { family: 'DM Sans', size: 11 },
-      padding: 10,
-    }
-  },
-  scales: {
-    x: {
-      ticks: { color: '#4a5a6a', font: { family: 'DM Sans', size: 10 } },
-      grid: { color: 'rgba(42,51,64,0.5)' },
+    scales: {
+        x: {
+            ticks: { color: '#4a5a6a', font: { family: 'DM Sans', size: 10 } },
+            grid: { color: 'rgba(42,51,64,0.5)' },
+        },
+        y: {
+            ticks: { color: '#4a5a6a', font: { family: 'DM Sans', size: 10 } },
+            grid: { color: 'rgba(42,51,64,0.5)' },
+        },
     },
-    y: {
-      ticks: { color: '#4a5a6a', font: { family: 'DM Sans', size: 10 } },
-      grid: { color: 'rgba(42,51,64,0.5)' },
-    }
-  }
 }
 
-export function useChart(
-  canvasRef: RefObject<HTMLCanvasElement | null>,
-  config: any
-) {
-  const configKey = JSON.stringify(config)
+export function useChart(canvasRef: RefObject<HTMLCanvasElement | null>, config: any) {
+    const configKey = JSON.stringify(config)
 
-  useEffect(() => {
-    if (!canvasRef.current) return
-    const existing = Chart.getChart(canvasRef.current)
-    if (existing) existing.destroy()
-    const chart = new Chart(canvasRef.current, config)
-    return () => {
-      chart.destroy()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configKey])
+    useEffect(() => {
+        if (!canvasRef.current) return
+        const existing = Chart.getChart(canvasRef.current)
+        if (existing) existing.destroy()
+        const chart = new Chart(canvasRef.current, config)
+        return () => {
+            chart.destroy()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [configKey])
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas || typeof ResizeObserver === 'undefined') return
-    const parent = canvas.parentElement
-    if (!parent) return
-    const ro = new ResizeObserver(() => {
-      const ch = Chart.getChart(canvas)
-      ch?.resize()
-    })
-    ro.observe(parent)
-    return () => ro.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configKey])
+    useEffect(() => {
+        const canvas = canvasRef.current
+        if (!canvas || typeof ResizeObserver === 'undefined') return
+        const parent = canvas.parentElement
+        if (!parent) return
+        const ro = new ResizeObserver(() => {
+            const ch = Chart.getChart(canvas)
+            ch?.resize()
+        })
+        ro.observe(parent)
+        return () => ro.disconnect()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [configKey])
 }

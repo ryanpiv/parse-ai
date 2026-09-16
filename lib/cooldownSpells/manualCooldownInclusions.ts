@@ -4,5 +4,5 @@
  * Patch-specific — add Frozen Orb, Combustion, etc. if needed.
  */
 export const MANUAL_COOLDOWN_SPELL_IDS = new Set<number>([
-  // Example (retail IDs change): 190356 — Frozen Orb (verify each patch)
+    // Example (retail IDs change): 190356 — Frozen Orb (verify each patch)
 ])

@@ -12,30 +12,29 @@ export const CLAUDE_KEY_CHANGED_EVENT = 'pa:claude-key-changed'
 export const OPEN_CLAUDE_KEY_SETTINGS_EVENT = 'pa:open-claude-key-settings'
 
 export function announceClaudeKeyChanged(): void {
-  if (typeof window === 'undefined') return
-  window.dispatchEvent(new Event(CLAUDE_KEY_CHANGED_EVENT))
+    if (typeof window === 'undefined') return
+    window.dispatchEvent(new Event(CLAUDE_KEY_CHANGED_EVENT))
 }
 
 export function requestClaudeKeySetup(): void {
-  if (typeof window === 'undefined') return
-  window.dispatchEvent(new Event(OPEN_CLAUDE_KEY_SETTINGS_EVENT))
+    if (typeof window === 'undefined') return
+    window.dispatchEvent(new Event(OPEN_CLAUDE_KEY_SETTINGS_EVENT))
 }
-
 
 /** True once a Claude key is saved in this browser; updates live on save/clear. */
 export function useClaudeKeyPresent(): boolean {
-  const [present, setPresent] = useState(
-    () => typeof window !== 'undefined' && Boolean(readAnthropicUserKey())
-  )
-  useEffect(() => {
-    const update = () => setPresent(Boolean(readAnthropicUserKey()))
-    update()
-    window.addEventListener(CLAUDE_KEY_CHANGED_EVENT, update)
-    window.addEventListener('storage', update)
-    return () => {
-      window.removeEventListener(CLAUDE_KEY_CHANGED_EVENT, update)
-      window.removeEventListener('storage', update)
-    }
-  }, [])
-  return present
+    const [present, setPresent] = useState(
+        () => typeof window !== 'undefined' && Boolean(readAnthropicUserKey()),
+    )
+    useEffect(() => {
+        const update = () => setPresent(Boolean(readAnthropicUserKey()))
+        update()
+        window.addEventListener(CLAUDE_KEY_CHANGED_EVENT, update)
+        window.addEventListener('storage', update)
+        return () => {
+            window.removeEventListener(CLAUDE_KEY_CHANGED_EVENT, update)
+            window.removeEventListener('storage', update)
+        }
+    }, [])
+    return present
 }

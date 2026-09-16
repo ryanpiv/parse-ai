@@ -7,19 +7,19 @@ import { computeLayout, type BlizzardNode } from './TalentTree'
  * equal width instead would blow up the narrower tree's icons.
  */
 export function uniformClassSpecTreeWidth(
-  classNodes: BlizzardNode[],
-  specNodes: BlizzardNode[],
-  nodePx: number,
-  stepPx: number,
-  maxWidth: number
+    classNodes: BlizzardNode[],
+    specNodes: BlizzardNode[],
+    nodePx: number,
+    stepPx: number,
+    maxWidth: number,
 ): { classWidth?: number; specWidth?: number } {
-  const classW = classNodes.length ? computeLayout(classNodes, nodePx, stepPx, true).W : 0
-  const specW = specNodes.length ? computeLayout(specNodes, nodePx, stepPx, true).W : 0
-  const widest = Math.max(classW, specW)
-  if (!widest) return {}
-  const scale = Math.min(1, maxWidth / widest)
-  return {
-    classWidth: classW ? Math.round(classW * scale) : undefined,
-    specWidth: specW ? Math.round(specW * scale) : undefined,
-  }
+    const classW = classNodes.length ? computeLayout(classNodes, nodePx, stepPx, true).W : 0
+    const specW = specNodes.length ? computeLayout(specNodes, nodePx, stepPx, true).W : 0
+    const widest = Math.max(classW, specW)
+    if (!widest) return {}
+    const scale = Math.min(1, maxWidth / widest)
+    return {
+        classWidth: classW ? Math.round(classW * scale) : undefined,
+        specWidth: specW ? Math.round(specW * scale) : undefined,
+    }
 }

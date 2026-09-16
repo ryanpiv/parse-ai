@@ -1,38 +1,41 @@
 {
-  "name": "parse-analyzer",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "embed-simc": "node scripts/embed-simc.mjs",
-    "scrape-wowhead": "node scripts/wowhead/scrape-wowhead.mjs",
-    "scrape-wowhead-frost": "node scripts/wowhead/scrape-wowhead.mjs mage-frost",
-    "scrape-wowhead-unholy": "node scripts/wowhead/scrape-wowhead.mjs death-knight-unholy",
-    "scrape-icy-veins-frost": "node scripts/icy-veins/scrape-frost-mage.mjs",
-    "scrape-icy-veins-unholy": "node scripts/icy-veins/scrape-unholy-dk.mjs",
-    "discover-icy-veins-urls": "node scripts/icy-veins/discover-guide-urls.mjs"
-  },
-  "dependencies": {
-    "chart.js": "^4.4.3",
-    "next": "14.2.3",
-    "react": "18.3.1",
-    "react-chartjs-2": "^5.2.0",
-    "react-dom": "18.3.1"
-  },
-  "devDependencies": {
-    "@jest/globals": "^30.3.0",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@types/node": "^25.5.2",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0",
-    "ts-jest": "^29.4.9",
-    "typescript": "^6.0.2"
-  }
+    "name": "parse-analyzer",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "embed-simc": "node scripts/embed-simc.mjs",
+        "format": "prettier --write .",
+        "format-check": "prettier --check .",
+        "scrape-wowhead": "node scripts/wowhead/scrape-wowhead.mjs",
+        "scrape-wowhead-frost": "node scripts/wowhead/scrape-wowhead.mjs mage-frost",
+        "scrape-wowhead-unholy": "node scripts/wowhead/scrape-wowhead.mjs death-knight-unholy",
+        "scrape-icy-veins-frost": "node scripts/icy-veins/scrape-frost-mage.mjs",
+        "scrape-icy-veins-unholy": "node scripts/icy-veins/scrape-unholy-dk.mjs",
+        "discover-icy-veins-urls": "node scripts/icy-veins/discover-guide-urls.mjs"
+    },
+    "dependencies": {
+        "chart.js": "^4.4.3",
+        "next": "14.2.3",
+        "react": "18.3.1",
+        "react-chartjs-2": "^5.2.0",
+        "react-dom": "18.3.1"
+    },
+    "devDependencies": {
+        "@jest/globals": "^30.3.0",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.2",
+        "@types/node": "^25.5.2",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "jest": "^30.3.0",
+        "jest-environment-jsdom": "^30.3.0",
+        "prettier": "^3.9.7",
+        "ts-jest": "^29.4.9",
+        "typescript": "^6.0.2"
+    }
 }

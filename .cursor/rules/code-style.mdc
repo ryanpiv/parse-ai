@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Code style (condensed — full rules in [CODE_STYLE.md](CODE_STYLE.md))
 
-**Migration stance:** new files follow this fully; when editing an existing file, match its local style (indentation especially — repo is historically 2-space, new files are 4-space). Convert a file only when substantially reworking it.
+**Migration stance:** new files follow this fully; existing files converge on structure (folders, CSS modules, export style) when substantially reworked. Formatting is uniform and Prettier-owned (4-space, single quotes, no semi, width 110 — `npm run format`); the generated `lib/knowledge/embeddedSimcData.ts`, `knowledge/`, and markdown are prettier-ignored.
 
 - **Layout**: `pages/<route>.tsx` = thin orchestrators; `pages/api/` = HTTP adapters only; new UI unit with tests/styles/children → `components/<Area>/<ComponentName>/` (`ComponentName.tsx`, thin `index.tsx`, `styles.module.css`, colocated `__tests__/`); shared pure helpers → `lib/<concept>/`; single-owner helpers live next to their owner. Never `lib/utils.ts` or one-file folders.
 - **Naming**: PascalCase domain phrases (no `List`/`Item`/`Wrapper`). Verb contract: `build*` assemble, `get*` sync read, `map*` shape transform only, `fetch*` real network I/O only, `handle*` internal handler, `on*` callback prop, `is*/has*/should*` booleans. Local object shapes = `I`-prefixed `interface`; exported props = `ComponentNameProps` `type`. Domain-explicit names (`reportCode`, `specId`) over `id`/`data`/`item`.

@@ -24,121 +24,121 @@ const WCL_TOKEN_ENDPOINT = 'https://www.warcraftlogs.com/oauth/token'
  * exchange (WCL rotates refresh tokens, so the response carries a new one).
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'GET') {
-    return res.status(200).json({ clientId: wclPublicClientId() ?? null })
-  }
-
-  if (req.method === 'POST' && req.body?.action === 'user-exchange') {
-    const { code, verifier, redirectUri } = req.body as {
-      code?: string
-      verifier?: string
-      redirectUri?: string
-    }
-    const clientId = wclPublicClientId()
-    if (!clientId) {
-      return res.status(400).json({
-        error: 'Server has no WCL_CLIENT_ID — sign-in is unavailable.',
-      })
-    }
-    if (!code || !redirectUri) {
-      return res.status(400).json({ error: 'code and redirectUri are required.' })
+    if (req.method === 'GET') {
+        return res.status(200).json({ clientId: wclPublicClientId() ?? null })
     }
 
-    try {
-      const secret = wclClientCredentials()?.secret
-      const response = await fetch(WCL_TOKEN_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          client_id: clientId,
-          ...(secret ? { client_secret: secret } : {}),
-          redirect_uri: redirectUri,
-          code,
-          ...(verifier ? { code_verifier: verifier } : {}),
-        }).toString(),
-      })
-      const data = (await response.json().catch(() => null)) as {
-        access_token?: string
-        expires_in?: number
-        refresh_token?: string
-        error_description?: string
-      } | null
-      if (!data?.access_token) {
-        return res.status(400).json({ error: data?.error_description || 'Token exchange failed' })
-      }
+    if (req.method === 'POST' && req.body?.action === 'user-exchange') {
+        const { code, verifier, redirectUri } = req.body as {
+            code?: string
+            verifier?: string
+            redirectUri?: string
+        }
+        const clientId = wclPublicClientId()
+        if (!clientId) {
+            return res.status(400).json({
+                error: 'Server has no WCL_CLIENT_ID — sign-in is unavailable.',
+            })
+        }
+        if (!code || !redirectUri) {
+            return res.status(400).json({ error: 'code and redirectUri are required.' })
+        }
 
-      // Who signed in? Only the /user endpoint exposes currentUser.
-      let userName: string | undefined
-      try {
-        const ur = await fetch(WCL_USER_ENDPOINT, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${data.access_token}`,
-          },
-          body: JSON.stringify({ query: '{ userData { currentUser { name } } }' }),
-        })
-        const uj = (await ur.json().catch(() => null)) as any
-        userName = uj?.data?.userData?.currentUser?.name || undefined
-      } catch {
-        /* name is cosmetic */
-      }
+        try {
+            const secret = wclClientCredentials()?.secret
+            const response = await fetch(WCL_TOKEN_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    grant_type: 'authorization_code',
+                    client_id: clientId,
+                    ...(secret ? { client_secret: secret } : {}),
+                    redirect_uri: redirectUri,
+                    code,
+                    ...(verifier ? { code_verifier: verifier } : {}),
+                }).toString(),
+            })
+            const data = (await response.json().catch(() => null)) as {
+                access_token?: string
+                expires_in?: number
+                refresh_token?: string
+                error_description?: string
+            } | null
+            if (!data?.access_token) {
+                return res.status(400).json({ error: data?.error_description || 'Token exchange failed' })
+            }
 
-      return res.status(200).json({
-        token: data.access_token,
-        expiresIn: data.expires_in ?? 3600,
-        refreshToken: data.refresh_token,
-        userName,
-      })
-    } catch (e) {
-      const message = e instanceof Error ? e.message : 'Unknown error'
-      return res.status(500).json({ error: message })
+            // Who signed in? Only the /user endpoint exposes currentUser.
+            let userName: string | undefined
+            try {
+                const ur = await fetch(WCL_USER_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${data.access_token}`,
+                    },
+                    body: JSON.stringify({ query: '{ userData { currentUser { name } } }' }),
+                })
+                const uj = (await ur.json().catch(() => null)) as any
+                userName = uj?.data?.userData?.currentUser?.name || undefined
+            } catch {
+                /* name is cosmetic */
+            }
+
+            return res.status(200).json({
+                token: data.access_token,
+                expiresIn: data.expires_in ?? 3600,
+                refreshToken: data.refresh_token,
+                userName,
+            })
+        } catch (e) {
+            const message = e instanceof Error ? e.message : 'Unknown error'
+            return res.status(500).json({ error: message })
+        }
     }
-  }
 
-  if (req.method === 'POST' && req.body?.action === 'user-refresh') {
-    const { refreshToken } = req.body as { refreshToken?: string }
-    const clientId = wclPublicClientId()
-    if (!clientId) {
-      return res.status(400).json({ error: 'Server has no WCL_CLIENT_ID — refresh is unavailable.' })
-    }
-    if (!refreshToken) {
-      return res.status(400).json({ error: 'refreshToken is required.' })
+    if (req.method === 'POST' && req.body?.action === 'user-refresh') {
+        const { refreshToken } = req.body as { refreshToken?: string }
+        const clientId = wclPublicClientId()
+        if (!clientId) {
+            return res.status(400).json({ error: 'Server has no WCL_CLIENT_ID — refresh is unavailable.' })
+        }
+        if (!refreshToken) {
+            return res.status(400).json({ error: 'refreshToken is required.' })
+        }
+
+        try {
+            const secret = wclClientCredentials()?.secret
+            const response = await fetch(WCL_TOKEN_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    grant_type: 'refresh_token',
+                    client_id: clientId,
+                    ...(secret ? { client_secret: secret } : {}),
+                    refresh_token: refreshToken,
+                }).toString(),
+            })
+            const data = (await response.json().catch(() => null)) as {
+                access_token?: string
+                expires_in?: number
+                refresh_token?: string
+                error_description?: string
+            } | null
+            if (!data?.access_token) {
+                // invalid_grant etc. — the browser drops its refresh token and falls back to re-sign-in.
+                return res.status(400).json({ error: data?.error_description || 'Token refresh failed' })
+            }
+            return res.status(200).json({
+                token: data.access_token,
+                expiresIn: data.expires_in ?? 3600,
+                refreshToken: data.refresh_token,
+            })
+        } catch (e) {
+            const message = e instanceof Error ? e.message : 'Unknown error'
+            return res.status(500).json({ error: message })
+        }
     }
 
-    try {
-      const secret = wclClientCredentials()?.secret
-      const response = await fetch(WCL_TOKEN_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          grant_type: 'refresh_token',
-          client_id: clientId,
-          ...(secret ? { client_secret: secret } : {}),
-          refresh_token: refreshToken,
-        }).toString(),
-      })
-      const data = (await response.json().catch(() => null)) as {
-        access_token?: string
-        expires_in?: number
-        refresh_token?: string
-        error_description?: string
-      } | null
-      if (!data?.access_token) {
-        // invalid_grant etc. — the browser drops its refresh token and falls back to re-sign-in.
-        return res.status(400).json({ error: data?.error_description || 'Token refresh failed' })
-      }
-      return res.status(200).json({
-        token: data.access_token,
-        expiresIn: data.expires_in ?? 3600,
-        refreshToken: data.refresh_token,
-      })
-    } catch (e) {
-      const message = e instanceof Error ? e.message : 'Unknown error'
-      return res.status(500).json({ error: message })
-    }
-  }
-
-  return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Method not allowed' })
 }

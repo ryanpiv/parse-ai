@@ -24,40 +24,40 @@ const root = path.join(__dirname, '..')
  * `file` is the upstream basename under ActionPriorityLists/default/.
  */
 const SPECS = [
-  { specId: 62, file: 'mage_arcane', displayName: 'Arcane Mage' },
-  { specId: 63, file: 'mage_fire', displayName: 'Fire Mage' },
-  { specId: 64, file: 'mage_frost', displayName: 'Frost Mage' },
-  { specId: 66, file: 'paladin_protection', displayName: 'Protection Paladin' },
-  { specId: 70, file: 'paladin_retribution', displayName: 'Retribution Paladin' },
-  { specId: 71, file: 'warrior_arms', displayName: 'Arms Warrior' },
-  { specId: 72, file: 'warrior_fury', displayName: 'Fury Warrior' },
-  { specId: 73, file: 'warrior_protection', displayName: 'Protection Warrior' },
-  { specId: 102, file: 'druid_balance', displayName: 'Balance Druid' },
-  { specId: 103, file: 'druid_feral', displayName: 'Feral Druid' },
-  { specId: 104, file: 'druid_guardian', displayName: 'Guardian Druid' },
-  { specId: 105, file: 'druid_restoration', displayName: 'Restoration Druid' },
-  { specId: 250, file: 'deathknight_blood', displayName: 'Blood Death Knight' },
-  { specId: 251, file: 'deathknight_frost', displayName: 'Frost Death Knight' },
-  { specId: 252, file: 'deathknight_unholy', displayName: 'Unholy Death Knight' },
-  { specId: 253, file: 'hunter_beast_mastery', displayName: 'Beast Mastery Hunter' },
-  { specId: 254, file: 'hunter_marksmanship', displayName: 'Marksmanship Hunter' },
-  { specId: 255, file: 'hunter_survival', displayName: 'Survival Hunter' },
-  { specId: 258, file: 'priest_shadow', displayName: 'Shadow Priest' },
-  { specId: 259, file: 'rogue_assassination', displayName: 'Assassination Rogue' },
-  { specId: 260, file: 'rogue_outlaw', displayName: 'Outlaw Rogue' },
-  { specId: 261, file: 'rogue_subtlety', displayName: 'Subtlety Rogue' },
-  { specId: 262, file: 'shaman_elemental', displayName: 'Elemental Shaman' },
-  { specId: 263, file: 'shaman_enhancement', displayName: 'Enhancement Shaman' },
-  { specId: 265, file: 'warlock_affliction', displayName: 'Affliction Warlock' },
-  { specId: 266, file: 'warlock_demonology', displayName: 'Demonology Warlock' },
-  { specId: 267, file: 'warlock_destruction', displayName: 'Destruction Warlock' },
-  { specId: 268, file: 'monk_brewmaster', displayName: 'Brewmaster Monk' },
-  { specId: 269, file: 'monk_windwalker', displayName: 'Windwalker Monk' },
-  { specId: 577, file: 'demonhunter_havoc', displayName: 'Havoc Demon Hunter' },
-  { specId: 581, file: 'demonhunter_vengeance', displayName: 'Vengeance Demon Hunter' },
-  { specId: 1467, file: 'evoker_devastation', displayName: 'Devastation Evoker' },
-  { specId: 1473, file: 'evoker_augmentation', displayName: 'Augmentation Evoker' },
-  { specId: 1480, file: 'demonhunter_devourer', displayName: 'Devourer Demon Hunter' },
+    { specId: 62, file: 'mage_arcane', displayName: 'Arcane Mage' },
+    { specId: 63, file: 'mage_fire', displayName: 'Fire Mage' },
+    { specId: 64, file: 'mage_frost', displayName: 'Frost Mage' },
+    { specId: 66, file: 'paladin_protection', displayName: 'Protection Paladin' },
+    { specId: 70, file: 'paladin_retribution', displayName: 'Retribution Paladin' },
+    { specId: 71, file: 'warrior_arms', displayName: 'Arms Warrior' },
+    { specId: 72, file: 'warrior_fury', displayName: 'Fury Warrior' },
+    { specId: 73, file: 'warrior_protection', displayName: 'Protection Warrior' },
+    { specId: 102, file: 'druid_balance', displayName: 'Balance Druid' },
+    { specId: 103, file: 'druid_feral', displayName: 'Feral Druid' },
+    { specId: 104, file: 'druid_guardian', displayName: 'Guardian Druid' },
+    { specId: 105, file: 'druid_restoration', displayName: 'Restoration Druid' },
+    { specId: 250, file: 'deathknight_blood', displayName: 'Blood Death Knight' },
+    { specId: 251, file: 'deathknight_frost', displayName: 'Frost Death Knight' },
+    { specId: 252, file: 'deathknight_unholy', displayName: 'Unholy Death Knight' },
+    { specId: 253, file: 'hunter_beast_mastery', displayName: 'Beast Mastery Hunter' },
+    { specId: 254, file: 'hunter_marksmanship', displayName: 'Marksmanship Hunter' },
+    { specId: 255, file: 'hunter_survival', displayName: 'Survival Hunter' },
+    { specId: 258, file: 'priest_shadow', displayName: 'Shadow Priest' },
+    { specId: 259, file: 'rogue_assassination', displayName: 'Assassination Rogue' },
+    { specId: 260, file: 'rogue_outlaw', displayName: 'Outlaw Rogue' },
+    { specId: 261, file: 'rogue_subtlety', displayName: 'Subtlety Rogue' },
+    { specId: 262, file: 'shaman_elemental', displayName: 'Elemental Shaman' },
+    { specId: 263, file: 'shaman_enhancement', displayName: 'Enhancement Shaman' },
+    { specId: 265, file: 'warlock_affliction', displayName: 'Affliction Warlock' },
+    { specId: 266, file: 'warlock_demonology', displayName: 'Demonology Warlock' },
+    { specId: 267, file: 'warlock_destruction', displayName: 'Destruction Warlock' },
+    { specId: 268, file: 'monk_brewmaster', displayName: 'Brewmaster Monk' },
+    { specId: 269, file: 'monk_windwalker', displayName: 'Windwalker Monk' },
+    { specId: 577, file: 'demonhunter_havoc', displayName: 'Havoc Demon Hunter' },
+    { specId: 581, file: 'demonhunter_vengeance', displayName: 'Vengeance Demon Hunter' },
+    { specId: 1467, file: 'evoker_devastation', displayName: 'Devastation Evoker' },
+    { specId: 1473, file: 'evoker_augmentation', displayName: 'Augmentation Evoker' },
+    { specId: 1480, file: 'demonhunter_devourer', displayName: 'Devourer Demon Hunter' },
 ]
 
 const outPath = path.join(root, 'lib/knowledge/embeddedSimcData.ts')
@@ -66,28 +66,28 @@ const metaEntries = []
 const aplEntries = []
 
 for (const { specId, file, displayName } of SPECS) {
-  const mirror = path.join(root, `knowledge/simc/${file}.midnight.simc`)
-  if (!fs.existsSync(mirror)) {
-    console.error(`embed-simc: missing ${mirror}`)
-    process.exit(1)
-  }
-  const simc = fs.readFileSync(mirror, 'utf8').replace(/\r\n/g, '\n')
-  if (!/^actions/m.test(simc)) {
-    console.error(`embed-simc: ${mirror} has no actions= lines — wrong file?`)
-    process.exit(1)
-  }
-  const upstreamPath = `ActionPriorityLists/default/${file}.simc`
-  metaEntries.push(
-    `  ${specId}: {\n` +
-      `    specId: ${specId},\n` +
-      `    branch: 'midnight',\n` +
-      `    upstreamPath: '${upstreamPath}',\n` +
-      `    upstreamUrl: 'https://github.com/simulationcraft/simc/blob/midnight/${upstreamPath}',\n` +
-      `    rawUrl: 'https://raw.githubusercontent.com/simulationcraft/simc/midnight/${upstreamPath}',\n` +
-      `    displayName: ${JSON.stringify(displayName)},\n` +
-      `  },`
-  )
-  aplEntries.push(`  ${specId}: ${JSON.stringify(simc)},`)
+    const mirror = path.join(root, `knowledge/simc/${file}.midnight.simc`)
+    if (!fs.existsSync(mirror)) {
+        console.error(`embed-simc: missing ${mirror}`)
+        process.exit(1)
+    }
+    const simc = fs.readFileSync(mirror, 'utf8').replace(/\r\n/g, '\n')
+    if (!/^actions/m.test(simc)) {
+        console.error(`embed-simc: ${mirror} has no actions= lines — wrong file?`)
+        process.exit(1)
+    }
+    const upstreamPath = `ActionPriorityLists/default/${file}.simc`
+    metaEntries.push(
+        `  ${specId}: {\n` +
+            `    specId: ${specId},\n` +
+            `    branch: 'midnight',\n` +
+            `    upstreamPath: '${upstreamPath}',\n` +
+            `    upstreamUrl: 'https://github.com/simulationcraft/simc/blob/midnight/${upstreamPath}',\n` +
+            `    rawUrl: 'https://raw.githubusercontent.com/simulationcraft/simc/midnight/${upstreamPath}',\n` +
+            `    displayName: ${JSON.stringify(displayName)},\n` +
+            `  },`,
+    )
+    aplEntries.push(`  ${specId}: ${JSON.stringify(simc)},`)
 }
 
 const output = `/**
@@ -118,4 +118,6 @@ ${aplEntries.join('\n')}
 `
 
 fs.writeFileSync(outPath, output)
-console.log(`embed-simc: wrote ${SPECS.length} specs → ${path.relative(root, outPath)} (${(output.length / 1024).toFixed(0)} KB)`)
+console.log(
+    `embed-simc: wrote ${SPECS.length} specs → ${path.relative(root, outPath)} (${(output.length / 1024).toFixed(0)} KB)`,
+)

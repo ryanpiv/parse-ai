@@ -15,9 +15,9 @@ _Last updated: 2026-09-16_
   style until substantially reworked.** Biggest deltas vs current code: CSS
   modules instead of `lib/styles.ts` inline maps / `pa-*` globals (both now
   frozen as legacy), component folders with colocated tests, arrow-fn default
-  exports, `I`-prefixed local interfaces, 4-space indent in new files (repo is
-  historically 2-space — a one-shot mechanical reformat is an option later,
-  after pending work is pushed).
+  exports, `I`-prefixed local interfaces. Formatting: one-shot Prettier
+  reformat landed right after (4-space, single quotes, no semi, width 110;
+  `npm run format` / `format-check`; generated + vendored files ignored).
 
 ## Latest session (2026-09-16): SimC APL parity + WCL token refresh
 

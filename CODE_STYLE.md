@@ -2,7 +2,7 @@
 
 How to write UI, helpers, and API routes in this app. Stack, deploy, and domain behavior live in `ARCHITECTURE.md`; session state lives in `PROGRESS.md`.
 
-**Migration stance:** this guide describes the target. New files follow it fully. When editing an existing file, match that file's local style (indentation especially) — convert a file only when you're substantially reworking it anyway. No big-bang reformat while feature work is in flight.
+**Migration stance:** this guide describes the target. New files follow it fully; existing files converge when substantially reworked (folder structure, CSS modules, export style). Formatting is already uniform: **Prettier owns it** (`.prettierrc.json` — 4-space, single quotes, no semicolons, width 110; `npm run format` / `npm run format-check`).
 
 ## Layout (Next.js Pages Router)
 
@@ -53,7 +53,7 @@ Booleans: `isOpen`, `hasSelection`. Visibility setters: `setIsFilterOpen`, not `
 
 **Comments explain why, not the next line.** Short. No emojis, no `// --- State ---` banners, no nested ternaries in JSX, no `any`, no generic `data` at component boundaries.
 
-Indentation is **4 spaces in new files** (existing files are historically 2-space — match the file you're in). No semicolons, single quotes, as today.
+Indentation is **4 spaces**, no semicolons, single quotes — enforced repo-wide by Prettier (`npm run format`); don't hand-fight it.
 
 Components are **arrow functions** assigned to a const, default-exported at the bottom:
 

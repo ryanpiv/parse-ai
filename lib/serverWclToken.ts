@@ -21,19 +21,19 @@ let cached: { token: string; expiresAt: number } | null = null
  * clients have no secret at all, so don't require one here.
  */
 export function wclPublicClientId(): string | undefined {
-  return serverEnv('WCL_CLIENT_ID', 'WCL_CLIENT_ID_LOCAL')
+    return serverEnv('WCL_CLIENT_ID', 'WCL_CLIENT_ID_LOCAL')
 }
 
 /** Id + secret pair — only needed for the client-credentials game-data token. */
 export function wclClientCredentials(): { id: string; secret: string } | null {
-  const id = serverEnv('WCL_CLIENT_ID', 'WCL_CLIENT_ID_LOCAL')
-  const secret = serverEnv('WCL_CLIENT_SECRET', 'WCL_CLIENT_SECRET_LOCAL')
-  return id && secret ? { id, secret } : null
+    const id = serverEnv('WCL_CLIENT_ID', 'WCL_CLIENT_ID_LOCAL')
+    const secret = serverEnv('WCL_CLIENT_SECRET', 'WCL_CLIENT_SECRET_LOCAL')
+    return id && secret ? { id, secret } : null
 }
 
 /** True when some WCL credential source is configured (creds or static token). */
 export function wclConfigured(): boolean {
-  return Boolean(wclClientCredentials() || wclToken())
+    return Boolean(wclClientCredentials() || wclToken())
 }
 
 /**
@@ -41,39 +41,40 @@ export function wclConfigured(): boolean {
  * configured, else the static WCL_TOKEN env, else undefined.
  */
 export async function getWclToken(): Promise<string | undefined> {
-  const creds = wclClientCredentials()
-  if (creds) {
-    if (cached && Date.now() < cached.expiresAt - EXPIRY_MARGIN_MS) return cached.token
-    try {
-      const res = await fetch(TOKEN_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Basic ${Buffer.from(`${creds.id}:${creds.secret}`).toString('base64')}`,
-        },
-        body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
-      })
-      const data = (await res.json().catch(() => null)) as
-        | { access_token?: string; expires_in?: number }
-        | null
-      if (data?.access_token) {
-        cached = {
-          token: data.access_token,
-          expiresAt: Date.now() + (data.expires_in ?? 3600) * 1000,
+    const creds = wclClientCredentials()
+    if (creds) {
+        if (cached && Date.now() < cached.expiresAt - EXPIRY_MARGIN_MS) return cached.token
+        try {
+            const res = await fetch(TOKEN_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    Authorization: `Basic ${Buffer.from(`${creds.id}:${creds.secret}`).toString('base64')}`,
+                },
+                body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
+            })
+            const data = (await res.json().catch(() => null)) as {
+                access_token?: string
+                expires_in?: number
+            } | null
+            if (data?.access_token) {
+                cached = {
+                    token: data.access_token,
+                    expiresAt: Date.now() + (data.expires_in ?? 3600) * 1000,
+                }
+                return cached.token
+            }
+            console.error('[serverWclToken] client-credentials exchange failed', res.status)
+        } catch (e) {
+            console.error('[serverWclToken] client-credentials exchange threw', e)
         }
-        return cached.token
-      }
-      console.error('[serverWclToken] client-credentials exchange failed', res.status)
-    } catch (e) {
-      console.error('[serverWclToken] client-credentials exchange threw', e)
+        // Fall through: a stale-but-maybe-alive cached token beats nothing.
+        if (cached) return cached.token
     }
-    // Fall through: a stale-but-maybe-alive cached token beats nothing.
-    if (cached) return cached.token
-  }
-  return wclToken()
+    return wclToken()
 }
 
 /** Test hook: clear the cached token. */
 export function _resetWclTokenCache(): void {
-  cached = null
+    cached = null
 }
