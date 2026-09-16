@@ -182,7 +182,12 @@
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    align-items: center;
     margin-bottom: 14px;
+}
+
+.refreshBtn {
+    margin-left: auto;
 }
 
 .pagerRow {

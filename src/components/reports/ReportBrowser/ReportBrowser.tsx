@@ -29,19 +29,21 @@ import {
     type WclTopRank,
 } from '../../../lib/wclReports'
 import TopParseSection from '../TopParseSection'
-
-type Source = { kind: 'mine' } | { kind: 'guild'; id: number; label: string }
-
-/**
- * Drill-down position survives route changes (module scope, per tab-session) so
- * "Analyze {name}" → Analyze → back to Reports lands where the user left off.
- */
-const remembered: {
-    source: Source
-    page: number
-    report: WclReportSummary | null
-    fight: WclFightSummary | null
-} = { source: { kind: 'mine' }, page: 1, report: null, fight: null }
+import {
+    clearReportsBrowserCache,
+    getCachedCurrentUser,
+    getCachedFights,
+    getCachedPlayers,
+    getCachedReportPage,
+    getReportsListKey,
+    reportsBrowserMemory,
+    resetReportsBrowserSession,
+    setCachedCurrentUser,
+    setCachedFights,
+    setCachedPlayers,
+    setCachedReportPage,
+    type ReportsSource,
+} from './reportsBrowserCache'
 
 /** Last character the user analyzed/compared — auto-picked when seen in a roster. */
 const LAST_PLAYER_KEY = 'parse-analyzer-last-player'
@@ -113,20 +115,30 @@ const ReportBrowser = () => {
     const fa = useFightAnalysis()
     const router = useRouter()
 
-    const [me, setMe] = useState<WclCurrentUser | null>(null)
+    const [me, setMe] = useState<WclCurrentUser | null>(() => getCachedCurrentUser())
     const [meError, setMeError] = useState<string | null>(null)
-    const [source, setSource] = useState<Source>(remembered.source)
-    const [page, setPage] = useState(remembered.page)
-    const [reportPage, setReportPage] = useState<WclReportPage | null>(null)
+    const [meEpoch, setMeEpoch] = useState(0)
+    const [source, setSource] = useState<ReportsSource>(reportsBrowserMemory.source)
+    const [page, setPage] = useState(reportsBrowserMemory.page)
+    const [reportPage, setReportPage] = useState<WclReportPage | null>(() =>
+        getCachedReportPage(getReportsListKey(reportsBrowserMemory.source, reportsBrowserMemory.page)),
+    )
     const [listError, setListError] = useState<string | null>(null)
     const [listLoading, setListLoading] = useState(false)
+    const [listEpoch, setListEpoch] = useState(0)
 
-    const [report, setReport] = useState<WclReportSummary | null>(remembered.report)
-    const [fights, setFights] = useState<WclFightSummary[] | null>(null)
+    const [report, setReport] = useState<WclReportSummary | null>(reportsBrowserMemory.report)
+    const [fights, setFights] = useState<WclFightSummary[] | null>(() =>
+        reportsBrowserMemory.report ? getCachedFights(reportsBrowserMemory.report.code) : null,
+    )
     const [fightsError, setFightsError] = useState<string | null>(null)
 
-    const [fight, setFight] = useState<WclFightSummary | null>(remembered.fight)
-    const [players, setPlayers] = useState<FightPlayerRow[] | null>(null)
+    const [fight, setFight] = useState<WclFightSummary | null>(reportsBrowserMemory.fight)
+    const [players, setPlayers] = useState<FightPlayerRow[] | null>(() =>
+        reportsBrowserMemory.report && reportsBrowserMemory.fight
+            ? getCachedPlayers(reportsBrowserMemory.report.code, reportsBrowserMemory.fight.id)
+            : null,
+    )
     const [playersError, setPlayersError] = useState<string | null>(null)
     const [picked, setPicked] = useState<FightPlayerRow[]>([])
     const [autoPickedName, setAutoPickedName] = useState<string | null>(null)
@@ -137,31 +149,70 @@ const ReportBrowser = () => {
     // Keep the module-level snapshot in sync so leaving for Analyze and coming
     // back restores the same drill-down position.
     useEffect(() => {
-        remembered.source = source
-        remembered.page = page
-        remembered.report = report
-        remembered.fight = fight
+        reportsBrowserMemory.source = source
+        reportsBrowserMemory.page = page
+        reportsBrowserMemory.report = report
+        reportsBrowserMemory.fight = fight
     }, [source, page, report, fight])
 
     useEffect(() => {
+        if (fa.authStatus !== 'needed') return
+        resetReportsBrowserSession()
+        setMe(null)
+        setMeError(null)
+        setReportPage(null)
+        setSource({ kind: 'mine' })
+        setPage(1)
+        setReport(null)
+        setFight(null)
+        setFights(null)
+        setPlayers(null)
+        setPicked([])
+        setAutoPickedName(null)
+    }, [fa.authStatus])
+
+    useEffect(() => {
         if (!signedIn) return
+        const cached = getCachedCurrentUser()
+        if (cached) {
+            setMe(cached)
+            return
+        }
+        let stale = false
         fetchCurrentUser(gql)
             .then((u) => {
+                if (stale) return
+                setCachedCurrentUser(u)
                 setMe(u)
                 if (!u) setMeError('Could not read your WCL account.')
             })
-            .catch((e) => setMeError(e?.message || 'Could not read your WCL account.'))
-    }, [signedIn])
+            .catch((e) => {
+                if (!stale) setMeError(e?.message || 'Could not read your WCL account.')
+            })
+        return () => {
+            stale = true
+        }
+    }, [signedIn, meEpoch])
 
     useEffect(() => {
         if (!signedIn || !me) return
+        const key = getReportsListKey(source, page)
+        const cached = getCachedReportPage(key)
+        if (cached) {
+            setReportPage(cached)
+            setListError(null)
+            setListLoading(false)
+            return
+        }
         let stale = false
         setListLoading(true)
         setListError(null)
         const opts = source.kind === 'mine' ? { userID: me.id, page } : { guildID: source.id, page }
         fetchReportPage(gql, opts)
             .then((p) => {
-                if (!stale) setReportPage(p)
+                if (stale) return
+                setCachedReportPage(key, p)
+                setReportPage(p)
             })
             .catch((e) => {
                 if (!stale) setListError(e?.message || 'Could not load reports.')
@@ -172,18 +223,27 @@ const ReportBrowser = () => {
         return () => {
             stale = true
         }
-    }, [signedIn, me, source, page])
+        // me.id — a token-refresh setMe with the same account must not refetch the list.
+    }, [signedIn, me?.id, source, page, listEpoch])
 
     // Fetching is effect-driven (not click-driven) so a restored drill-down
     // position refills its data after navigating away and back.
     useEffect(() => {
         if (!signedIn || !report) return
+        const cached = getCachedFights(report.code)
+        if (cached) {
+            setFights(cached)
+            setFightsError(null)
+            return
+        }
         let stale = false
         setFights(null)
         setFightsError(null)
         fetchReportFights(gql, report.code)
             .then(({ fights: fs }) => {
-                if (!stale) setFights(fs)
+                if (stale) return
+                setCachedFights(report.code, fs)
+                setFights(fs)
             })
             .catch((e) => {
                 if (!stale) setFightsError(e?.message || 'Could not load fights.')
@@ -195,6 +255,25 @@ const ReportBrowser = () => {
 
     useEffect(() => {
         if (!signedIn || !report || !fight) return
+        const applyRoster = (rows: FightPlayerRow[]) => {
+            setPlayers(rows)
+            if (!rows.length) {
+                setPlayersError('No player roster found for this pull.')
+                return
+            }
+            const last = readLastPlayer().toLowerCase()
+            const match = last ? rows.find((p) => p.name.toLowerCase() === last) : undefined
+            if (match) {
+                setPicked([match])
+                setAutoPickedName(match.name)
+            }
+        }
+        const cached = getCachedPlayers(report.code, fight.id)
+        if (cached) {
+            setPlayersError(null)
+            applyRoster(cached)
+            return
+        }
         let stale = false
         setPlayers(null)
         setPlayersError(null)
@@ -206,18 +285,8 @@ const ReportBrowser = () => {
         })
             .then((rows) => {
                 if (stale) return
-                setPlayers(rows)
-                if (!rows.length) {
-                    setPlayersError('No player roster found for this pull.')
-                    return
-                }
-                // Same character as last time? Pre-select them as player 1.
-                const last = readLastPlayer().toLowerCase()
-                const match = last ? rows.find((p) => p.name.toLowerCase() === last) : undefined
-                if (match) {
-                    setPicked([match])
-                    setAutoPickedName(match.name)
-                }
+                setCachedPlayers(report.code, fight.id, rows)
+                applyRoster(rows)
             })
             .catch((e) => {
                 if (!stale) setPlayersError(e?.message || 'Could not load players.')
@@ -242,6 +311,26 @@ const ReportBrowser = () => {
         setPicked([])
         setAutoPickedName(null)
     }, [])
+
+    const refreshReports = useCallback(() => {
+        clearReportsBrowserCache()
+        setListEpoch((n) => n + 1)
+        setMeEpoch((n) => n + 1)
+    }, [])
+
+    const showReportPage = useCallback(
+        (nextPage: number, nextSource: ReportsSource = source) => {
+            setSource(nextSource)
+            setPage(nextPage)
+            const cached = getCachedReportPage(getReportsListKey(nextSource, nextPage))
+            if (cached) {
+                setReportPage(cached)
+                setListError(null)
+                setListLoading(false)
+            }
+        },
+        [source],
+    )
 
     function togglePick(p: FightPlayerRow) {
         setAutoPickedName(null)
@@ -507,7 +596,7 @@ const ReportBrowser = () => {
     }
 
     /* ------------------------------ report list ------------------------------ */
-    const sources: Source[] = [
+    const sources: ReportsSource[] = [
         { kind: 'mine' },
         ...me.guilds.map((g) => ({
             kind: 'guild' as const,
@@ -515,11 +604,11 @@ const ReportBrowser = () => {
             label: g.serverName ? `${g.name} — ${g.serverName}` : g.name,
         })),
     ]
-    const sourceKey = (src: Source) => (src.kind === 'mine' ? 'mine' : `guild-${src.id}`)
+    const sourceKey = (src: ReportsSource) => (src.kind === 'mine' ? 'mine' : `guild-${src.id}`)
     const activeKey = sourceKey(source)
 
     return (
-        <>
+        <div data-testid="ReportBrowser">
             <div className={styles.sourceTabs}>
                 {sources.map((src) => {
                     const key = sourceKey(src)
@@ -529,15 +618,21 @@ const ReportBrowser = () => {
                             key={key}
                             type="button"
                             className={`${ui.rosterPick}${active ? ` ${ui.rosterPickActive}` : ''}`}
-                            onClick={() => {
-                                setSource(src)
-                                setPage(1)
-                            }}
+                            onClick={() => showReportPage(1, src)}
                         >
                             {src.kind === 'mine' ? 'My uploads' : src.label}
                         </button>
                     )
                 })}
+                <button
+                    type="button"
+                    data-testid="ReportBrowser-refresh"
+                    className={`${ui.btnGhost} ${ui.btnGhostSm} ${styles.refreshBtn}`}
+                    disabled={listLoading}
+                    onClick={refreshReports}
+                >
+                    Refresh
+                </button>
             </div>
 
             {listError && <p className={`${styles.mono} ${styles.errorText}`}>{listError}</p>}
@@ -579,7 +674,7 @@ const ReportBrowser = () => {
                         type="button"
                         className={`${ui.btnGhost} ${ui.btnGhostSm}`}
                         disabled={page <= 1 || listLoading}
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        onClick={() => showReportPage(Math.max(1, page - 1))}
                     >
                         ← Newer
                     </button>
@@ -588,13 +683,13 @@ const ReportBrowser = () => {
                         type="button"
                         className={`${ui.btnGhost} ${ui.btnGhostSm}`}
                         disabled={!reportPage.hasMore || listLoading}
-                        onClick={() => setPage((p) => p + 1)}
+                        onClick={() => showReportPage(page + 1)}
                     >
                         Older →
                     </button>
                 </div>
             )}
-        </>
+        </div>
     )
 }
 
