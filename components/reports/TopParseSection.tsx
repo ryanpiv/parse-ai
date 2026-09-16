@@ -20,7 +20,7 @@ import {
   type WclTopRank,
 } from '../../lib/wclReports'
 
-const mono: CSSProperties = { fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--muted)' }
+const mono: CSSProperties = { fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--muted)' }
 const dim: CSSProperties = { fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--dim)' }
 
 function fmtAmount(n: number): string {

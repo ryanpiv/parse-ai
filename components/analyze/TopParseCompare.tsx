@@ -101,7 +101,7 @@ export function TopParseCompare() {
         {loading ? 'Looking up this fight…' : `Compare ${playerName} vs a similar top parse`}
       </button>
       {error && (
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--red, #e06c75)', marginTop: 8 }}>
+        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--red, #e06c75)', marginTop: 8 }}>
           {error}
         </p>
       )}

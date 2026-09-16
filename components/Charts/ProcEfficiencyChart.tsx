@@ -46,7 +46,7 @@ export function ProcEfficiencyChart(props: any) {
       ...CHART_DEFAULTS,
       scales: {
         x: { ...CHART_DEFAULTS.scales.x, ticks: { ...CHART_DEFAULTS.scales.x.ticks, maxRotation: 35, minRotation: 20 } },
-        y: { ...CHART_DEFAULTS.scales.y, min: 0, max: 100, title: { display: true, text: '%', color: '#4a5a6a', font: { size: 10, family: 'IBM Plex Mono' } } }
+        y: { ...CHART_DEFAULTS.scales.y, min: 0, max: 100, title: { display: true, text: '%', color: '#4a5a6a', font: { size: 10, family: 'DM Sans' } } }
       }
     }
   })

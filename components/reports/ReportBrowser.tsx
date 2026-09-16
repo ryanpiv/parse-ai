@@ -62,7 +62,7 @@ function writeLastPlayer(name: string): void {
 }
 
 const ui: Record<string, CSSProperties> = {
-  mono: { fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--muted)' },
+  mono: { fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--muted)' },
   dim: { fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--dim)' },
   rowBtn: {
     display: 'flex',

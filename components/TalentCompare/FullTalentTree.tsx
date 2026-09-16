@@ -109,10 +109,10 @@ export function FullTalentTree({ specId, rows, exportString }: Props) {
   )
 
   if (loading) {
-    return <p style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--dim)' }}>Loading tree…</p>
+    return <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--dim)' }}>Loading tree…</p>
   }
   if (error) {
-    return <p style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--red)' }}>{error}</p>
+    return <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--red)' }}>{error}</p>
   }
   if (!tree || !view) return null
 
@@ -210,7 +210,7 @@ export function FullTalentTree({ specId, rows, exportString }: Props) {
                     lineHeight: 1.45,
                     margin: '8px 0 0',
                     textAlign: 'center',
-                    fontFamily: 'var(--font-mono)',
+                    fontFamily: 'var(--font-ui)',
                   }}
                 >
                   No hero ranks in this data. WCL often omits hero node IDs; export strings include them.

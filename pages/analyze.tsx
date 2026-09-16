@@ -8,7 +8,7 @@ export default function AnalyzeRedirectPage() {
     void router.replace('/')
   }, [router])
   return (
-    <div style={{ maxWidth: 560, margin: '48px auto', fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, color: 'var(--dim)' }}>
+    <div style={{ maxWidth: 560, margin: '48px auto', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--dim)' }}>
       Redirecting…
     </div>
   )

@@ -32,7 +32,7 @@ async function showTT(e: MouseEvent, spellId: string, knownName?: string) {
   if (!el) return
   el.style.display = 'block'
   el.innerHTML =
-    '<div style="padding:10px 12px;color:#4a5a6a;font-family:IBM Plex Mono,monospace;font-size:11px">Loading...</div>'
+    '<div style="padding:10px 12px;color:#4a5a6a;font-family:DM Sans,sans-serif;font-size:11px">Loading...</div>'
   positionTT(e)
   try {
     const res = await fetch(

@@ -86,7 +86,7 @@ export function TalentIcon({
       ) : (
         <span
           style={{
-            fontFamily: 'IBM Plex Mono, monospace',
+            fontFamily: 'var(--font-ui)',
             fontSize: 8,
             color: '#4a5a6a',
             textAlign: 'center',
@@ -123,7 +123,7 @@ export function IconGrid({
 }) {
   if (!talents || talents.length === 0) {
     return (
-      <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 11, color: 'var(--dim)', padding: '4px 0' }}>
+      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--dim)', padding: '4px 0' }}>
         {emptyLabel || '—'}
       </div>
     )

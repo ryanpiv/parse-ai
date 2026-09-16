@@ -282,7 +282,7 @@ function SingleNodeIcon({ node, size, containerStyle, s, borderRadius, renderMod
       {iconUrl
         ? <img src={iconUrl} alt={name} style={{ width: inner, height: inner, objectFit: 'cover', borderRadius: Math.max(0, borderRadius - 1), display: 'block', filter: imgFilter }}
             onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-        : <span style={{ fontSize: 7, fontFamily: 'IBM Plex Mono,monospace', color: s.border, textAlign: 'center', padding: 1, fontWeight: 600, lineHeight: 1 }}>
+        : <span style={{ fontSize: 7, fontFamily: 'var(--font-ui)', color: s.border, textAlign: 'center', padding: 1, fontWeight: 600, lineHeight: 1 }}>
             {name.split(' ').map((w: string) => w[0]).join('').slice(0, 3).toUpperCase()}
           </span>
       }
@@ -366,7 +366,7 @@ function ChoiceNodeIcon({ node, size, containerStyle, s, renderMode, active }: {
           {icon0
             ? <img src={icon0} alt={name0} style={{ width: size, height: '100%', objectFit: 'cover', objectPosition: 'left center', display: 'block', filter: imgFilter }}
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-            : <span style={{ fontSize: 6, fontFamily: 'IBM Plex Mono,monospace', color: s.border, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontWeight: 600 }}>
+            : <span style={{ fontSize: 6, fontFamily: 'var(--font-ui)', color: s.border, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontWeight: 600 }}>
                 {name0.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
               </span>
           }
@@ -375,7 +375,7 @@ function ChoiceNodeIcon({ node, size, containerStyle, s, renderMode, active }: {
           {icon1
             ? <img src={icon1} alt={name1} style={{ width: size, height: '100%', objectFit: 'cover', objectPosition: 'right center', display: 'block', marginLeft: '-50%', filter: imgFilter }}
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
-            : <span style={{ fontSize: 6, fontFamily: 'IBM Plex Mono,monospace', color: s.border, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontWeight: 600 }}>
+            : <span style={{ fontSize: 6, fontFamily: 'var(--font-ui)', color: s.border, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontWeight: 600 }}>
                 {name1.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
               </span>
           }

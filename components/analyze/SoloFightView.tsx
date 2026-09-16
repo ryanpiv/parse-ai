@@ -151,7 +151,7 @@ export function SoloFightView(props: {
                     </div>
                     <div
                       style={{
-                        fontFamily: 'IBM Plex Mono,monospace',
+                        fontFamily: 'var(--font-ui)',
                         fontSize: 10,
                         color: 'var(--dim)',
                         marginTop: 4,
@@ -194,7 +194,7 @@ export function SoloFightView(props: {
                       >
                         {label}
                       </div>
-                      <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 13, color: 'var(--muted)' }}>{value}</div>
+                      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--muted)' }}>{value}</div>
                     </div>
                   ))}
                 </div>
@@ -250,7 +250,7 @@ export function SoloFightView(props: {
                               style={{
                                 padding: '5px 8px',
                                 borderBottom: '1px solid var(--bg4)',
-                                fontFamily: 'IBM Plex Mono,monospace',
+                                fontFamily: 'var(--font-ui)',
                                 color: 'var(--muted)',
                               }}
                             >
@@ -274,7 +274,7 @@ export function SoloFightView(props: {
                               style={{
                                 padding: '5px 8px',
                                 borderBottom: '1px solid var(--bg4)',
-                                fontFamily: 'IBM Plex Mono,monospace',
+                                fontFamily: 'var(--font-ui)',
                                 color: 'var(--gold2)',
                                 textAlign: 'right',
                               }}
@@ -285,7 +285,7 @@ export function SoloFightView(props: {
                               style={{
                                 padding: '5px 8px',
                                 borderBottom: '1px solid var(--bg4)',
-                                fontFamily: 'IBM Plex Mono,monospace',
+                                fontFamily: 'var(--font-ui)',
                                 textAlign: 'right',
                                 fontSize: 11,
                                 color: 'var(--muted)',
@@ -297,7 +297,7 @@ export function SoloFightView(props: {
                               style={{
                                 padding: '5px 8px',
                                 borderBottom: '1px solid var(--bg4)',
-                                fontFamily: 'IBM Plex Mono,monospace',
+                                fontFamily: 'var(--font-ui)',
                                 textAlign: 'right',
                                 fontSize: 11,
                               }}
@@ -308,7 +308,7 @@ export function SoloFightView(props: {
                               style={{
                                 padding: '5px 8px',
                                 borderBottom: '1px solid var(--bg4)',
-                                fontFamily: 'IBM Plex Mono,monospace',
+                                fontFamily: 'var(--font-ui)',
                                 textAlign: 'right',
                                 fontSize: 11,
                               }}
@@ -319,7 +319,7 @@ export function SoloFightView(props: {
                               style={{
                                 padding: '5px 8px',
                                 borderBottom: '1px solid var(--bg4)',
-                                fontFamily: 'IBM Plex Mono,monospace',
+                                fontFamily: 'var(--font-ui)',
                                 textAlign: 'right',
                                 fontSize: 11,
                               }}
@@ -445,7 +445,7 @@ export function SoloFightView(props: {
                         background: 'var(--bg3)',
                         border: '1px dashed var(--border)',
                         borderRadius: 4,
-                        fontFamily: 'IBM Plex Mono,monospace',
+                        fontFamily: 'var(--font-ui)',
                         fontSize: 11,
                         color: 'var(--dim)',
                         lineHeight: 1.5,
@@ -510,7 +510,7 @@ export function SoloFightView(props: {
                                         style={{
                                           fontSize: 11,
                                           color: 'var(--dim)',
-                                          fontFamily: 'IBM Plex Mono,monospace',
+                                          fontFamily: 'var(--font-ui)',
                                           marginLeft: 4,
                                         }}
                                       >
@@ -539,7 +539,7 @@ export function SoloFightView(props: {
                                         fontSize: 10,
                                         color: 'var(--dim)',
                                         marginTop: 10,
-                                        fontFamily: 'IBM Plex Mono,monospace',
+                                        fontFamily: 'var(--font-ui)',
                                         borderTop: '1px solid var(--border)',
                                         paddingTop: 8,
                                       }}
@@ -561,7 +561,7 @@ export function SoloFightView(props: {
                     )
                   })}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'IBM Plex Mono,monospace', marginBottom: 6 }}>
+                <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'var(--font-ui)', marginBottom: 6 }}>
                   Quick questions:
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginBottom: 10 }}>
@@ -626,7 +626,7 @@ export function SoloFightView(props: {
                       >
                         <div
                           style={{
-                            fontFamily: 'IBM Plex Mono,monospace',
+                            fontFamily: 'var(--font-ui)',
                             fontSize: 10,
                             color: ROTATION_GUIDE_CLUSTER_LABEL_COLOR,
                             marginBottom: 6,

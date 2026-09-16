@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { s } from '../../lib/styles'
+import { OrDivider } from '../ui'
 import { WclKeyPrompt } from './WclKeyPrompt'
 import { TopParseCompare } from './TopParseCompare'
 
@@ -27,54 +28,37 @@ export function AnalyzeEmptyState(props: { mode: 'solo' | 'compare' }) {
         {mode === 'solo' ? 'No fight loaded' : 'Compare — two players needed'}
       </div>
       {authNeeded && <WclKeyPrompt />}
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>
+      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.65 }}>
         {mode === 'solo' ? (
           <>
-            <p style={{ marginBottom: 10 }}>
-              Easiest way in:{' '}
+            <p style={{ margin: 0 }}>
               <Link href="/reports" style={{ color: 'var(--gold2)', fontWeight: 600 }}>
-                browse your logs on the Reports tab
+                Browse your logs on the Reports tab
               </Link>{' '}
-              — pick a pull, click a player, done. No URL needed.
+              — pick a pull, pick a player.
             </p>
-            <p style={{ marginBottom: 8 }}>
-              Or paste a report URL in <strong style={{ color: 'var(--text)' }}>Warcraft Logs</strong> below, then click{' '}
-              <strong style={{ color: 'var(--text)' }}>Load</strong>.
-            </p>
-            <p style={{ marginBottom: 8 }}>
-              Single-report links must include <code style={{ color: 'var(--blue)' }}>?fight=</code> (a fight id,{' '}
-              <code style={{ color: 'var(--blue)' }}>last</code>, or <code style={{ color: 'var(--blue)' }}>first</code>
-              ). Copy the URL while viewing that pull on Warcraft Logs.
-            </p>
-            <p>
-              A compare URL also works here — you are <strong style={{ color: 'var(--gold2)' }}>player 1</strong>. Switch
-              to Compare after both players load.
+            <OrDivider />
+            <p style={{ margin: 0 }}>
+              Paste a Warcraft Logs URL below (needs <code style={{ color: 'var(--blue)' }}>?fight=</code>) and click{' '}
+              <strong style={{ color: 'var(--text)' }}>Load</strong>. Compare URLs work too.
             </p>
           </>
         ) : (
           <>
             {soloLoaded && (
               <>
-                <p style={{ marginBottom: 10, color: 'var(--text)' }}>
-                  This session is a <strong>single-player report</strong>. Compare them against a world-ranked parse of
-                  the same spec, or Load a two-player compare URL.
+                <p style={{ margin: '0 0 10px', color: 'var(--text)' }}>
+                  Compare <strong>{fa.p1data?.name}</strong> against a world-ranked parse of the same spec.
                 </p>
                 <TopParseCompare />
+                <OrDivider />
               </>
             )}
-            <p style={{ marginBottom: 8 }}>
-              Use a Warcraft Logs <strong style={{ color: 'var(--text)' }}>compare</strong> URL, then Load. It looks like:
+            <p style={{ margin: '0 0 8px' }}>
+              Paste a Warcraft Logs <strong style={{ color: 'var(--text)' }}>compare</strong> URL below and click Load:
             </p>
-            <p style={{ marginBottom: 8, color: 'var(--blue)', wordBreak: 'break-all' }}>
+            <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--blue)', wordBreak: 'break-all' }}>
               /reports/compare/CODE1/CODE2?fight=12,5&source=1,2
-            </p>
-            <p>
-              That enables side-by-side charts, talents, and compare chat. Solo still works from the same load for player
-              1.
-            </p>
-            <p style={{ marginTop: 10, color: 'var(--dim)' }}>
-              Copy the full URL from the address bar (not a truncated{' '}
-              <code style={{ color: 'var(--blue)' }}>compares</code> fragment).
             </p>
           </>
         )}

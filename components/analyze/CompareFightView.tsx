@@ -145,7 +145,7 @@ export function CompareFightView(props: {
                 gap: 10,
                 marginBottom: 12,
                 cursor: 'pointer',
-                fontFamily: 'IBM Plex Mono,monospace',
+                fontFamily: 'var(--font-ui)',
                 fontSize: 11,
                 color: 'var(--muted)',
                 lineHeight: 1.45,
@@ -221,7 +221,7 @@ export function CompareFightView(props: {
                     </div>
                     <div
                       style={{
-                        fontFamily: 'IBM Plex Mono,monospace',
+                        fontFamily: 'var(--font-ui)',
                         fontSize: 11,
                         color: 'var(--dim)',
                         marginTop: 3,
@@ -240,7 +240,7 @@ export function CompareFightView(props: {
                           .sort((a, b) => b.pct - a.pct)
                           .slice(0, 3)
                         return topBuffs.length > 0 ? (
-                          <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)' }}>
+                          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--dim)' }}>
                             {topBuffs.map((b, bi) => (
                               <span key={bi}>
                                 {bi > 0 && ' · '}
@@ -330,7 +330,7 @@ export function CompareFightView(props: {
                               style={{
                                 padding: '5px 8px',
                                 borderBottom: '1px solid var(--bg4)',
-                                fontFamily: 'IBM Plex Mono,monospace',
+                                fontFamily: 'var(--font-ui)',
                                 color: 'var(--muted)',
                               }}
                             >
@@ -354,7 +354,7 @@ export function CompareFightView(props: {
                               style={{
                                 padding: '5px 8px',
                                 borderBottom: '1px solid var(--bg4)',
-                                fontFamily: 'IBM Plex Mono,monospace',
+                                fontFamily: 'var(--font-ui)',
                                 color: 'var(--gold2)',
                                 textAlign: 'right',
                               }}
@@ -365,7 +365,7 @@ export function CompareFightView(props: {
                               style={{
                                 padding: '5px 8px',
                                 borderBottom: '1px solid var(--bg4)',
-                                fontFamily: 'IBM Plex Mono,monospace',
+                                fontFamily: 'var(--font-ui)',
                                 color: 'var(--blue)',
                                 textAlign: 'right',
                               }}
@@ -376,7 +376,7 @@ export function CompareFightView(props: {
                               style={{
                                 padding: '5px 8px',
                                 borderBottom: '1px solid var(--bg4)',
-                                fontFamily: 'IBM Plex Mono,monospace',
+                                fontFamily: 'var(--font-ui)',
                                 color: dc,
                                 textAlign: 'right',
                               }}
@@ -502,7 +502,7 @@ export function CompareFightView(props: {
               }
             >
               {talentDiff.error && !talentDiff.t1 && !talentDiff.t2 ? (
-                <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, color: 'var(--dim)' }}>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--dim)' }}>
                   Could not load talent data: {talentDiff.error}
                 </div>
               ) : (
@@ -562,7 +562,7 @@ export function CompareFightView(props: {
                       background: 'var(--bg3)',
                       border: '1px dashed var(--border)',
                       borderRadius: 4,
-                      fontFamily: 'IBM Plex Mono,monospace',
+                      fontFamily: 'var(--font-ui)',
                       fontSize: 11,
                       color: 'var(--dim)',
                       lineHeight: 1.5,
@@ -627,7 +627,7 @@ export function CompareFightView(props: {
                                       style={{
                                         fontSize: 11,
                                         color: 'var(--dim)',
-                                        fontFamily: 'IBM Plex Mono,monospace',
+                                        fontFamily: 'var(--font-ui)',
                                         marginLeft: 4,
                                       }}
                                     >
@@ -656,7 +656,7 @@ export function CompareFightView(props: {
                                       fontSize: 10,
                                       color: 'var(--dim)',
                                       marginTop: 10,
-                                      fontFamily: 'IBM Plex Mono,monospace',
+                                      fontFamily: 'var(--font-ui)',
                                       borderTop: '1px solid var(--border)',
                                       paddingTop: 8,
                                     }}
@@ -678,7 +678,7 @@ export function CompareFightView(props: {
                   )
                 })}
               </div>
-              <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'IBM Plex Mono,monospace', marginBottom: 6 }}>
+              <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'var(--font-ui)', marginBottom: 6 }}>
                 Quick questions:
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, marginBottom: 10 }}>
@@ -716,7 +716,7 @@ export function CompareFightView(props: {
                     >
                       <div
                         style={{
-                          fontFamily: 'IBM Plex Mono,monospace',
+                          fontFamily: 'var(--font-ui)',
                           fontSize: 10,
                           color: ROTATION_GUIDE_CLUSTER_LABEL_COLOR,
                           marginBottom: 6,

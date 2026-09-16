@@ -192,6 +192,9 @@ function WclAccountRow() {
     )
   }
 
+  // Client id still being fetched — avoid flashing the "sign-in unavailable" note.
+  if (fa.wclClientId === undefined) return null
+
   if (fa.wclClientId) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>

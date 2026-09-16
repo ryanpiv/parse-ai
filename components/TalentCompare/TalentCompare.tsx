@@ -57,7 +57,7 @@ function TalentDiffLink({ spellId, name, color }: { spellId: number; name: strin
       target="_blank"
       rel="noreferrer"
       style={{
-        fontFamily: 'IBM Plex Mono,monospace',
+        fontFamily: 'var(--font-ui)',
         fontSize: 11,
         color: c.text,
         textDecoration: 'none',
@@ -92,7 +92,7 @@ function OnlyList({ name, nodes, color }: { name: string; nodes: BlizzardNode[];
   const headColor = color === 'gold' ? 'rgba(201,162,39,0.95)' : 'rgba(90,173,240,0.95)'
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', rowGap: 6, columnGap: 0 }}>
-      <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: headColor }}>
+      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: headColor }}>
         {name} only: <strong>{nodes.length}</strong>
       </span>
       {nodes.map(n => (
@@ -101,7 +101,7 @@ function OnlyList({ name, nodes, color }: { name: string; nodes: BlizzardNode[];
           {n.entries[0]?.spellId ? (
             <TalentDiffLink spellId={n.entries[0].spellId} name={n.entries[0].name || `Node ${n.nodeId}`} color={color} />
           ) : (
-            <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: color === 'gold' ? 'rgba(201,162,39,0.7)' : 'rgba(90,173,240,0.7)' }}>
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: color === 'gold' ? 'rgba(201,162,39,0.7)' : 'rgba(90,173,240,0.7)' }}>
               {n.entries[0]?.name || `Node ${n.nodeId}`}
             </span>
           )}
@@ -178,7 +178,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
 
   if (!p1Talents && !p2Talents) {
     return (
-      <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 12, color: 'var(--dim,#4a5a6a)' }}>
+      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--dim,#4a5a6a)' }}>
         Talent data not available.
       </div>
     )
@@ -189,7 +189,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
     <div>
       {/* Diff summary — each player's unique talents, one per line */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
-        <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'var(--dim,#4a5a6a)' }}>
+        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--dim,#4a5a6a)' }}>
           Shared: <span style={{ color: 'var(--text,#e8edf2)' }}>{both.length}</span>
         </div>
         <OnlyList name={name1} nodes={p1Only} color="gold" />
@@ -197,12 +197,12 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
       </div>
 
       {loading && (
-        <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'var(--dim,#4a5a6a)', padding: '20px 0' }}>
+        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--dim,#4a5a6a)', padding: '20px 0' }}>
           Loading talent tree...
         </div>
       )}
       {error && (
-        <div style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 11, color: 'var(--red,#d44040)', padding: '8px 0' }}>
+        <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--red,#d44040)', padding: '8px 0' }}>
           Error: {error}
         </div>
       )}
@@ -253,7 +253,7 @@ export function TalentCompare({ p1Talents, p2Talents, name1, name2, specId }: Pr
 
       {/* Legend */}
       {!loading && treeData && (
-        <div style={{ display: 'flex', gap: 14, marginTop: 10, fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim,#4a5a6a)', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 14, marginTop: 10, fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--dim,#4a5a6a)', flexWrap: 'wrap' }}>
           {[
             { bg: 'rgba(255,255,255,0.07)', border: 'rgba(175,186,202,0.85)', w: 1, label: 'both' },
             { bg: 'rgba(201,162,39,0.42)', border: '#f0d060', w: 3, label: `${name1} only` },

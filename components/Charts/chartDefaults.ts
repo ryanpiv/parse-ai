@@ -19,7 +19,7 @@ export const CHART_DEFAULTS = {
     legend: {
       labels: {
         color: '#8a9bb0',
-        font: { family: 'IBM Plex Mono', size: 11 },
+        font: { family: 'DM Sans', size: 11 },
         boxWidth: 12,
         padding: 14,
       }
@@ -31,17 +31,17 @@ export const CHART_DEFAULTS = {
       titleColor: '#e8be40',
       bodyColor: '#8a9bb0',
       titleFont: { family: 'Rajdhani', size: 13, weight: '600' },
-      bodyFont: { family: 'IBM Plex Mono', size: 11 },
+      bodyFont: { family: 'DM Sans', size: 11 },
       padding: 10,
     }
   },
   scales: {
     x: {
-      ticks: { color: '#4a5a6a', font: { family: 'IBM Plex Mono', size: 10 } },
+      ticks: { color: '#4a5a6a', font: { family: 'DM Sans', size: 10 } },
       grid: { color: 'rgba(42,51,64,0.5)' },
     },
     y: {
-      ticks: { color: '#4a5a6a', font: { family: 'IBM Plex Mono', size: 10 } },
+      ticks: { color: '#4a5a6a', font: { family: 'DM Sans', size: 10 } },
       grid: { color: 'rgba(42,51,64,0.5)' },
     }
   }

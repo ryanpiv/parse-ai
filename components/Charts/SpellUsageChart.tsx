@@ -26,7 +26,7 @@ export function SpellUsageChart(props: any) {
       plugins: { ...CHART_DEFAULTS.plugins, title: { display: false } },
       scales: {
         x: { ...CHART_DEFAULTS.scales.x, ticks: { ...CHART_DEFAULTS.scales.x.ticks, maxRotation: 35, minRotation: 20 } },
-        y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: 'casts/min', color: '#4a5a6a', font: { size: 10, family: 'IBM Plex Mono' } } }
+        y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: 'casts/min', color: '#4a5a6a', font: { size: 10, family: 'DM Sans' } } }
       }
     }
   })

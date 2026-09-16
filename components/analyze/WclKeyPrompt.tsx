@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { pa } from '../../lib/styles'
+import { pa, s } from '../../lib/styles'
 import { useFightAnalysis } from '../../contexts/FightAnalysisContext'
 import { startWclSignIn } from '../../lib/wclUserToken'
 
@@ -11,6 +11,49 @@ import { startWclSignIn } from '../../lib/wclUserToken'
 export function WclKeyPrompt() {
   const fa = useFightAnalysis()
   const [showHelp, setShowHelp] = useState(false)
+
+  // Client id still being fetched — don't flash the "server not set up" fallback.
+  if (fa.wclClientId === undefined) return null
+
+  if (fa.wclClientId) {
+    return (
+      <div
+        style={{
+          border: '1px solid var(--golddim, var(--border))',
+          background: 'rgba(201,162,39,0.05)',
+          borderRadius: 6,
+          padding: '20px 22px',
+          marginBottom: 14,
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ ...s.label, color: 'var(--gold2)', marginBottom: 8 }}>WarcraftLogs sign-in required</div>
+        <button
+          type="button"
+          className={pa.btnGold}
+          style={{ fontSize: 15, padding: '13px 34px' }}
+          onClick={() => void startWclSignIn(fa.wclClientId!)}
+        >
+          Sign in with WarcraftLogs
+        </button>
+        <p
+          style={{
+            margin: '12px auto 0',
+            maxWidth: 520,
+            fontFamily: 'var(--font-ui)',
+            fontSize: 12.5,
+            color: 'var(--muted)',
+            lineHeight: 1.6,
+          }}
+        >
+          One click, free account — loads use your own permissions (private logs included) and your own
+          rate limit. The token stays in this browser.
+        </p>
+      </div>
+    )
+  }
+
+  // Operator-facing fallback — the server has no WCL_CLIENT_ID, so sign-in is impossible.
   return (
     <div
       style={{
@@ -31,26 +74,18 @@ export function WclKeyPrompt() {
             lineHeight: 1.5,
           }}
         >
-          {fa.wclClientId
-            ? 'Sign in with your WarcraftLogs account to load reports. Loads use your own permissions (private logs included) and your own rate limit; the token stays in this browser.'
-            : "This server isn't set up for WarcraftLogs sign-in yet, so reports can't load. The server owner sets this up once."}
+          This server isn&apos;t set up for WarcraftLogs sign-in yet, so reports can&apos;t load. The
+          server owner sets this up once.
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {fa.wclClientId && (
-            <button type="button" className={pa.btnGold} onClick={() => void startWclSignIn(fa.wclClientId!)}>
-              Sign in with WarcraftLogs
-            </button>
-          )}
-          <button
-            type="button"
-            className={`${pa.btnGhost} ${pa.btnGhostSm}`}
-            aria-expanded={showHelp}
-            title="Server setup instructions"
-            onClick={() => setShowHelp(o => !o)}
-          >
-            {showHelp ? 'Hide setup steps' : 'Server setup steps'}
-          </button>
-        </div>
+        <button
+          type="button"
+          className={`${pa.btnGhost} ${pa.btnGhostSm}`}
+          aria-expanded={showHelp}
+          title="Server setup instructions"
+          onClick={() => setShowHelp(o => !o)}
+        >
+          {showHelp ? 'Hide setup steps' : 'Server setup steps'}
+        </button>
       </div>
       {showHelp && (
         <ol

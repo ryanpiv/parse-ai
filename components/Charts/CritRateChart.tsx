@@ -53,7 +53,7 @@ export function CritRateChart(props: { p1data: any }) {
             display: true,
             text: 'crit %',
             color: '#4a5a6a',
-            font: { size: 10, family: 'IBM Plex Mono' },
+            font: { size: 10, family: 'DM Sans' },
           },
         },
       },

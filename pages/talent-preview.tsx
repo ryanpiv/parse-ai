@@ -316,19 +316,19 @@ export default function TalentPreviewPage() {
             }
           />
           <TalentSourceForm />
-          <p style={{ fontSize: 11, color: 'var(--dim)', marginBottom: 14, fontFamily: 'var(--font-mono)' }}>
+          <p style={{ fontSize: 11, color: 'var(--dim)', marginBottom: 14, fontFamily: 'var(--font-ui)' }}>
             specId={effectiveSpecId || '—'} · preset={presetMode}
             {hydrated && session.p1TalentTreeJson ? ' · session has WCL rows' : ''}
             {hydrated && session.compareStr1 ? ' · session has export string' : ''}
           </p>
 
-          {loading && <p style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--dim)' }}>Loading tree…</p>}
+          {loading && <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--dim)' }}>Loading tree…</p>}
           {nothingLoaded && !loading && (
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--muted)' }}>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--muted)' }}>
               No talents loaded yet — the tree appears here once you load a URL or apply an export string above.
             </p>
           )}
-          {error && <p style={{ color: 'var(--red)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>{error}</p>}
+          {error && <p style={{ color: 'var(--red)', fontFamily: 'var(--font-ui)', fontSize: 13 }}>{error}</p>}
 
           {!loading && !error && tree && (
             <>
@@ -414,7 +414,7 @@ export default function TalentPreviewPage() {
                           lineHeight: 1.45,
                           margin: '8px 0 0',
                           textAlign: 'center',
-                          fontFamily: 'IBM Plex Mono, monospace',
+                          fontFamily: 'var(--font-ui)',
                         }}
                       >
                         No hero ranks in saved data. WCL often omits hero node IDs; re-run Analyze or ensure the

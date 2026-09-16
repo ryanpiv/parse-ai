@@ -26,7 +26,7 @@ export class AppErrorBoundary extends Component<
         <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>
           Something went wrong rendering this page.
         </p>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
+        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5 }}>
           {this.state.error.message || 'Unknown error'}
         </p>
         <button type="button" className={pa.btnGold} onClick={() => window.location.reload()}>

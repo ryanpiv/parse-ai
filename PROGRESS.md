@@ -34,6 +34,30 @@ How it works now:
 
 ## Verified this session
 
+- **Site-wide font softening (2026-09-15, uncommitted)**: the mono "terminal"
+  font (IBM Plex Mono) is no longer used for prose/status/labels anywhere —
+  `s.note`/`s.alert*`/`s.input`/`s.badge`/`s.logoSub`, the `pa-*` chrome
+  classes in `globals.css`, all hardcoded `IBM Plex Mono` inline styles
+  (Solo/CompareFightView, TalentCompare/Tree/Icon, SpellTimeline,
+  spellTooltips), and every Chart.js legend/tick/axis font (now `'DM Sans'` —
+  canvas can't read CSS vars) use the UI font. `--font-mono` still exists and
+  is kept only for genuinely code-like content: the example compare URL in
+  `AnalyzeEmptyState` and inline `<code>` elements (browser default mono).
+  The Analyze empty-state directions were also shortened to two lines split
+  by the shared `OrDivider` primitive. Verified live on the compare view
+  (tables + charts) and empty state.
+
+- **Sign-in prompt overhaul (2026-09-15, uncommitted)**: `WclKeyPrompt` is now a
+  prominent gold-bordered panel ("WarcraftLogs sign-in required" label, large
+  centered sign-in button) when the server has a client id; the operator
+  "Server setup steps" help only renders when `WCL_CLIENT_ID` is genuinely
+  missing. `wclClientId` in `FightAnalysisContext` is tri-state
+  (`undefined` = fetching, `null` = server unconfigured) so the prompt and the
+  Settings `WclAccountRow` no longer flash "server not set up / sign-in
+  unavailable" while `/api/auth` is in flight. Verified live signed-out via
+  `127.0.0.1:3000` (separate origin → empty localStorage) on Analyze and
+  Reports; tests 18 suites / 97 pass; build clean.
+
 - **Talent compare tree fixes (2026-09-15, uncommitted)**: (1) edge tinting in
   `TalentTree.tsx` no longer requires `rank > 0` on both ends — WCL reports
   rank 0 for many taken single-rank talents, which was erasing nearly all

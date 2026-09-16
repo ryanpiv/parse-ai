@@ -108,8 +108,11 @@ type FightAnalysisCtx = {
   fightKill2: boolean
   /** ok = the user is signed in with their WCL account (required to load logs). */
   authStatus: 'checking' | 'ok' | 'needed'
-  /** App's WCL client id (public) — enables the "Sign in with WarcraftLogs" button. */
-  wclClientId: string | null
+  /**
+   * App's WCL client id (public) — enables the "Sign in with WarcraftLogs" button.
+   * undefined = still fetching; null = confirmed the server has none.
+   */
+  wclClientId: string | null | undefined
   sendCompareQuestion: (q?: string) => void
   sendAnalyzeQuestion: (q?: string) => void
   buildContextCompare: () => string
@@ -159,7 +162,7 @@ export function FightAnalysisProvider({ children }: { children: ReactNode }) {
   const [soloRosterSelectedPlayerId, setSoloRosterSelectedPlayerId] = useState<number | null>(null)
 
   const [authStatus, setAuthStatus] = useState<'checking' | 'ok' | 'needed'>('checking')
-  const [wclClientId, setWclClientId] = useState<string | null>(null)
+  const [wclClientId, setWclClientId] = useState<string | null | undefined>(undefined)
 
   const compareUrlRestoredRef = useRef(false)
   /**

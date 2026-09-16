@@ -231,7 +231,7 @@ export function SpellTimeline({
           padding: '4px 0',
         }}
       >
-        <div style={{ display: 'flex', gap: 12, fontFamily: 'IBM Plex Mono, monospace', fontSize: 10, color: DIM, flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 12, fontFamily: 'var(--font-ui)', fontSize: 10, color: DIM, flexShrink: 0 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ width: 10, height: 10, background: c1, borderRadius: 2, display: 'inline-block' }} />
             {name1}
@@ -246,7 +246,7 @@ export function SpellTimeline({
         </div>
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 10, color: DIM, whiteSpace: 'nowrap' }}>{zoomPct}%</span>
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: DIM, whiteSpace: 'nowrap' }}>{zoomPct}%</span>
           <input
             type="range"
             min={minWin}
@@ -301,7 +301,7 @@ export function SpellTimeline({
               <g key={t}>
                 <line x1={x} y1={HEADER_H} x2={x} y2={totalH} stroke={BORDER} strokeWidth={0.5} strokeOpacity={0.5} />
                 <line x1={x} y1={HEADER_H - 5} x2={x} y2={HEADER_H} stroke={BORDER} strokeWidth={1} />
-                <text x={x} y={HEADER_H - 7} textAnchor="middle" fontSize={8} fill={DIM} fontFamily="IBM Plex Mono, monospace">
+                <text x={x} y={HEADER_H - 7} textAnchor="middle" fontSize={8} fill={DIM} fontFamily="DM Sans, sans-serif">
                   {t}s
                 </text>
               </g>
@@ -402,7 +402,7 @@ export function SpellTimeline({
                   textAnchor="end"
                   fontSize={9}
                   fill={TEXT}
-                  fontFamily="IBM Plex Mono, monospace"
+                  fontFamily="DM Sans, sans-serif"
                   fontWeight={600}
                   letterSpacing="0.04em"
                   style={{ textTransform: 'uppercase' }}
@@ -415,7 +415,7 @@ export function SpellTimeline({
                   textAnchor="end"
                   fontSize={9}
                   fill={DIM}
-                  fontFamily="IBM Plex Mono, monospace"
+                  fontFamily="DM Sans, sans-serif"
                 >
                   {name1.length > 14 ? `${name1.slice(0, 12)}…` : name1}
                 </text>
@@ -427,7 +427,7 @@ export function SpellTimeline({
                       textAnchor="end"
                       fontSize={9}
                       fill={DIM}
-                      fontFamily="IBM Plex Mono, monospace"
+                      fontFamily="DM Sans, sans-serif"
                     >
                       {name2.length > 14 ? `${name2.slice(0, 12)}…` : name2}
                     </text>
@@ -440,7 +440,7 @@ export function SpellTimeline({
           })}
         </svg>
       </div>
-      <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 9, color: DIM, marginTop: 4, textAlign: 'right' }}>
+      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 9, color: DIM, marginTop: 4, textAlign: 'right' }}>
         drag to pan · horizontal scroll (trackpad) or Shift + mouse wheel · ⌘/Ctrl + scroll to zoom · slider to zoom
       </div>
     </div>

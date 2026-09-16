@@ -130,7 +130,7 @@ function CooldownBarInner({
               display: true,
               text: 'total casts',
               color: '#4a5a6a',
-              font: { size: 10, family: 'IBM Plex Mono' },
+              font: { size: 10, family: 'DM Sans' },
             },
             ticks: { precision: 0 },
           },
@@ -205,7 +205,7 @@ export function CooldownTimelineChart(props: {
     return (
       <div
         style={{
-          fontFamily: 'IBM Plex Mono, monospace',
+          fontFamily: 'var(--font-ui)',
           fontSize: 11,
           color: '#4a5a6a',
           padding: '12px 0',

@@ -42,7 +42,7 @@ export function CastTimelineChart(props: any) {
       ...CHART_DEFAULTS,
       scales: {
         x: { ...CHART_DEFAULTS.scales.x },
-        y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: 'casts/min', color: '#4a5a6a', font: { size: 10, family: 'IBM Plex Mono' } }, min: 0 }
+        y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: 'casts/min', color: '#4a5a6a', font: { size: 10, family: 'DM Sans' } }, min: 0 }
       }
     }
   })

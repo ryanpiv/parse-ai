@@ -70,7 +70,7 @@ export function MetricTimelineChart(props: any) {
         x: { ...CHART_DEFAULTS.scales.x },
         y: {
           ...CHART_DEFAULTS.scales.y,
-          title: { display: true, text: meta.axis, color: '#4a5a6a', font: { size: 10, family: 'IBM Plex Mono' } },
+          title: { display: true, text: meta.axis, color: '#4a5a6a', font: { size: 10, family: 'DM Sans' } },
           min: 0,
         },
       },
@@ -90,7 +90,7 @@ export function MetricTimelineChart(props: any) {
               type="button"
               onClick={() => setMetric(m.key)}
               style={{
-                fontFamily: 'var(--font-mono)',
+                fontFamily: 'var(--font-ui)',
                 fontSize: 11,
                 padding: '3px 10px',
                 borderRadius: 999,
@@ -107,7 +107,7 @@ export function MetricTimelineChart(props: any) {
       </div>
       <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
         {noData ? (
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--dim)', margin: '20px 0 0' }}>
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12.5, color: 'var(--dim)', margin: '20px 0 0' }}>
             No {meta.label.toLowerCase()} recorded for this fight.
           </p>
         ) : (

@@ -112,7 +112,7 @@ export default function HomePage() {
             }}
           >
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontFamily: 'IBM Plex Mono,monospace', fontSize: 10, color: 'var(--dim)', marginRight: 4 }}>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--dim)', marginRight: 4 }}>
                 View
               </span>
               <button

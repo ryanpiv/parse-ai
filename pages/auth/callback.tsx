@@ -68,7 +68,7 @@ export default function AuthCallback() {
         justifyContent: 'center',
         background: 'var(--bg, #0a0c0f)',
         color: 'var(--text, #e8edf2)',
-        fontFamily: 'var(--font-mono, monospace)',
+        fontFamily: 'var(--font-ui, sans-serif)',
         fontSize: 14,
       }}
     >
