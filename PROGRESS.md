@@ -6,6 +6,18 @@
 
 _Last updated: 2026-09-16_
 
+## History: per-device copy + row delete (2026-09-16)
+
+History is localStorage-only. The page now says so (header + note), and each
+row has **Remove** in addition to **Clear history**.
+
+## Reports list cache (2026-09-16)
+
+Clicking **Reports** remounts the page but no longer re-hits WCL for the same
+list, account, fights, or roster. Data lives in a tab-session cache
+(`reportsBrowserCache.ts`) and is cleared on sign-out or the new **Refresh**
+button. Switching My uploads / guild / page still fetches once, then reuses.
+
 ## Code style retrofit complete (2026-09-16)
 
 - **`CODE_STYLE.md`** + `.cursor/rules/code-style.mdc` define the rules. Existing

@@ -60,3 +60,11 @@ export function recordHistory(entry: Omit<AnalysisHistoryEntry, 'accessedAt'>): 
 export function clearHistory(): void {
     write([])
 }
+
+/** Drop one load by URL. No-op if that URL is not in the list. */
+export function removeHistoryEntry(url: string): void {
+    const current = readHistory()
+    const next = current.filter((e) => e.url !== url)
+    if (next.length === current.length) return
+    write(next)
+}

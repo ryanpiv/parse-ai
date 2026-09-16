@@ -9,6 +9,7 @@ import styles from '../styles/pages/history.module.css'
 import {
     clearHistory,
     readHistory,
+    removeHistoryEntry,
     HISTORY_CHANGED_EVENT,
     type AnalysisHistoryEntry,
 } from '../lib/analysisHistory'
@@ -39,7 +40,7 @@ const KindBadge = ({ kind }: IKindBadgeProps) => {
     )
 }
 
-/** Recent solo/compare loads (localStorage) — click to load again. */
+/** Recent solo/compare loads (this browser's localStorage) — click to load again. */
 const HistoryPage = () => {
     const fa = useFightAnalysis()
     const router = useRouter()
@@ -63,39 +64,62 @@ const HistoryPage = () => {
                 <title>History · Parse Analyzer</title>
             </Head>
             <div className={ui.wrap}>
-                <PageHeader title="History" subtitle="every fight you've loaded — click to load it again" />
+                <PageHeader
+                    title="History"
+                    subtitle="this device only — not saved to your WarcraftLogs account"
+                />
                 <Panel title="Recent loads">
+                    <p className={`${styles.dim} ${styles.deviceNote}`}>
+                        Loads stay in this browser. Signing in elsewhere will not bring them with you. Click a
+                        row to load it again.
+                    </p>
                     {entries.length === 0 ? (
                         <p className={styles.mono}>
-                            Nothing yet — load a fight on Analyze or from Reports and it will show up here.
+                            Nothing on this device yet — load a fight on Analyze or from Reports.
                         </p>
                     ) : (
                         <>
-                            <div className={styles.entryList}>
-                                {entries.map((e) => (
-                                    <button
+                            <div className={styles.entryList} data-testid="HistoryPage">
+                                {entries.map((e, i) => (
+                                    <div
                                         key={e.url}
-                                        type="button"
-                                        disabled={fa.loading}
-                                        onClick={() => reload(e)}
-                                        title={e.url}
-                                        className={styles.entryButton}
+                                        className={styles.entryRow}
+                                        data-testid={`HistoryPage-Row--${i}`}
                                     >
-                                        <KindBadge kind={e.kind} />
-                                        <span className={styles.entryText}>
-                                            <span className={styles.entryTitle}>
-                                                {e.name1}
-                                                {e.spec1 ? ` (${e.spec1})` : ''}
-                                                {e.kind === 'compare' && e.name2
-                                                    ? ` vs ${e.name2}${e.spec2 ? ` (${e.spec2})` : ''}`
-                                                    : ''}
+                                        <button
+                                            type="button"
+                                            disabled={fa.loading}
+                                            onClick={() => reload(e)}
+                                            title={e.url}
+                                            className={styles.entryButton}
+                                        >
+                                            <KindBadge kind={e.kind} />
+                                            <span className={styles.entryText}>
+                                                <span className={styles.entryTitle}>
+                                                    {e.name1}
+                                                    {e.spec1 ? ` (${e.spec1})` : ''}
+                                                    {e.kind === 'compare' && e.name2
+                                                        ? ` vs ${e.name2}${e.spec2 ? ` (${e.spec2})` : ''}`
+                                                        : ''}
+                                                </span>
+                                                <span className={`${styles.dim} ${styles.block}`}>{e.boss}</span>
                                             </span>
-                                            <span className={`${styles.dim} ${styles.block}`}>{e.boss}</span>
-                                        </span>
-                                        <span className={`${styles.dim} ${styles.entryWhen}`}>
-                                            {fmtWhen(e.accessedAt)}
-                                        </span>
-                                    </button>
+                                        </button>
+                                        <div className={styles.entryEnd}>
+                                            <button
+                                                type="button"
+                                                className={styles.removeBtn}
+                                                data-testid={`HistoryPage-remove--${i}`}
+                                                aria-label={`Remove ${e.name1} — ${e.boss} from history`}
+                                                onClick={() => removeHistoryEntry(e.url)}
+                                            >
+                                                ×
+                                            </button>
+                                            <span className={`${styles.dim} ${styles.entryWhen}`}>
+                                                {fmtWhen(e.accessedAt)}
+                                            </span>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                             <div className={styles.clearRow}>

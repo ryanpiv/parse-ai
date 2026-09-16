@@ -1,4 +1,4 @@
-import { clearHistory, readHistory, recordHistory } from '../analysisHistory'
+import { clearHistory, readHistory, recordHistory, removeHistoryEntry } from '../analysisHistory'
 
 function entry(url: string, name1 = 'Smaktat') {
     return { url, kind: 'solo' as const, name1, spec1: 'Mage', boss: 'Some Boss' }
@@ -40,5 +40,24 @@ describe('analysisHistory', () => {
         recordHistory(entry('url-a'))
         clearHistory()
         expect(readHistory()).toEqual([])
+    })
+})
+
+describe('removeHistoryEntry', () => {
+    beforeEach(() => {
+        localStorage.clear()
+    })
+
+    it('removes only the matching url', () => {
+        recordHistory(entry('url-a'))
+        recordHistory(entry('url-b'))
+        removeHistoryEntry('url-a')
+        expect(readHistory().map((e) => e.url)).toEqual(['url-b'])
+    })
+
+    it('leaves the list unchanged when the url is unknown', () => {
+        recordHistory(entry('url-a'))
+        removeHistoryEntry('url-missing')
+        expect(readHistory().map((e) => e.url)).toEqual(['url-a'])
     })
 })

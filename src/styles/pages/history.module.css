@@ -32,6 +32,11 @@
     color: var(--blue);
 }
 
+.deviceNote {
+    margin: 0 0 14px;
+    line-height: 1.45;
+}
+
 .entryList {
     display: flex;
     flex-direction: column;
@@ -41,17 +46,49 @@
     padding-right: 4px;
 }
 
+.entryRow {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
 .entryButton {
     display: flex;
     align-items: center;
     gap: 12px;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     text-align: left;
     padding: 10px 12px;
     background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    border: none;
+    border-radius: 6px 0 0 6px;
     cursor: pointer;
+    color: var(--text);
+}
+
+.entryEnd {
+    flex: 0 0 auto;
+    width: max-content;
+    padding: 6px 10px 8px;
+    text-align: right;
+}
+
+.removeBtn {
+    all: unset;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    color: var(--dim);
+    font-family: var(--font-ui);
+    font-size: 16px;
+    line-height: 1;
+    text-align: right;
+    cursor: pointer;
+}
+
+.removeBtn:hover {
     color: var(--text);
 }
 
@@ -74,8 +111,9 @@
 }
 
 .entryWhen {
-    margin-left: auto;
-    flex-shrink: 0;
+    display: block;
+    white-space: nowrap;
+    text-align: right;
 }
 
 .clearRow {
