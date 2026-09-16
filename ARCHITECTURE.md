@@ -76,7 +76,7 @@ No CSS framework, no state library, no ORM. Keep it that way unless the user ask
 - **Claude API key (BYOK)** — password `KeyField` (`AnthropicKeyPanel`): a Claude **Console** key (`sk-ant-…`) stored only in `localStorage` (`lib/anthropicUserKey.ts`), sent as `x-anthropic-api-key` header to `/api/ai`, which prefers it over the server's `ANTHROPIC_API_KEY` env fallback. **There is no "Sign in with Claude" for third-party apps** — Console API keys are the supported path. Save/clear dispatch `pa:claude-key-changed`, and `pa:open-claude-key-settings` (from "Add key in Settings" buttons) opens this dropdown with the field focused and glowing (`lib/claudeKeyBus.ts`, `.paKeyGlow` in `globals.css`).
 
 ### WCL auth (per-user sign-in, required)
-- **"Sign in with WarcraftLogs" is mandatory for report loading** (`lib/wclUserToken.ts`): authorization code + PKCE using the operator's client id (served by `/api/auth` GET as `{ clientId }`; `WCL_CLIENT_ID` alone is enough — WCL **public/PKCE clients have no secret**, and the exchange sends `client_secret` only when configured). `/auth/callback` POSTs the code to `/api/auth` (`action: 'user-exchange'`); the resulting **user token is returned to the browser and stored in localStorage only** (`parse-analyzer-wcl-user`, with expiry + user name) — never on the server. `wclClientHeaders()` adds `x-wcl-user-token` to `/api/wcl` calls; the route **requires it (401 otherwise)** and targets WCL's **`/api/v2/user`** endpoint — each user gets their own permissions (private logs) and rate-limit budget. Sign-out clears localStorage. The WCL client's **redirect URL must include** `http://localhost:3000/auth/callback` (plus the production origin).
+- **"Sign in with WarcraftLogs" is mandatory for report loading** (`lib/wclUserToken.ts`): authorization code + PKCE using the operator's client id (served by `/api/auth` GET as `{ clientId }`; `WCL_CLIENT_ID` alone is enough — WCL **public/PKCE clients have no secret**, and the exchange sends `client_secret` only when configured). `/auth/callback` POSTs the code to `/api/auth` (`action: 'user-exchange'`); the resulting **user token + refresh token are returned to the browser and stored in localStorage only** (`parse-analyzer-wcl-user`, with expiry + user name) — never on the server. `wclClientHeaders()` adds `x-wcl-user-token` to `/api/wcl` calls; the route **requires it (401 otherwise)** and targets WCL's **`/api/v2/user`** endpoint — each user gets their own permissions (private logs) and rate-limit budget. **Silent renewal**: `ensureFreshWclUser()` exchanges the stored refresh token via `/api/auth` (`action: 'user-refresh'`) whenever the access token is expired or within 6h of expiry — called on `useWclUser` mount and before every `gql()`; concurrent calls share one exchange, failures back off 60s, and a rejected refresh token (invalid_grant) falls back to the sign-in prompt. Sign-out clears localStorage. The WCL client's **redirect URL must include** `http://localhost:3000/auth/callback` (plus the production origin).
 - **Server client-credentials token** (`lib/serverWclToken.ts`, `getWclToken()`): now only for game-data lookups (`/api/talents`, `/api/debug-tree`) — cached in module memory, auto-refreshed. A static `WCL_TOKEN` env is a legacy fallback for those routes only.
 - `FightAnalysisContext.authStatus` is 'ok' only when the user is signed in; `wclClientId` feeds the sign-in buttons (Settings row and `WclKeyPrompt`, which shows operator setup steps when no client id is configured).
 
@@ -198,11 +198,11 @@ All prompt-time knowledge must be **imported from bundled TS modules** — `buil
 | Corpus | Source of truth | Bundled module | Update command |
 |---|---|---|---|
 | Wowhead summaries (human-written) | `knowledge/guides/bodies/<specId>.md` | `lib/knowledge/embeddedGuides.ts` | manual copy (Wowhead-only source policy — see `knowledge/guides/README.md`) |
-| SimC default APLs (GPL-3.0, `midnight` branch) | `knowledge/simc/*.midnight.simc` | `lib/knowledge/embeddedSimc.ts` | `npm run embed-simc` after refreshing files |
+| SimC default APLs (GPL-3.0, `midnight` branch) | `knowledge/simc/*.midnight.simc` | `lib/knowledge/embeddedSimcData.ts` (generated; logic stays in `embeddedSimc.ts`) | `npm run embed-simc` after refreshing files |
 | Wowhead scraped guides (JSON) | `knowledge/wowhead/scraped/` | `lib/knowledge/embeddedWowhead.ts` | `npm run scrape-wowhead -- <spec-folder…\|--all>` (registry in `scripts/wowhead/scrape-wowhead.mjs`) |
 | Icy Veins scraped guides (JSON) | `knowledge/icy-veins/scraped/` | `lib/knowledge/embeddedIcyVeins.ts` | `npm run scrape-icy-veins-frost` / `-unholy` |
 
-Coverage today: **Wowhead scraped guides for all 39 retail specs** (patch 12.1.0 snapshots, 2026-09-15; coverage locked by `__tests__/lib/embeddedWowhead.test.ts`); SimC APLs for all Mage (62/63/64) + all DK (250/251/252) specs; Icy Veins scrapes for Frost Mage + Unholy DK; human summaries Frost-Mage-centric. The rest of the pipeline (charts, talents, chat) is spec-agnostic.
+Coverage today: **Wowhead scraped guides for all 40 retail specs** (incl. Midnight's Devourer DH, specId 1480; patch 12.1.0 snapshots, 2026-09-15; coverage locked by `__tests__/lib/embeddedWowhead.test.ts`); **SimC APLs for all 34 specs with an upstream default APL** (everything except the six healer specs SimC doesn't sim; locked by `__tests__/lib/embeddedSimc.test.ts`); Icy Veins scrapes for Frost Mage + Unholy DK; human summaries Frost-Mage-centric. The rest of the pipeline (charts, talents, chat) is spec-agnostic.
 
 Prompt precedence rule baked into the prompts: **the log data always wins** over guides/APL when they conflict. SimC's vendored APLs are generated files upstream — never "fix" them here; refresh from the `midnight` branch instead.
 
@@ -265,8 +265,8 @@ BLIZZARD_CLIENT_SECRET=
 npm run dev            # localhost:3000 (.env.local loaded)
 npm test               # full Jest suite; npx jest --testPathPatterns=<regex> for a subset
 npm run build          # production build — required before finishing any change
-npm run embed-simc     # regenerate lib/knowledge/embeddedSimc.ts from knowledge/simc/
-npm run scrape-wowhead -- <spec-folder…|--all>   # all 39 specs in scripts/wowhead/scrape-wowhead.mjs
+npm run embed-simc     # regenerate lib/knowledge/embeddedSimcData.ts from knowledge/simc/
+npm run scrape-wowhead -- <spec-folder…|--all>   # all 40 specs in scripts/wowhead/scrape-wowhead.mjs
 npm run scrape-icy-veins-frost | scrape-icy-veins-unholy
 ```
 

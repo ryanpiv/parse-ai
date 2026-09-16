@@ -4,7 +4,44 @@
 > `ARCHITECTURE.md` and `.cursor/rules/parse-analyzer.mdc` for the full picture.
 > Update or prune this file as items get done.
 
-_Last updated: 2026-09-14_
+_Last updated: 2026-09-16_
+
+## Code style guide adopted (2026-09-16)
+
+- **`CODE_STYLE.md`** now defines structure/naming/component/test/API-route rules
+  (adapted from the user's frontend style guide + general BE design for
+  `pages/api/`). Condensed always-on version in `.cursor/rules/code-style.mdc`.
+- Migration stance: **new files follow it fully; existing files keep their local
+  style until substantially reworked.** Biggest deltas vs current code: CSS
+  modules instead of `lib/styles.ts` inline maps / `pa-*` globals (both now
+  frozen as legacy), component folders with colocated tests, arrow-fn default
+  exports, `I`-prefixed local interfaces, 4-space indent in new files (repo is
+  historically 2-space — a one-shot mechanical reformat is an option later,
+  after pending work is pushed).
+
+## Latest session (2026-09-16): SimC APL parity + WCL token refresh
+
+- **SimC APLs now cover all 34 specs with an upstream default APL** (everything
+  except the six healer specs SimC doesn't sim: Holy Paladin, Disc/Holy Priest,
+  Resto Shaman, Mistweaver, Preservation Evoker; Resto Druid *does* have a DPS
+  APL and is included). `scripts/embed-simc.mjs` is now a table-driven generator
+  (`SPECS` table = single source of truth) that writes the **generated**
+  `lib/knowledge/embeddedSimcData.ts` in full; prompt logic stays in
+  `embeddedSimc.ts`. Coverage locked by `__tests__/lib/embeddedSimc.test.ts`.
+- **Discovered Midnight's 40th spec: Devourer Demon Hunter (specId 1480)** — the
+  earlier "all 39 specs" pass missed it. Added to the Wowhead scraper registry,
+  scraped (patch 12.1.0 guides exist), embedded, and to the SimC corpus
+  (`demonhunter_devourer.simc` exists upstream). Tests updated to 40/34.
+- **WCL token refresh implemented**: `user-exchange` now returns WCL's
+  `refresh_token`; new `/api/auth` `action: 'user-refresh'` exchanges it
+  (rotates). `ensureFreshWclUser()` in `lib/wclUserToken.ts` silently renews
+  when the access token is expired or within 6h of expiry — wired into
+  `useWclUser` mount and the start of every `gql()`. Concurrent calls share one
+  exchange; failures back off 60s; a rejected refresh token (invalid_grant)
+  drops to the sign-in prompt (or keeps a still-valid access token, minus the
+  dead refresh token). 10 jsdom tests in `__tests__/lib/wclUserToken.test.ts`.
+  _Not yet verified against real WCL end-to-end (needs a fresh sign-in to get a
+  refresh token stored; existing sessions won't have one until they re-auth)._
 
 ## Current state
 
@@ -108,9 +145,11 @@ Then test:
 - [ ] Load a report on Analyze while signed in (solo + compare URLs).
 - [ ] Load a **private** log from the signed-in account (the whole point of user auth).
 - [ ] Sign out → prompt returns, loads blocked again.
-- [ ] Token expiry: `readWclUser()` treats a past `expiresAt` as signed-out, but a
-      token revoked/expired server-side mid-session will surface as a WCL error via
-      the proxy — check that the message is sane and points at re-signing in.
+- [ ] Token expiry: `ensureFreshWclUser()` now silently renews via the stored
+      refresh token (on mount + before every `gql()`); a token revoked
+      server-side mid-session still surfaces as a WCL error via the proxy —
+      check that the message is sane and points at re-signing in. Needs a fresh
+      sign-in first (older sessions have no stored refresh token).
 - [ ] Talent compare page (`/compare`) "Load from logs" while signed in
       (it sends `wclClientHeaders()` too).
 - [ ] Talents page spell-name resolution still works (`/api/talents` uses the
@@ -209,16 +248,15 @@ Phase ideas, in order:
 
 ## Ideas / not started
 
-- Token refresh: WCL user tokens eventually expire and we don't use refresh
-  tokens — users just re-sign-in. Fine for now; revisit if it annoys.
-- Wowhead corpus (2026-09-15): now covers **all 39 retail specs**. Scraper
+- ~~Token refresh~~ — done 2026-09-16 (see latest session at top).
+- Wowhead corpus (2026-09-15): now covers **all 40 retail specs** (Devourer DH
+  added 2026-09-16). Scraper
   consolidated into table-driven `scripts/wowhead/scrape-wowhead.mjs`
   (`npm run scrape-wowhead -- <folder…|--all>`; per-spec scripts deleted, old
   npm aliases still work; role-based URL suffixes pve-dps/-healer/-tank; 400ms
   page / 500ms spec pacing). `embeddedWowhead.ts` is a `SPEC_DOCS` registry
-  with all 39 imports; coverage locked by `__tests__/lib/embeddedWowhead.test.ts`
+  with all 40 imports; coverage locked by `__tests__/lib/embeddedWowhead.test.ts`
   (every spec has fetch ok + talent copies + rotation sections; all snapshots
   patch 12.1.0). `markupBbCode` no longer written (redundant with `sections`,
   halves bundled size — corpus is ~1.9MB pretty-printed on disk). SimC APLs
-  still Frost-Mage-only (`knowledge/simc/`) — other specs get Wowhead but no
-  SimC block.
+  now cover all 34 specs with an upstream default APL (2026-09-16).
