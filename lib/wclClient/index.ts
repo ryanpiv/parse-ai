@@ -1,6 +1,6 @@
 /** Parse JSON from a Next API route; HTML (404 page, proxy error) gives a clear message. */
 import { anthropicClientHeaders } from '../anthropicUserKey'
-import { wclClientHeaders } from '../wclUserToken'
+import { ensureFreshWclUser, wclClientHeaders } from '../wclUserToken'
 import { ANTHROPIC_MODEL } from './anthropicModel'
 
 export async function parseNextApiJson(res: Response, route: string): Promise<Record<string, any>> {
@@ -90,6 +90,8 @@ export function formatLoadError(e: unknown): string {
 }
 
 export async function gql(query: string, variables: Record<string, unknown> = {}): Promise<Record<string, any>> {
+  // Silently renew a near-expiry user token so long-lived tabs keep working.
+  await ensureFreshWclUser().catch(() => undefined)
   let res: Response
   try {
     res = await fetch('/api/wcl', {

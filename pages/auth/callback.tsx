@@ -43,12 +43,13 @@ export default function AuthCallback() {
       body: JSON.stringify({ action: 'user-exchange', code, verifier, redirectUri }),
     })
       .then(r => r.json())
-      .then((data: { token?: string; expiresIn?: number; userName?: string; error?: string }) => {
+      .then((data: { token?: string; expiresIn?: number; refreshToken?: string; userName?: string; error?: string }) => {
         if (!data.token) return fail('Sign-in failed: ' + (data.error || 'Unknown error'))
         writeWclUser({
           token: data.token,
           expiresAt: Date.now() + (data.expiresIn ?? 3600) * 1000,
           userName: data.userName,
+          refreshToken: data.refreshToken,
         })
         sessionStorage.removeItem('wcl_pkce_state')
         sessionStorage.removeItem('wcl_pkce_verifier')

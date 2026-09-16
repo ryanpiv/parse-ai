@@ -17,20 +17,28 @@ export interface WclUser {
   /** ms epoch; treat as signed-out once past. */
   expiresAt: number
   userName?: string
+  /** OAuth refresh token — lets us renew silently instead of re-prompting. */
+  refreshToken?: string
 }
 
-export function readWclUser(): WclUser | null {
+/** Raw stored entry, including expired ones (needed to attempt a refresh). */
+function readStoredWclUser(): WclUser | null {
   if (typeof window === 'undefined') return null
   try {
     const raw = localStorage.getItem(WCL_USER_STORAGE)
     if (!raw) return null
     const u = JSON.parse(raw) as WclUser
     if (!u?.token || typeof u.expiresAt !== 'number') return null
-    if (Date.now() >= u.expiresAt) return null
     return u
   } catch {
     return null
   }
+}
+
+export function readWclUser(): WclUser | null {
+  const u = readStoredWclUser()
+  if (!u || Date.now() >= u.expiresAt) return null
+  return u
 }
 
 export function writeWclUser(user: WclUser | null): void {
@@ -52,12 +60,86 @@ export function wclClientHeaders(): Record<string, string> {
   return headers
 }
 
+/** Renew when this close to expiry (or already past it). */
+const REFRESH_MARGIN_MS = 6 * 60 * 60 * 1000
+/** Back off between failed refresh attempts so we don't hammer /api/auth. */
+const REFRESH_RETRY_COOLDOWN_MS = 60 * 1000
+
+let refreshInFlight: Promise<WclUser | null> | null = null
+let lastRefreshFailure = 0
+
+/**
+ * Returns a usable WCL user, silently renewing via the stored refresh token
+ * when the access token is expired or within REFRESH_MARGIN_MS of expiry.
+ * Safe to call from anywhere (concurrent calls share one exchange); resolves
+ * null when signed out or the refresh token is rejected after expiry.
+ */
+export async function ensureFreshWclUser(): Promise<WclUser | null> {
+  const stored = readStoredWclUser()
+  if (!stored) return null
+  const valid = Date.now() < stored.expiresAt
+  const needsRefresh = Date.now() >= stored.expiresAt - REFRESH_MARGIN_MS
+  if (!needsRefresh) return stored
+  if (!stored.refreshToken || Date.now() - lastRefreshFailure < REFRESH_RETRY_COOLDOWN_MS) {
+    return valid ? stored : null
+  }
+
+  if (!refreshInFlight) {
+    refreshInFlight = (async (): Promise<WclUser | null> => {
+      try {
+        const res = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'user-refresh', refreshToken: stored.refreshToken }),
+        })
+        const data = (await res.json().catch(() => null)) as {
+          token?: string
+          expiresIn?: number
+          refreshToken?: string
+          error?: string
+        } | null
+        if (res.ok && data?.token) {
+          const renewed: WclUser = {
+            token: data.token,
+            expiresAt: Date.now() + (data.expiresIn ?? 3600) * 1000,
+            userName: stored.userName,
+            // WCL rotates refresh tokens; keep the old one if none came back.
+            refreshToken: data.refreshToken || stored.refreshToken,
+          }
+          writeWclUser(renewed)
+          return renewed
+        }
+        if (res.status === 400) {
+          // Refresh token rejected (revoked/rotated elsewhere). Keep a still-valid
+          // access token until it runs out; otherwise sign out so the UI prompts.
+          lastRefreshFailure = Date.now()
+          if (valid) writeWclUser({ ...stored, refreshToken: undefined })
+          else writeWclUser(null)
+          return valid ? readWclUser() : null
+        }
+        // Server/network hiccup — leave storage alone and try again later.
+        lastRefreshFailure = Date.now()
+        return valid ? stored : null
+      } catch {
+        lastRefreshFailure = Date.now()
+        return valid ? stored : null
+      } finally {
+        refreshInFlight = null
+      }
+    })()
+  }
+  return refreshInFlight
+}
+
 /** Current signed-in WCL user; updates live on sign-in/out (this tab and others). */
 export function useWclUser(): WclUser | null {
   const [user, setUser] = useState<WclUser | null>(null)
   useEffect(() => {
     const update = () => setUser(readWclUser())
     update()
+    // Renew a near-expiry/expired token on mount; a successful refresh fires
+    // WCL_USER_CHANGED_EVENT, which re-runs update() everywhere.
+    void ensureFreshWclUser()
     window.addEventListener(WCL_USER_CHANGED_EVENT, update)
     window.addEventListener('storage', update)
     return () => {
