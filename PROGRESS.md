@@ -4,7 +4,49 @@
 > `ARCHITECTURE.md` and `.cursor/rules/parse-analyzer.mdc` for the full picture.
 > Update or prune this file as items get done.
 
-_Last updated: 2026-09-16_
+_Last updated: 2026-09-26_
+
+## Latest session (2026-09-26): MotE trainer, left off here
+
+`/trainer` is a single-target Farseer MotE (Master of the Elements) practice
+game. It replays the Raidbots sample in `src/lib/moteTrainer/steps.ts`. The HUD
+is Cooldown Manager style: spenders on 1–4, cooldowns on Shift+1–3, a proc row,
+a Maelstrom bar, a cast timeline, and a boss nameplate.
+
+What is in place:
+
+- Boss debuffs render only while they are applied. Flame Shock is the only
+  tracked target debuff. Add the next one in `moteTargetDebuffs` in
+  `src/lib/moteTrainer/encounter.ts`. The plate shape lives in
+  `src/lib/trainer/encounter.ts` (`single` | `cleave` | `aoe`); only single
+  target is played.
+- Cue and right/wrong text sit in reserved slots so the bars do not jump.
+  Each cast is a fixed flex column (keybind, icon, charges) so Lava Burst pips
+  do not shift the row.
+- Elemental Blast costs 80 (Eye of the Storm; base is 90). It is greyed until
+  you can pay, or the four-piece tier set makes it free.
+- At Maelstrom above 72 with MotE down and a Lava Burst charge, the accepted
+  cast is Lava Burst even when the sample bolted. That is the Midnight
+  single-target line `52 - 5×Eye of the Storm×(1+Elemental Blast) + 30×Elemental Blast`.
+  After that press the game skips the sample's delayed Lava Burst and lands on
+  the Elemental Blast that spends MotE. Checked against SimulationCraft
+  `midnight` `ActionPriorityLists/default/shaman_elemental.simc` on 2026-09-26;
+  the vendored copy matches that file.
+
+Still open:
+
+- The trainer does not run the APL. It replays the sample and only overrides
+  filler Lightning Bolts that fail the Maelstrom spender line. The other Lava
+  Burst line, `charges_fractional > 1.8`, is not applied. The charge model is a
+  flat 6s recharge and runs ahead of the sample, so a full 2/2 on a filler bolt
+  is not trusted.
+- Stormkeeper and Ancestral Swiftness readiness can disagree with the sample.
+  Those globals were left as the sample cast.
+- Cleave and AoE are types only. No second target, no Chain Lightning.
+- Spell grey-out stops at Elemental Blast and Maelstrom. Other spells stay
+  clickable when they are off cooldown.
+- Next.js watch often dies with `EMFILE`. A hard restart of `npm run dev` is
+  required before the browser sees edits. Dev server was on port 3000.
 
 ## History: per-device copy + row delete (2026-09-16)
 

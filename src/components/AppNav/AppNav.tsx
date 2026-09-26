@@ -50,6 +50,9 @@ const AppNav = () => {
                     <Link href="/talent-preview" className={linkClass(path === '/talent-preview')}>
                         Talents
                     </Link>
+                    <Link href="/trainer" className={linkClass(path === '/trainer')}>
+                        Trainer
+                    </Link>
                     <button
                         type="button"
                         onClick={() => setSettingsOpen((o) => !o)}

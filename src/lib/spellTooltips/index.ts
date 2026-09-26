@@ -21,6 +21,8 @@ function positionTT(e: MouseEvent) {
     el.style.top = y + 'px'
 }
 
+let started = false
+
 async function showTT(e: MouseEvent, spellId: string, knownName?: string) {
     if (_ttActive === spellId) {
         positionTT(e)
@@ -35,7 +37,7 @@ async function showTT(e: MouseEvent, spellId: string, knownName?: string) {
         '<div style="padding:10px 12px;color:#4a5a6a;font-family:DM Sans,sans-serif;font-size:11px">Loading...</div>'
     positionTT(e)
     try {
-        const res = await fetch(`https://nether.wowhead.com/tooltip/spell/${spellId}?dataEnv=11&locale=0`)
+        const res = await fetch(`/api/tooltip?id=${spellId}`)
         const d = await res.json()
         if (_ttActive !== spellId) return
         const iconUrl = d.icon ? `https://wow.zamimg.com/images/wow/icons/medium/${d.icon}.jpg` : ''
@@ -70,22 +72,26 @@ function hideTT() {
     }, 150)
 }
 
+const spellHost = (target: EventTarget | null): HTMLElement | null => {
+    if (!(target instanceof Element)) return null
+    return target.closest('[data-wh-spell]')
+}
+
 export function initTooltipDelegation() {
-    if (typeof document === 'undefined') return
+    if (typeof document === 'undefined' || started) return
+    started = true
 
     document.addEventListener('mouseover', (e) => {
-        const a = (e.target as HTMLElement).closest('a[data-wh-spell]') as HTMLElement | null
-        if (a) {
-            showTT(e, a.dataset.whSpell!, a.dataset.whName)
-            e.stopPropagation()
-        }
+        const host = spellHost(e.target)
+        if (!host?.dataset.whSpell) return
+        showTT(e, host.dataset.whSpell, host.dataset.whName)
     })
     document.addEventListener('mousemove', (e) => {
-        if ((e.target as HTMLElement).closest('a[data-wh-spell]')) positionTT(e)
+        if (spellHost(e.target)) positionTT(e)
     })
     document.addEventListener('mouseout', (e) => {
-        const a = (e.target as HTMLElement).closest('a[data-wh-spell]') as HTMLElement | null
-        if (a && !a.contains(e.relatedTarget as Node)) hideTT()
+        const host = spellHost(e.target)
+        if (host && !host.contains(e.relatedTarget as Node)) hideTT()
     })
 }
 

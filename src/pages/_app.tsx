@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app'
+import '../lib/spellTooltips'
 import '../styles/globals.css'
 import { AppSessionProvider } from '../contexts/AppSessionContext'
 import { AnalyzePageCacheProvider } from '../contexts/AnalyzePageCacheContext'
